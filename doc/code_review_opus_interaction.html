@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 상호작용 & UI 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#0891b2;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#ecfeff;color:#0891b2;border-left-color:#0891b2;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#0891b2;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#0891b2;border-bottom-color:#0891b2;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #0891b2;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#ecfeff;border-color:#a5f3fc;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #a5f3fc;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0891b2;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#0891b2;font-weight:600;}
+
+.flow-box{background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">Interaction &amp; UI &mdash; Opus</div>
+  <div class="nav-sub">상호작용 &amp; UI 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">상호작용 &amp; UI 클래스</div>
+  <div class="hero-sub">인터랙션 시스템과 UI 관리를 담당하는 6개 클래스 &mdash; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">AO_InteractionComponent</span>
+    <span class="badge">AO_InteractableComponent</span>
+    <span class="badge">AO_InteractionWidget</span>
+    <span class="badge">AO_InteractionWidgetController</span>
+    <span class="badge">AO_UIStackManager</span>
+    <span class="badge">AO_UIActionKeySubsystem</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#intcomp">AO_InteractionComponent</a>
+      <a class="toc-item" href="#intable">AO_InteractableComponent</a>
+      <a class="toc-item" href="#intwidget">AO_InteractionWidget</a>
+      <a class="toc-item" href="#intctrl">AO_InteractionWidgetController</a>
+      <a class="toc-item" href="#uistack">AO_UIStackManager</a>
+      <a class="toc-item" href="#uikey">AO_UIActionKeySubsystem</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_InteractionComponent ==================== -->
+    <div class="class-card" id="intcomp">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InteractionComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intcomp','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intcomp','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intcomp','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intcomp','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intcomp" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 캐릭터에 부착되어 상호작용 입력 처리, GAS 어빌리티 부여, 서버 RPC 호출을 총괄하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent (BlueprintSpawnableComponent)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 어빌리티 부여 및 상호작용 실행, 클라이언트에서 입력 바인딩 및 UI 초기화</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">Enhanced Input 바인딩, Server RPC로 상호작용 트리거, 몽타주 멀티캐스트, 위젯 컨트롤러 MVC 계층 생성</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          플레이어 캐릭터에 부착되는 상호작용 전용 컴포넌트입니다.
+          생성자에서 PrimaryComponentTick.bCanEverTick = false로 Tick을 비활성화하고,
+          SetIsReplicatedByDefault(true)로 네트워크 복제를 기본 활성화합니다.<br><br>
+          BeginPlay에서 Owner의 ASC를 UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent()로 조회하고,
+          서버 권한(HasAuthority)이면 GiveDefaultAbilities()를 호출하여 DefaultAbilities 배열의 어빌리티를 GAS에 부여합니다.
+          로컬 플레이어(IsLocalController)이면 InitializeInteractionUI(PC)를 호출하여 InteractionWidget과 WidgetController를 생성합니다.<br><br>
+          Enhanced Input의 Started 이벤트에 OnInteractPressed, Completed 이벤트에 OnInteractReleased를 바인딩하여
+          상호작용 키 입력을 감지합니다. OnInteractPressed는 클라이언트 로컬에서 bIsHoldingInteract를 true로 설정하고,
+          CurrentInteractTarget이 존재하면 ServerTriggerInteract RPC로 서버에 GameplayEvent를 전달합니다.<br><br>
+          GetLifetimeReplicatedProps에서 DOREPLIFETIME 매크로로 bIsHoldingInteract를 복제 등록하여
+          서버-클라이언트 간 홀딩 상태가 동기화됩니다.
+          MulticastPlayInteractionMontage를 통해 MotionWarpingComponent의 워프 타겟 설정과 몽타주 재생을
+          모든 클라이언트에서 동기화합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intcomp" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DefaultAbilities</span></td>
+            <td><span class="var-type">TArray&lt;TSubclassOf&lt;UGameplayAbility&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>BeginPlay 시 서버에서 GAS에 부여할 상호작용 어빌리티 목록입니다. GiveDefaultAbilities()에서 순회하며 GiveAbility로 부여합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractAction</span></td>
+            <td><span class="var-type">UInputAction*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>Enhanced Input에서 상호작용 입력으로 사용할 Input Action 에셋입니다. SetupInputBinding()에서 Started/Completed 이벤트에 바인딩됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsHoldingInteract</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span><span class="prop-tag rep">Replicated</span></td>
+            <td>상호작용 키를 누르고 있는지 여부. DOREPLIFETIME으로 복제 등록되어 서버-클라이언트 간 동기화됩니다. 클라이언트 OnInteractPressed에서 true, 서버 ServerTriggerInteract_Implementation에서도 true로 설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnInteractInputReleased</span></td>
+            <td><span class="var-type">FOnInteractInputReleased</span></td>
+            <td><span class="prop-tag bp">BPAssignable</span></td>
+            <td>상호작용 키를 뗐을 때 브로드캐스트되는 다이내믹 멀티캐스트 델리게이트입니다. 로컬(OnInteractReleased)과 서버(ServerNotifyInteractReleased) 양쪽에서 브로드캐스트됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_InteractionWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>로컬 플레이어에게 생성할 상호작용 위젯의 블루프린트 클래스입니다. InitializeInteractionUI에서 CreateWidget의 템플릿 인자로 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionWidget</span></td>
+            <td><span class="var-type">UAO_InteractionWidget*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>생성된 상호작용 위젯 인스턴스입니다. 로컬 플레이어에서만 유효하며, AddToViewport()로 화면에 표시됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionWidgetController</span></td>
+            <td><span class="var-type">UAO_InteractionWidgetController*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>위젯 컨트롤러 인스턴스로, NewObject&lt;UAO_InteractionWidgetController&gt;(this)로 생성됩니다. 위젯에 메시지를 전달하는 MVC 중간 계층입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentInteractTarget</span></td>
+            <td><span class="var-type">AActor*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>현재 상호작용 대상 액터를 가리키는 포인터입니다. SetCurrentInteractTarget()으로 설정되며, OnInteractPressed에서 ServerTriggerInteract의 인자로 전달됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intcomp" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_InteractionComponent() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PrimaryComponentTick.bCanEverTick = false &mdash; Tick 비활성화 (이벤트 기반 설계)<br>
+                &bull; SetIsReplicatedByDefault(true) &mdash; 네트워크 복제 기본 활성화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">설계 의도</div>
+                Tick 없이 Enhanced Input 이벤트와 Server RPC만으로 상호작용을 처리하는 이벤트 기반 설계입니다.
+                SetIsReplicatedByDefault(true)로 bIsHoldingInteract 복제와 Server/Multicast RPC가 동작합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::BeginPlay() 호출<br>
+                &bull; GetOwner() &rarr; checkf()로 null 시 Fatal 오류<br>
+                &bull; GetOwnerAbilitySystemComponent() &rarr; null이면 AO_LOG(Error) 후 early return<br>
+                &bull; Owner-&gt;HasAuthority() 체크 후 서버에서만 GiveDefaultAbilities() 호출<br>
+                &bull; Owner를 APawn으로 Cast &rarr; GetController() &rarr; APlayerController로 Cast<br>
+                &bull; PC-&gt;IsLocalController()이면 InitializeInteractionUI(PC) 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; Owner와 ASC 유효성 검증 (checkf + null 체크)<br>
+                &#9313; 서버: GiveDefaultAbilities() &mdash; GAS에 상호작용 어빌리티 부여<br>
+                &#9314; Owner &rarr; APawn Cast &rarr; GetController() &rarr; APlayerController Cast<br>
+                &#9315; 로컬 플레이어: InitializeInteractionUI(PC) &mdash; 위젯 + 컨트롤러 생성
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                ASC가 없으면 함수 전체가 early return되어 어빌리티 부여와 UI 초기화 모두 스킵됩니다.
+                서버 권한 체크와 로컬 플레이어 체크가 독립적으로 실행되어, 리슨 서버의 호스트 플레이어는 두 경로 모두 실행합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetupInputBinding(UInputComponent*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PlayerInputComponent와 InteractAction null 체크 &rarr; 둘 중 하나라도 null이면 return<br>
+                &bull; UEnhancedInputComponent로 Cast<br>
+                &bull; BindAction(InteractAction, ETriggerEvent::Started, this, &amp;OnInteractPressed)<br>
+                &bull; BindAction(InteractAction, ETriggerEvent::Completed, this, &amp;OnInteractReleased)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>
+                PlayerCharacter의 SetupPlayerInputComponent()에서 호출됩니다. 외부에서 직접 호출하는 설계로,
+                BeginPlay에서 자동으로 바인딩하지 않습니다. 이는 캐릭터의 입력 컴포넌트 초기화 시점에 맞추기 위함입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InitializeInteractionUI(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; InteractionWidgetClass null 체크 &rarr; 미설정 시 AO_LOG(Error) 후 return<br>
+                &bull; CreateWidget&lt;UAO_InteractionWidget&gt;(PC, InteractionWidgetClass) &rarr; 위젯 인스턴스 생성<br>
+                &bull; 생성 실패 시 AO_LOG(Error) 후 return<br>
+                &bull; NewObject&lt;UAO_InteractionWidgetController&gt;(this) &rarr; 컨트롤러 인스턴스 생성 (Outer = this)<br>
+                &bull; 생성 실패 시 AO_LOG(Error) 후 return<br>
+                &bull; InteractionWidget-&gt;SetWidgetController(InteractionWidgetController) &mdash; MVC 연결<br>
+                &bull; InteractionWidget-&gt;AddToViewport() &mdash; 화면에 표시
+              </div>
+              <div class="fn-section"><div class="fn-section-title">MVC 패턴 흐름</div>
+                &#9312; CreateWidget으로 View(위젯) 생성<br>
+                &#9313; NewObject로 Controller(위젯컨트롤러) 생성 &mdash; Outer를 this(컴포넌트)로 설정하여 GC 소유 관계 형성<br>
+                &#9314; SetWidgetController()로 View에 Controller 주입 &rarr; OnWidgetControllerSet() 호출 &rarr; BP에서 델리게이트 바인딩<br>
+                &#9315; AddToViewport()로 화면에 추가 (항상 표시 상태이며, 실제 가시성은 BP에서 메시지 기반으로 제어)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GiveDefaultAbilities()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; ASC와 Owner-&gt;HasAuthority() 이중 체크 &mdash; 서버에서만 실행 보장<br>
+                &bull; DefaultAbilities 배열 순회:<br>
+                &nbsp;&nbsp;- null 클래스는 continue로 스킵<br>
+                &nbsp;&nbsp;- FGameplayAbilitySpec(AbilityClass, 1, INDEX_NONE, this) 생성 &mdash; Level 1, InputID 없음, SourceObject = this<br>
+                &nbsp;&nbsp;- ASC-&gt;GiveAbility(Spec) &rarr; SpecHandle 반환<br>
+                &nbsp;&nbsp;- Spec.Ability를 UAO_InteractionGameplayAbility로 Cast 시도<br>
+                &nbsp;&nbsp;- ActivationPolicy가 OnSpawn이면 ASC-&gt;TryActivateAbility(SpecHandle) 즉시 활성화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">OnSpawn 정책 상세</div>
+                GA_Interact(주변 탐색) 어빌리티는 OnSpawn으로 설정되어 부여 즉시 활성화됩니다.
+                이 어빌리티 내부에서 WaitForInteractableTraceHit 태스크가 매 프레임 트레이스를 수행하여
+                상호작용 대상을 탐색하고, 발견 시 SetCurrentInteractTarget()으로 대상을 설정합니다.
+                GA_Interact_Execute는 Manual 정책으로 ServerTriggerInteract의 GameplayEvent로만 활성화됩니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                HasAuthority() 체크가 BeginPlay와 GiveDefaultAbilities 내부에서 이중으로 존재합니다.
+                BeginPlay에서 이미 Authority를 확인한 후 호출하므로 내부 체크는 중복이지만,
+                방어적 프로그래밍으로 외부에서 직접 호출될 경우를 대비한 구조입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractPressed()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; bIsHoldingInteract = true &mdash; 로컬에서 즉시 설정 (Replicated이므로 서버에서도 별도 설정)<br>
+                &bull; CurrentInteractTarget이 유효하면 ServerTriggerInteract(CurrentInteractTarget) RPC 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 흐름</div>
+                클라이언트에서 로컬 bIsHoldingInteract를 즉시 true로 설정하고, 동시에 서버 RPC를 호출합니다.
+                서버 RPC 내부에서도 bIsHoldingInteract = true를 설정하므로, 서버의 권위 있는 값이 클라이언트에 복제됩니다.
+                CurrentInteractTarget이 없으면 키를 눌러도 RPC가 전송되지 않습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractReleased()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; bIsHoldingInteract = false &mdash; 로컬에서 즉시 해제<br>
+                &bull; OnInteractInputReleased.Broadcast() &mdash; 로컬 델리게이트 브로드캐스트<br>
+                &bull; ServerNotifyInteractReleased() &mdash; 서버에도 해제 알림 RPC 전송
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                OnInteractInputReleased가 로컬(OnInteractReleased)과 서버(ServerNotifyInteractReleased_Implementation) 양쪽에서
+                각각 브로드캐스트됩니다. 로컬은 클라이언트 측 UI 반응성을 위해, 서버는 GAS 어빌리티 태스크의 홀딩 해제 감지를 위해 사용됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerTriggerInteract(AActor* TargetActor)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; TargetActor null 체크 + IsValidLowLevel() 유효성 검증<br>
+                &bull; bIsHoldingInteract = true &mdash; 서버에서 권위 있는 값 설정<br>
+                &bull; GetOwnerAbilitySystemComponent()로 ASC 획득<br>
+                &bull; FGameplayEventData 구성:<br>
+                &nbsp;&nbsp;- EventTag = AO_InteractionTags::Ability_Action_AbilityInteract_Execute<br>
+                &nbsp;&nbsp;- Instigator = GetOwner() (플레이어 캐릭터)<br>
+                &nbsp;&nbsp;- Target = TargetActor (상호작용 대상)<br>
+                &bull; ASC-&gt;HandleGameplayEvent(Payload.EventTag, &amp;Payload) &rarr; Execute 어빌리티 트리거
+              </div>
+              <div class="fn-section"><div class="fn-section-title">GAS 이벤트 트리거 패턴</div>
+                TryActivateAbility()가 아닌 HandleGameplayEvent()를 사용합니다.
+                GA_Interact_Execute 어빌리티는 WaitGameplayEvent 태스크로 "Ability_Action_AbilityInteract_Execute" 태그를 대기하고 있다가,
+                이 이벤트 수신 시 Target(상호작용 대상)을 페이로드에서 추출하여 상호작용 로직을 실행합니다.
+                이벤트 기반 설계로 서버에서만 어빌리티가 활성화되어 권한 검증이 자연스럽게 이루어집니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerNotifyInteractReleased()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; bIsHoldingInteract = false &mdash; 서버에서 해제 (복제되어 모든 클라이언트에 전파)<br>
+                &bull; OnInteractInputReleased.Broadcast() &mdash; 서버 측 델리게이트 브로드캐스트
+              </div>
+              <div class="fn-section"><div class="fn-section-title">서버 측 브로드캐스트 용도</div>
+                서버에서 실행 중인 GAS 어빌리티 태스크(AO_AbilityTask_WaitInteractionInputRelease)가
+                이 델리게이트를 구독하여 홀딩 해제를 감지하고, 상호작용 완료 또는 취소를 결정합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastPlayInteractionMontage(UAnimMontage*, FTransform, FName)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; MontageToPlay null 체크 &rarr; null이면 return<br>
+                &bull; GetOwner() &rarr; ACharacter로 Cast &rarr; null이면 return<br>
+                &bull; WarpName이 NAME_None이 아니면:<br>
+                &nbsp;&nbsp;- Character-&gt;FindComponentByClass&lt;UMotionWarpingComponent&gt;() 검색<br>
+                &nbsp;&nbsp;- MWC-&gt;AddOrUpdateWarpTargetFromLocation(WarpName, WarpTransform.GetLocation()) 호출<br>
+                &bull; Character-&gt;GetMesh()-&gt;GetAnimInstance() &rarr; AnimInstance-&gt;Montage_Play(MontageToPlay)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">모션 워핑 통합</div>
+                서버에서 상호작용 성공 시 호출되어 모든 클라이언트에서 실행됩니다.
+                WarpTransform.GetLocation()만 사용하여 위치 기반 워핑만 수행합니다 (회전 워핑은 미사용).
+                WarpName이 None이면 모션 워핑 없이 순수 몽타주만 재생됩니다.
+                MotionWarpingComponent가 없는 캐릭터에서도 안전하게 동작합니다 (null 체크).
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInteractionWidgetController()</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>현재 InteractionWidgetController 포인터를 반환합니다. 인라인 함수로 헤더에 정의되어 있습니다. 블루프린트에서 위젯 컨트롤러에 접근하여 BroadcastInteractionMessage를 호출할 때 사용합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetOwnerAbilitySystemComponent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwner()로 Owner 액터 획득<br>
+                &bull; UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner) 호출<br>
+                &bull; Owner가 null이면 nullptr 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">설계 의도</div>
+                IAbilitySystemInterface를 직접 Cast하지 않고 UAbilitySystemBlueprintLibrary를 사용합니다.
+                이 라이브러리는 인터페이스 Cast뿐 아니라 컴포넌트 검색도 수행하여 더 유연하게 ASC를 찾습니다.
+                BeginPlay, GiveDefaultAbilities, ServerTriggerInteract 등 여러 곳에서 호출되는 유틸리티 함수입니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intcomp" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AO_PlayerCharacter</span></td><td>플레이어 캐릭터에 부착되어 동작합니다. SetupInputBinding은 캐릭터의 SetupPlayerInputComponent에서 호출됩니다.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_InteractionWidget</span></td><td>InitializeInteractionUI에서 CreateWidget&lt;UAO_InteractionWidget&gt;(PC, Class)으로 생성 후 AddToViewport 합니다.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_InteractionWidgetController</span></td><td>InitializeInteractionUI에서 NewObject&lt;UAO_InteractionWidgetController&gt;(this)로 생성하여 위젯에 전달합니다.</td></tr>
+          <tr><td>RPC 대상</td><td><span class="rel-cls">UAO_InteractableComponent (간접)</span></td><td>ServerTriggerInteract에서 GameplayEvent의 Target으로 상호작용 대상을 전달하면, GAS 어빌리티가 InteractableComponent의 NotifyInteractionSuccess를 호출합니다.</td></tr>
+          <tr><td>의존</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>GetOwnerAbilitySystemComponent()로 Owner의 ASC를 조회하여 어빌리티 부여 및 GameplayEvent 전송을 수행합니다.</td></tr>
+          <tr><td>의존</td><td><span class="rel-cls">UMotionWarpingComponent</span></td><td>MulticastPlayInteractionMontage에서 FindComponentByClass로 검색하여 워프 타겟을 설정합니다.</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_InteractionGameplayTags.h</span></td><td>ServerTriggerInteract에서 AO_InteractionTags::Ability_Action_AbilityInteract_Execute 태그를 사용합니다.</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_InteractionGameplayAbility.h</span></td><td>GiveDefaultAbilities에서 EAOAbilityActivationPolicy::OnSpawn 체크를 위해 Cast합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_InteractionComponent -->
+
+    <!-- ==================== AO_InteractableComponent ==================== -->
+    <div class="class-card" id="intable">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InteractableComponent</div>
+        <div class="class-parent">부모: UActorComponent &middot; IAO_Interface_Interactable</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intable','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intable','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intable','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intable','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intable" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">상호작용 가능한 액터에 부착되어 상호작용 정보 제공, 메시 콜리전 설정, 이펙트 재생을 담당하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent + IAO_Interface_Interactable 인터페이스 다중 상속</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 NotifyInteractionSuccess 처리 및 멀티캐스트 이펙트 재생 트리거, 클라이언트에서 이펙트 스폰 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">InteractionInfo 반환, 콜리전 채널 설정, VFX/SFX 스폰, 소켓 기반 워핑 Transform 제공</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          상호작용 대상 액터에 부착하는 컴포넌트입니다. UActorComponent와 IAO_Interface_Interactable을 다중 상속하여
+          GetInteractionInfo(), CanInteraction(), GetMeshComponents(), GetInteractionTransform()을 구현합니다.<br><br>
+          생성자에서 PrimaryComponentTick.bCanEverTick = false, SetIsReplicatedByDefault(true)를 설정하고,
+          InteractionTitle을 "Interact", InteractionContent를 ": Press F"로 기본값을 초기화합니다.<br><br>
+          BeginPlay에서 SetupMeshCollisions()를 호출하여 Owner의 모든 유효한 메시 컴포넌트에
+          AO_TraceChannel_Interaction 콜리전 응답을 ECR_Block으로 설정합니다. 이를 통해
+          WaitForInteractableTraceHit 태스크의 라인 트레이스가 이 액터를 감지할 수 있습니다.<br><br>
+          GetInteractionInfo()는 FAO_InteractionInfo 구조체에 Title, Content, Duration(0.0f),
+          AbilityToGrant(UGA_Interact_Base::StaticClass()), 몽타주 2종, 소켓 Transform, WarpTargetName을 채워 반환합니다.
+          AbilityToGrant에 기본 상호작용 어빌리티를 하드코딩하므로, 파생 클래스에서 오버라이드하지 않는 한 모든 상호작용은 GA_Interact_Base를 사용합니다.<br><br>
+          상호작용 성공 시 NotifyInteractionSuccess()가 서버에서 호출되며,
+          InteractionEffect 설정이 유효하면 MulticastPlayInteractionEffect를 통해
+          Niagara/Cascade VFX와 SFX를 모든 클라이언트에서 재생합니다.
+          VFX/SFX 모두 지연 스폰(Delay)을 지원하며, FTimerHandle과 CreateWeakLambda를 사용하여
+          컴포넌트가 Destroy된 이후에도 안전하게 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intable" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">InteractionTitle</span></td>
+            <td><span class="var-type">FText</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 UI에 표시할 제목 텍스트입니다. 기본값 "Interact". GetInteractionInfo()에서 FAO_InteractionInfo.Title에 설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionContent</span></td>
+            <td><span class="var-type">FText</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 UI에 표시할 안내 텍스트입니다. 기본값 ": Press F". GetInteractionInfo()에서 FAO_InteractionInfo.Content에 설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ActiveHoldMontage</span></td>
+            <td><span class="var-type">UAnimMontage*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>홀드 방식 상호작용 시 재생할 몽타주입니다. GetInteractionInfo()에서 Info.ActiveHoldMontage로 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ActiveMontage</span></td>
+            <td><span class="var-type">UAnimMontage*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>즉시 상호작용 시 재생할 몽타주입니다. GetInteractionInfo()에서 Info.ActiveMontage로 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bInteractionEnabled</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span><span class="prop-tag rep">Replicated</span></td>
+            <td>상호작용 활성화 여부. DOREPLIFETIME으로 복제 등록됩니다. false이면 CanInteraction()이 항상 false를 반환하여 트레이스 감지는 되지만 상호작용이 차단됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnInteractionSuccess</span></td>
+            <td><span class="var-type">FOnInteractableSuccess</span></td>
+            <td><span class="prop-tag bp">BPAssignable</span></td>
+            <td>상호작용 성공 시 브로드캐스트되는 델리게이트입니다. Interactor(AActor*)를 인자로 전달합니다. BP에서 바인딩하거나 C++에서 AddDynamic으로 바인딩합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionSocketName</span></td>
+            <td><span class="var-type">FName</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>모션 워핑 Transform을 가져올 메시 소켓 이름입니다. 기본값 "InteractionPoint". GetInteractionTransform()에서 DoesSocketExist()로 검색합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">WarpTargetName</span></td>
+            <td><span class="var-type">FName</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>MotionWarping에서 사용할 워프 타겟 이름입니다. 기본값 "InteractionPoint". GetInteractionInfo()에서 Info.WarpTargetName으로 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionEffect</span></td>
+            <td><span class="var-type">FAO_InteractionEffectSettings</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 성공 시 재생할 VFX/SFX 설정 구조체입니다. Niagara/Cascade VFX, SoundBase SFX, 지연시간, 어태치 여부 등을 포함합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">VFXSpawnTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td></td>
+            <td>VFX 지연 스폰을 위한 타이머 핸들입니다. VFXSpawnDelay &gt; 0일 때 사용되며, 이전 타이머가 있으면 덮어씁니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SFXSpawnTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td></td>
+            <td>SFX 지연 스폰을 위한 타이머 핸들입니다. SoundSpawnDelay &gt; 0일 때 사용됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intable" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_InteractableComponent() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PrimaryComponentTick.bCanEverTick = false<br>
+                &bull; SetIsReplicatedByDefault(true)<br>
+                &bull; InteractionTitle = FText::FromString("Interact")<br>
+                &bull; InteractionContent = FText::FromString(": Press F")
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::BeginPlay() 호출<br>
+                &bull; SetupMeshCollisions() 호출 &mdash; Owner의 메시에 Interaction 콜리전 채널 설정
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                HasAuthority() 체크 없이 서버와 클라이언트 모두에서 콜리전을 설정합니다.
+                트레이스는 로컬 클라이언트에서도 실행되므로 양쪽 모두 콜리전이 필요합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInteractionInfo(const FAO_InteractionQuery&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; FAO_InteractionInfo Info 로컬 생성<br>
+                &bull; Info.Title = InteractionTitle<br>
+                &bull; Info.Content = InteractionContent<br>
+                &bull; Info.Duration = 0.0f &mdash; 기본적으로 즉시 상호작용 (홀딩 불필요)<br>
+                &bull; Info.AbilityToGrant = UGA_Interact_Base::StaticClass() &mdash; 기본 상호작용 어빌리티<br>
+                &bull; Info.ActiveHoldMontage = ActiveHoldMontage<br>
+                &bull; Info.ActiveMontage = ActiveMontage<br>
+                &bull; Info.InteractionTransform = GetInteractionTransform() &mdash; 소켓 또는 액터 Transform<br>
+                &bull; Info.WarpTargetName = WarpTargetName<br>
+                &bull; return Info
+              </div>
+              <div class="fn-section"><div class="fn-section-title">설계 포인트</div>
+                InteractionQuery 파라미터를 받지만 실제로는 사용하지 않습니다. 요청자에 따라 다른 정보를 반환해야 할 때
+                파생 클래스에서 Query의 RequestingAvatar를 활용할 수 있는 확장 포인트입니다.
+                AbilityToGrant에 GA_Interact_Base를 하드코딩하므로, 트레이스 시스템이 이 어빌리티를 플레이어에게 임시 부여하여 상호작용을 실행합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanInteraction(const FAO_InteractionQuery&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; !bInteractionEnabled이면 return false<br>
+                &bull; 그 외 return true
+              </div>
+              <div class="fn-section"><div class="fn-section-title">확장 포인트</div>
+                현재는 bInteractionEnabled만 확인하지만, 파생 클래스에서 오버라이드하여
+                인벤토리 조건, 퀘스트 진행도, 쿨다운 등 추가 조건을 검사할 수 있습니다.
+                InteractionQuery의 RequestingAvatar를 사용하면 플레이어별 조건부 상호작용도 가능합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetMeshComponents(TArray&lt;UMeshComponent*&gt;&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwner() null 체크<br>
+                &bull; Owner-&gt;GetComponents&lt;UMeshComponent&gt;(AllMeshComponents, true) &mdash; 재귀적으로 모든 메시 수집<br>
+                &bull; OutMeshComponents.Reserve(기존 + 새로 수집된 수) &mdash; 메모리 사전 할당<br>
+                &bull; 각 메시를 UStaticMeshComponent, USkeletalMeshComponent로 Cast:<br>
+                &nbsp;&nbsp;- StaticMesh: GetStaticMesh()가 유효한 경우만 추가<br>
+                &nbsp;&nbsp;- SkeletalMesh: GetSkeletalMeshAsset()가 유효한 경우만 추가
+              </div>
+              <div class="fn-section"><div class="fn-section-title">필터링 이유</div>
+                에셋이 할당되지 않은 빈 메시 컴포넌트를 제외합니다.
+                이는 콜리전 설정이나 하이라이트 적용 시 빈 메시에 불필요한 처리를 방지합니다.
+                Reserve()로 사전 할당하여 루프 중 재할당을 최소화합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInteractionTransform()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwner() null 체크 &rarr; null이면 FTransform::Identity 반환<br>
+                &bull; InteractionSocketName이 None이 아니면:<br>
+                &nbsp;&nbsp;- Owner의 모든 UMeshComponent를 재귀 수집<br>
+                &nbsp;&nbsp;- 각 메시에서 DoesSocketExist(InteractionSocketName) 확인<br>
+                &nbsp;&nbsp;- 소켓이 존재하면 GetSocketTransform(InteractionSocketName) 반환<br>
+                &bull; 소켓을 못 찾으면 Owner-&gt;GetActorTransform() 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">소켓 검색 전략</div>
+                모든 메시 컴포넌트를 순회하며 첫 번째로 소켓이 존재하는 메시를 사용합니다.
+                이는 StaticMesh와 SkeletalMesh 모두에서 소켓을 찾을 수 있게 하는 범용 설계입니다.
+                반환된 Transform은 GetInteractionInfo()를 통해 Info.InteractionTransform에 설정되고,
+                최종적으로 MulticastPlayInteractionMontage의 WarpTransform 인자로 전달됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwner() null 체크 + Owner-&gt;HasAuthority() 확인 &mdash; 서버에서만 실행<br>
+                &bull; InteractionEffect.IsValid()이면:<br>
+                &nbsp;&nbsp;- Owner의 위치와 회전을 가져와 MulticastPlayInteractionEffect(Effect, Location, Rotation) 호출<br>
+                &bull; OnInteractionSuccess.Broadcast(Interactor) &mdash; 서버 측 델리게이트 브로드캐스트
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 체인</div>
+                &#9312; 플레이어 F키 &rarr; OnInteractPressed &rarr; ServerTriggerInteract RPC<br>
+                &#9313; 서버: HandleGameplayEvent &rarr; GA_Interact_Execute 어빌리티 활성화<br>
+                &#9314; 어빌리티 내부: InteractableComponent-&gt;NotifyInteractionSuccess(Interactor)<br>
+                &#9315; 이펙트 멀티캐스트 + OnInteractionSuccess 델리게이트 브로드캐스트<br>
+                &#9316; 구독자(Train, BaseInteractable 등)가 델리게이트를 수신하여 후속 로직 실행
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastPlayInteractionEffect(...)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; EffectSettings.IsValid() 체크 &mdash; VFX도 SFX도 없으면 return<br>
+                &bull; FTransform SpawnTransform(Rotation, Location) 구성<br>
+                &bull; <strong>VFX 처리:</strong> HasVFX()이면<br>
+                &nbsp;&nbsp;- VFXSpawnDelay &gt; 0: World-&gt;GetTimerManager().SetTimer(VFXSpawnTimerHandle, CreateWeakLambda(...), Delay, false)<br>
+                &nbsp;&nbsp;- VFXSpawnDelay == 0: 즉시 SpawnVFXInternal() 호출<br>
+                &bull; <strong>SFX 처리:</strong> HasSFX()이면<br>
+                &nbsp;&nbsp;- SoundSpawnDelay &gt; 0: 타이머로 SpawnSFXInternal() 지연 호출<br>
+                &nbsp;&nbsp;- SoundSpawnDelay == 0: 즉시 SpawnSFXInternal() 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">WeakLambda 안전성</div>
+                TWeakObjectPtr&lt;UAO_InteractableComponent&gt;(this)를 캡처하여 타이머 콜백에서
+                컴포넌트 소멸 여부를 확인합니다. CreateWeakLambda로 this의 수명에 바인딩되어,
+                컴포넌트가 Destroy되면 타이머 콜백이 자동으로 무시됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetupMeshCollisions()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetMeshComponents(Meshes)로 유효한 메시 수집<br>
+                &bull; 각 메시에 SetCollisionResponseToChannel(AO_TraceChannel_Interaction, ECR_Block) 설정
+              </div>
+              <div class="fn-section"><div class="fn-section-title">트레이스 연동</div>
+                AO_TraceChannel_Interaction은 프로젝트 설정(DefaultEngine.ini)에 정의된 커스텀 콜리전 채널입니다.
+                WaitForInteractableTraceHit 어빌리티 태스크가 이 채널로 라인 트레이스를 수행하여
+                상호작용 가능한 액터를 탐지합니다. Block 응답으로 설정하므로 트레이스가 이 메시에서 멈춥니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SpawnVFXInternal(const FAO_InteractionEffectSettings&amp;, const FTransform&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; FinalTransform 계산: SpawnTransform에 상대 위치/회전/스케일 적용<br>
+                &bull; EAttachmentRule &rarr; EAttachLocation::Type 변환 (KeepRelative/KeepWorld/SnapToTarget)<br>
+                &bull; OwnerMesh = GetOwner()-&gt;FindComponentByClass&lt;UMeshComponent&gt;() &mdash; 첫 번째 메시<br>
+                &bull; <strong>Niagara 우선:</strong> NiagaraEffect가 유효하면<br>
+                &nbsp;&nbsp;- bAttachVFXToActor && OwnerMesh: SpawnSystemAttached(소켓, 상대위치/회전/스케일)<br>
+                &nbsp;&nbsp;- 그 외: SpawnSystemAtLocation(월드 Transform)<br>
+                &bull; <strong>Cascade 폴백:</strong> NiagaraEffect가 없고 CascadeEffect가 유효하면<br>
+                &nbsp;&nbsp;- bAttachVFXToActor: SpawnEmitterAttached<br>
+                &nbsp;&nbsp;- 그 외: SpawnEmitterAtLocation
+              </div>
+              <div class="fn-section"><div class="fn-section-title">Niagara vs Cascade</div>
+                Niagara가 우선순위이며, 둘 다 설정되어 있어도 Niagara만 스폰됩니다.
+                Cascade는 레거시 지원용 폴백입니다. bAttachVFXToActor로 액터에 부착하거나
+                월드 좌표에 독립 스폰할 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SpawnSFXInternal(const FAO_InteractionEffectSettings&amp;, const FTransform&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; EffectSettings.Sound null 체크<br>
+                &bull; OwnerMesh = GetOwner()-&gt;FindComponentByClass&lt;UMeshComponent&gt;()<br>
+                &bull; bAttachSoundToActor && OwnerMesh:<br>
+                &nbsp;&nbsp;- SpawnSoundAttached(Sound, OwnerMesh, SoundAttachSocketName, FVector::ZeroVector, FRotator::ZeroRotator, KeepRelativeOffset, false, Volume, Pitch)<br>
+                &bull; 그 외:<br>
+                &nbsp;&nbsp;- PlaySoundAtLocation(this, Sound, SpawnTransform.GetLocation(), FRotator::ZeroRotator, Volume, Pitch)
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intable" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>인터페이스</td><td><span class="rel-cls">IAO_Interface_Interactable</span></td><td>상호작용 인터페이스를 구현하여 WaitForInteractableTraceHit 트레이스 시스템과 연동합니다.</td></tr>
+          <tr><td>이벤트 수신</td><td><span class="rel-cls">GAS 어빌리티 (GA_Interact_Execute)</span></td><td>어빌리티 내부에서 NotifyInteractionSuccess()를 호출하여 상호작용 완료를 알립니다.</td></tr>
+          <tr><td>콜리전</td><td><span class="rel-cls">AO_CollisionChannels.h</span></td><td>AO_TraceChannel_Interaction 커스텀 채널을 ECR_Block으로 설정합니다.</td></tr>
+          <tr><td>의존</td><td><span class="rel-cls">FAO_InteractionEffectSettings</span></td><td>VFX/SFX 설정 구조체를 사용하여 Niagara/Cascade/Sound 스폰을 관리합니다.</td></tr>
+          <tr><td>의존 (.cpp)</td><td><span class="rel-cls">UGA_Interact_Base</span></td><td>GetInteractionInfo()에서 AbilityToGrant로 UGA_Interact_Base::StaticClass()를 하드코딩합니다.</td></tr>
+          <tr><td>의존 (.cpp)</td><td><span class="rel-cls">UNiagaraFunctionLibrary</span></td><td>SpawnVFXInternal에서 Niagara 이펙트를 Attached/AtLocation으로 스폰합니다.</td></tr>
+          <tr><td>의존 (.cpp)</td><td><span class="rel-cls">UGameplayStatics</span></td><td>SpawnVFXInternal에서 Cascade, SpawnSFXInternal에서 Sound를 스폰합니다.</td></tr>
+          <tr><td>구독자</td><td><span class="rel-cls">AAO_Train, AAO_BaseInteractable 등</span></td><td>OnInteractionSuccess 델리게이트에 AddDynamic으로 바인딩하여 후속 로직을 실행합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_InteractableComponent -->
+
+    <!-- ==================== AO_InteractionWidget ==================== -->
+    <div class="class-card" id="intwidget">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InteractionWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intwidget','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intwidget','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intwidget','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intwidget','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intwidget" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">상호작용 UI를 표시하는 추상 위젯 클래스 (홀딩 프로그레스, 안내 텍스트 등)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (Abstract, BlueprintType)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">로컬 클라이언트에서만 생성 및 표시 &mdash; InteractionComponent의 InitializeInteractionUI에서 CreateWidget으로 생성</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">WidgetController 보관, MVC View 역할로 OnWidgetControllerSet 이벤트를 통해 BP에서 UI 갱신 로직 구현</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Abstract로 선언된 UUserWidget 파생 클래스입니다. UCLASS(Abstract, BlueprintType)이므로 직접 인스턴스화할 수 없고,
+          블루프린트에서 파생하여 실제 UI 레이아웃과 비주얼을 구현합니다.<br><br>
+          C++ 측에서는 WidgetController 참조(BlueprintReadOnly)만 보관합니다.
+          SetWidgetController()가 호출되면 멤버에 저장한 뒤 OnWidgetControllerSet()을 즉시 호출합니다.
+          OnWidgetControllerSet은 BlueprintImplementableEvent이므로 C++에 구현부가 없으며,
+          블루프린트 파생 클래스에서 이 이벤트를 오버라이드하여 WidgetController의
+          OnInteractionMessageReceived 델리게이트에 바인딩하는 등 초기화 작업을 수행합니다.<br><br>
+          MVC 패턴에서 View 역할을 담당합니다:
+          Model = FAO_InteractionInfo (상호작용 데이터),
+          Controller = UAO_InteractionWidgetController (메시지 브로드캐스터),
+          View = 이 위젯 (블루프린트 구현).
+          Controller의 델리게이트를 구독하여 메시지 수신 시 UI를 갱신하는 구조입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intwidget" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">WidgetController</span></td>
+            <td><span class="var-type">UAO_InteractionWidgetController*</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이 위젯에 연결된 위젯 컨트롤러 인스턴스입니다. SetWidgetController()를 통해 설정되며, BP에서 GetWidgetController()로 접근합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intwidget" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetWidgetController(UAO_InteractionWidgetController*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; WidgetController = InController &mdash; 멤버에 저장<br>
+                &bull; OnWidgetControllerSet() &mdash; 즉시 BP 이벤트 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>
+                UAO_InteractionComponent::InitializeInteractionUI()에서 위젯과 컨트롤러를 생성한 직후 호출됩니다.
+                null 체크 없이 바로 저장하고 이벤트를 호출하므로, 호출자가 유효한 컨트롤러를 전달해야 합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnWidgetControllerSet()</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>
+                WidgetController 설정 직후 호출되는 블루프린트 구현 이벤트입니다.
+                C++에 구현부가 없으며(BlueprintImplementableEvent), 블루프린트 파생 위젯에서 오버라이드합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">BP에서의 전형적인 구현</div>
+                &#9312; GetWidgetController() 호출<br>
+                &#9313; OnInteractionMessageReceived 델리게이트에 커스텀 이벤트 바인딩<br>
+                &#9314; 이벤트 수신 시 FAO_InteractionMessage의 MessageType, InteractionInfo, bSwitchActive 등을 읽어 UI 갱신<br>
+                &#9315; Notice 타입이면 텍스트 표시, Progress 타입이면 홀딩 프로그레스 바 갱신
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetWidgetController()</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>
+                현재 설정된 WidgetController 포인터를 반환합니다. 인라인 함수로 헤더에 정의되어 있습니다.
+                BP에서 컨트롤러에 접근하여 델리게이트를 바인딩하거나, 직접 BroadcastInteractionMessage/HideInteraction을 호출할 때 사용합니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intwidget" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>InitializeInteractionUI()에서 CreateWidget&lt;UAO_InteractionWidget&gt;(PC, Class)로 생성됩니다.</td></tr>
+          <tr><td>컨트롤러</td><td><span class="rel-cls">UAO_InteractionWidgetController</span></td><td>SetWidgetController()로 컨트롤러를 전달받아 OnInteractionMessageReceived 메시지를 수신합니다.</td></tr>
+          <tr><td>파생</td><td><span class="rel-cls">블루프린트 위젯 (WBP)</span></td><td>Abstract 클래스이므로 블루프린트에서 파생하여 실제 UI 레이아웃과 OnWidgetControllerSet 이벤트를 구현합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_InteractionWidget -->
+
+    <!-- ==================== AO_InteractionWidgetController ==================== -->
+    <div class="class-card" id="intctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InteractionWidgetController</div>
+        <div class="class-parent">부모: UObject</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">상호작용 위젯의 데이터 중간 계층 &mdash; MVC의 Controller로서 메시지를 브로드캐스트하여 UI를 갱신</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UObject (BlueprintType, Blueprintable)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">로컬 클라이언트에서만 동작 &mdash; NewObject로 생성되어 InteractionComponent의 Outer로 소유</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">FAO_InteractionMessage 브로드캐스트를 통한 위젯 갱신, HideInteraction()으로 UI 초기화</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">EAO_InteractionMessageType (Enum)</div>
+          <div class="struct-field">
+            <div class="sf-name">Notice</div>
+            <div class="sf-desc">알림형 메시지 &mdash; 상호작용 가능 표시 (텍스트, 아이콘)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">Progress</div>
+            <div class="sf-desc">진행형 메시지 &mdash; 홀딩 프로그레스 바 갱신</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">FAO_InteractionMessage (Struct)</div>
+          <div class="struct-field">
+            <div class="sf-name">MessageType</div>
+            <div class="sf-desc">Notice 또는 Progress 타입 구분 (기본값 Notice)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">Instigator</div>
+            <div class="sf-desc">상호작용을 시작한 액터 (AActor*)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bShouldRefresh</div>
+            <div class="sf-desc">UI 전체 갱신 필요 여부 플래그</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bSwitchActive</div>
+            <div class="sf-desc">활성/비활성 전환 플래그 (위젯 표시/숨김 제어)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">InteractionInfo</div>
+            <div class="sf-desc">FAO_InteractionInfo &mdash; Title, Content, Duration, AbilityToGrant, 몽타주, Transform 등 상호작용 전체 정보</div>
+          </div>
+        </div>
+
+        <div class="desc-block">
+          MVC 패턴의 Controller 역할을 담당하는 UObject입니다. UCLASS(BlueprintType, Blueprintable)로 선언되어
+          블루프린트에서도 참조 가능합니다.<br><br>
+          GAS 어빌리티 태스크(WaitForInteractableTraceHit, WaitForInvalidInteraction 등)에서
+          상호작용 대상이 발견/변경/해제될 때 BroadcastInteractionMessage()를 호출하면,
+          OnInteractionMessageReceived 다이내믹 멀티캐스트 델리게이트를 통해 위젯에 메시지를 전달합니다.<br><br>
+          HideInteraction()은 빈 FAO_InteractionMessage(기본 생성자 값)를 브로드캐스트하여
+          위젯을 초기 상태(숨김)로 되돌립니다. 이 패턴으로 "상호작용 불가능" 상태와 "아무 대상 없음" 상태를 모두 처리합니다.<br><br>
+          NewObject&lt;UAO_InteractionWidgetController&gt;(this)로 생성되므로
+          Outer가 UAO_InteractionComponent이며, GC 소유 관계가 컴포넌트 수명에 바인딩됩니다.
+          컴포넌트가 파괴되면 컨트롤러도 GC 대상이 됩니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">OnInteractionMessageReceived</span></td>
+            <td><span class="var-type">FOnInteractionMessageReceived</span></td>
+            <td><span class="prop-tag bp">BPAssignable</span></td>
+            <td>상호작용 메시지가 수신될 때 호출되는 다이내믹 멀티캐스트 델리게이트입니다. DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionMessageReceived, FAO_InteractionMessage, Message)로 선언됩니다. 위젯의 OnWidgetControllerSet에서 바인딩합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intctrl" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BroadcastInteractionMessage(FAO_InteractionMessage)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; OnInteractionMessageReceived.Broadcast(Message) &mdash; 단순 위임
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출자 상세</div>
+                GAS 어빌리티 태스크에서 호출됩니다:<br>
+                &bull; <strong>WaitForInteractableTraceHit</strong>: 트레이스로 새 대상 발견 시 bSwitchActive=true, MessageType=Notice, InteractionInfo 채움<br>
+                &bull; <strong>WaitForInvalidInteraction</strong>: 대상이 범위를 벗어나거나 유효하지 않으면 bSwitchActive=false로 설정<br>
+                &bull; <strong>홀딩 진행</strong>: Duration &gt; 0일 때 매 Tick마다 MessageType=Progress로 진행률 갱신
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HideInteraction()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; FAO_InteractionMessage EmptyMessage &mdash; 기본 생성자로 생성 (bSwitchActive=false, MessageType=Notice)<br>
+                &bull; OnInteractionMessageReceived.Broadcast(EmptyMessage)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용 패턴</div>
+                빈 메시지의 bSwitchActive 기본값이 false이므로, 위젯 BP에서 bSwitchActive가 false이면
+                상호작용 UI를 숨기는 로직으로 구현합니다. 이를 통해 "숨김"이라는 별도의 메시지 타입 없이
+                기본값으로 자연스럽게 숨김 처리됩니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>InitializeInteractionUI()에서 NewObject&lt;UAO_InteractionWidgetController&gt;(this)로 생성됩니다. Outer = InteractionComponent.</td></tr>
+          <tr><td>구독자</td><td><span class="rel-cls">UAO_InteractionWidget (블루프린트)</span></td><td>OnInteractionMessageReceived 델리게이트를 위젯이 OnWidgetControllerSet에서 바인딩하여 UI를 갱신합니다.</td></tr>
+          <tr><td>호출자</td><td><span class="rel-cls">AO_AbilityTask_WaitForInteractableTraceHit</span></td><td>트레이스로 새 대상 발견 시 BroadcastInteractionMessage()를 호출합니다.</td></tr>
+          <tr><td>호출자</td><td><span class="rel-cls">AO_AbilityTask_WaitForInvalidInteraction</span></td><td>대상이 유효하지 않게 되면 bSwitchActive=false 메시지를 브로드캐스트합니다.</td></tr>
+          <tr><td>호출자</td><td><span class="rel-cls">AO_AbilityTask_WaitInteractionInputRelease</span></td><td>홀딩 진행 중 Progress 메시지를 주기적으로 브로드캐스트합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_InteractionWidgetController -->
+
+    <!-- ==================== AO_UIStackManager ==================== -->
+    <div class="class-card" id="uistack">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_UIStackManager</div>
+        <div class="class-parent">부모: UGameInstanceSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'uistack','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'uistack','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'uistack','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'uistack','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="uistack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">위젯 스택 기반 UI 관리자 &mdash; Push/Pop으로 입력 모드와 커서를 자동 전환하는 GameInstance 서브시스템</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UGameInstanceSubsystem (맵 전환에도 영속)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">로컬 클라이언트에서만 동작 (UI는 서버에서 관리하지 않음)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">위젯 스택 Push/Pop, 입력 모드 정책 적용, Pause 메뉴 토글, 입력 상태 베이스라인 캐시/복구</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">EAOUIStackInputMode (Enum)</div>
+          <div class="struct-field">
+            <div class="sf-name">UIOnly</div>
+            <div class="sf-desc">UI 입력만 허용 (FInputModeUIOnly &mdash; 게임 입력 완전 차단)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">GameAndUI</div>
+            <div class="sf-desc">게임과 UI 입력을 동시에 허용 (FInputModeGameAndUI)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">GameOnly</div>
+            <div class="sf-desc">게임 입력만 허용 (FInputModeGameOnly &mdash; UI 입력 차단)</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">FAOUIStackPolicy (Struct)</div>
+          <div class="struct-field">
+            <div class="sf-name">InputMode</div>
+            <div class="sf-desc">위젯이 활성화될 때 적용할 입력 모드 (기본값 GameAndUI)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bShowMouseCursor</div>
+            <div class="sf-desc">마우스 커서 표시 여부 (기본값 true)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">MouseLockMode</div>
+            <div class="sf-desc">마우스 잠금 동작 (기본값 DoNotLock)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bHideCursorDuringCapture</div>
+            <div class="sf-desc">캡처 중 커서 숨김 여부 (기본값 false)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">InitialFocusWidget</div>
+            <div class="sf-desc">Push 시 키보드 포커스를 받을 위젯 (TWeakObjectPtr)</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">FAOUIStackEntry (Struct)</div>
+          <div class="struct-field">
+            <div class="sf-name">Widget</div>
+            <div class="sf-desc">스택에 저장된 위젯 인스턴스 (TObjectPtr)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">WidgetClass</div>
+            <div class="sf-desc">위젯의 UClass (클래스별 검색용)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">Policy</div>
+            <div class="sf-desc">이 위젯에 적용할 입력 정책</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">ZOrder</div>
+            <div class="sf-desc">뷰포트에서의 Z 순서 (StackBaseZOrder + 스택 인덱스)</div>
+          </div>
+        </div>
+
+        <div class="struct-box">
+          <div class="struct-title">FAOUIInputSnapshot (Struct)</div>
+          <div class="struct-field">
+            <div class="sf-name">InputMode</div>
+            <div class="sf-desc">입력 모드 (GameOnly 기본값)</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bShowMouseCursor</div>
+            <div class="sf-desc">커서 표시 상태</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bEnableClickEvents / bEnableMouseOverEvents</div>
+            <div class="sf-desc">클릭/마우스오버 이벤트 활성화 상태</div>
+          </div>
+          <div class="struct-field">
+            <div class="sf-name">bIgnoreLookInput / bIgnoreMoveInput</div>
+            <div class="sf-desc">시점/이동 입력 무시 상태 &mdash; IsLookInputIgnored(), IsMoveInputIgnored()로 캡처</div>
+          </div>
+        </div>
+
+        <div class="desc-block">
+          GameInstance 서브시스템으로 맵 전환에도 유지되는 UI 스택 관리자입니다.
+          Initialize에서 UAO_DelegateManager의 OnSettingsOpen/Close 델리게이트를 바인딩합니다.<br><br>
+          <strong>Push 메커니즘:</strong> PushWidgetInstance()로 위젯을 스택에 쌓으면, 먼저 CacheBaselineIfNeeded()로
+          UI 스택 사용 이전의 입력 상태를 스냅샷합니다. 같은 인스턴스가 이미 Top이면 정책만 재적용하고,
+          새로운 위젯이면 ZOrder를 계산하여 AddToViewport()하고 스택에 추가합니다.
+          마지막으로 ApplyTopPolicy()로 Top 위젯의 FAOUIStackPolicy를 PC에 적용합니다.<br><br>
+          <strong>Pop 메커니즘:</strong> PopTop()은 Top 위젯을 Collapsed로 숨기고 스택에서 제거합니다.
+          RemoveFromParent()가 아닌 Collapsed로 숨기므로 위젯 인스턴스가 보존됩니다.
+          PopAll()은 모든 위젯을 RemoveFromParent()로 완전 제거합니다.
+          PopByClass()는 뒤에서부터 검색하여 첫 번째 일치 항목만 제거합니다.<br><br>
+          <strong>Fallback 정책:</strong> 스택이 비었을 때 ApplyFallbackPolicy()를 호출하여 베이스라인 복구를 시도합니다.
+          사망 상태(bIsAlive == false)에서는 GameAndUI + IgnoreLook/MoveInput으로 관전 UI를 지원하고,
+          생존 상태에서는 RestoreBaselineInput()으로 원래 입력 상태를 복구하거나
+          실패 시 GameOnly + 커서 숨김의 안전 기본값을 적용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="uistack" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DelegateManagerCached</span></td>
+            <td><span class="var-type">UAO_DelegateManager*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>설정창 열기/닫기 델리게이트를 바인딩하기 위해 캐시한 DelegateManager입니다. Initialize에서 GetGameInstance()-&gt;GetSubsystem&lt;UAO_DelegateManager&gt;()로 획득합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Stack</span></td>
+            <td><span class="var-type">TArray&lt;FAOUIStackEntry&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>위젯 스택 배열입니다. Last()가 현재 최상단 위젯입니다. TArray를 스택으로 사용하여 Add/Pop/Last로 LIFO 동작합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StackBaseZOrder</span></td>
+            <td><span class="var-type">int32 (static constexpr)</span></td>
+            <td></td>
+            <td>스택 위젯의 기본 Z 순서입니다. 값은 100이며, 스택 인덱스가 더해져 나중에 Push된 위젯이 위에 표시됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">BaselineInputByPC</span></td>
+            <td><span class="var-type">TMap&lt;TWeakObjectPtr&lt;APlayerController&gt;, FAOUIInputSnapshot&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>UI 스택 사용 이전의 원래 입력 상태를 PC별로 캐시합니다. CacheBaselineIfNeeded에서 처음 Push 시에만 캡처합니다. TWeakObjectPtr로 PC 수명에 안전합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LastAppliedInputByPC</span></td>
+            <td><span class="var-type">TMap&lt;TWeakObjectPtr&lt;APlayerController&gt;, FAOUIInputSnapshot&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>UI 스택이 마지막으로 적용한 입력 상태를 PC별로 저장합니다. ApplyPolicyToPC 시작 시 현재 상태를 저장합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PauseMenuLockCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>Pause 메뉴 열기 잠금 카운터입니다. 0 이하일 때만 Pause 메뉴를 열 수 있습니다. LockPauseMenu()로 증가, UnlockPauseMenu()로 FMath::Max(0, -1)하여 음수 방지합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="uistack" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize(FSubsystemCollectionBase&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::Initialize(Collection) 호출<br>
+                &bull; GetGameInstance()-&gt;GetSubsystem&lt;UAO_DelegateManager&gt;()로 DelegateManager 캐시<br>
+                &bull; DelegateManager가 유효하면:<br>
+                &nbsp;&nbsp;- OnSettingsOpen.AddDynamic(this, &amp;HandleSettingsOpen)<br>
+                &nbsp;&nbsp;- OnSettingsClose.AddDynamic(this, &amp;HandleSettingsClose)<br>
+                &bull; null이면 AO_LOG(Warning) 출력
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Deinitialize()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Stack의 모든 Entry 순회 &rarr; Widget-&gt;RemoveFromParent()로 뷰포트에서 제거<br>
+                &bull; Stack.Empty() &mdash; 배열 초기화<br>
+                &bull; BaselineInputByPC.Empty() / LastAppliedInputByPC.Empty() &mdash; 스냅샷 맵 초기화<br>
+                &bull; Super::Deinitialize() 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PushWidgetInstance(APlayerController*, UUserWidget*, const FAOUIStackPolicy&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC, Widget null 체크<br>
+                &bull; CacheBaselineIfNeeded(PC) &mdash; 처음 Push 시 원래 입력 상태 캡처<br>
+                &bull; Stack.Last().Widget == Widget이면 (같은 인스턴스가 Top):<br>
+                &nbsp;&nbsp;- SetVisibility(Visible), SetIsFocusable(true), SetKeyboardFocus()<br>
+                &nbsp;&nbsp;- ApplyTopPolicy(PC) 후 return<br>
+                &bull; FAOUIStackEntry 생성: Widget, WidgetClass(GetClass()), Policy, ZOrder(100 + Stack.Num())<br>
+                &bull; !Widget-&gt;IsInViewport()이면 AddToViewport(ZOrder)<br>
+                &bull; SetVisibility(Visible), SetIsFocusable(true), SetKeyboardFocus()<br>
+                &bull; Stack.Add(Entry) &rarr; ApplyTopPolicy(PC)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">ZOrder 계산</div>
+                StackBaseZOrder(100) + Stack.Num()으로 계산됩니다. 첫 번째 위젯은 100, 두 번째는 101, 세 번째는 102...
+                나중에 Push된 위젯이 항상 위에 표시됩니다. 기존 UI 위젯(100 미만)을 가리지 않도록 베이스가 100입니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">PopTop과의 비대칭</div>
+                PushWidgetInstance는 AddToViewport를 호출하지만, PopTop은 RemoveFromParent가 아닌
+                SetVisibility(Collapsed)만 합니다. 이로 인해 Pop된 위젯도 뷰포트에 남아 있어
+                재Push 시 IsInViewport() 체크로 중복 추가를 방지합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PopTop(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; Stack 비어있으면 ApplyFallbackPolicy(PC) 후 return<br>
+                &bull; TopEntry = Stack.Last() 복사 후 Stack.Pop()<br>
+                &bull; TopEntry.Widget &rarr; SetVisibility(Collapsed) &mdash; 숨기되 제거하지 않음<br>
+                &bull; Stack에 남은 항목이 있으면 ApplyTopPolicy(PC) &rarr; return<br>
+                &bull; Stack이 비었으면 ApplyFallbackPolicy(PC)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PopAll(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; Stack의 모든 Entry 순회 &rarr; Widget-&gt;RemoveFromParent() &mdash; 완전 제거<br>
+                &bull; Stack.Empty()<br>
+                &bull; ApplyFallbackPolicy(PC)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">PopTop과의 차이</div>
+                PopTop은 Collapsed로 숨기지만, PopAll은 RemoveFromParent로 뷰포트에서 완전 제거합니다.
+                맵 전환이나 전체 UI 리셋 시 사용됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PopByClass(APlayerController*, TSubclassOf&lt;UUserWidget&gt;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC, WidgetClass null 체크<br>
+                &bull; Stack을 역순(뒤에서부터) 순회:<br>
+                &nbsp;&nbsp;- WidgetClass가 일치하면 Widget-&gt;RemoveFromParent(), Stack.RemoveAt(Index), break<br>
+                &bull; Stack에 남은 항목이 있으면 ApplyTopPolicy(PC) &rarr; return<br>
+                &bull; Stack이 비었으면 ApplyFallbackPolicy(PC)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                역순 순회로 가장 최근에 Push된 항목부터 검색합니다. 같은 클래스가 여러 개 있어도 하나만 제거합니다.
+                PopByClass는 RemoveFromParent를 사용하므로 PopTop(Collapsed)과 동작이 다릅니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PopIfTopIsClass(APlayerController*, TSubclassOf&lt;UUserWidget&gt;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC, WidgetClass null 체크, Stack 비어있으면 return<br>
+                &bull; Stack.Last().WidgetClass != WidgetClass이면 return (Top이 해당 클래스가 아님)<br>
+                &bull; PopTop(PC) 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryTogglePauseMenu(APlayerController*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; !CanOpenPauseMenu()이면 return (잠금 상태)<br>
+                &bull; AAO_PlayerController_InGameBase로 Cast &rarr; null이면 return (인게임이 아님)<br>
+                &bull; InGamePC-&gt;GetPauseMenuWidgetClass()로 클래스 획득<br>
+                &bull; InGamePC-&gt;GetOrCreatePauseMenuWidget()로 인스턴스 획득/생성<br>
+                &bull; <strong>케이스 1:</strong> Stack에 UI가 있고 Top != PauseWidget &rarr; PopTop(PC) (다른 UI 닫기)<br>
+                &bull; <strong>케이스 2:</strong> Stack에 UI가 있고 Top == PauseWidget &rarr; PopTop(PC) (Pause 닫기)<br>
+                &bull; <strong>케이스 3:</strong> Stack이 비어있으면 UIOnly 정책으로 PushWidgetInstance (Pause 열기)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">통합 토글 패턴</div>
+                ESC/P 키 하나로 세 가지 동작을 통합합니다:<br>
+                &#9312; 설정창 등 다른 UI가 Top이면 그것만 닫기<br>
+                &#9313; Pause가 Top이면 Pause 닫기<br>
+                &#9314; 아무 UI도 없으면 Pause 열기<br>
+                이 3단 로직으로 사용자가 ESC를 연속으로 누르면 "설정 닫기 &rarr; Pause 닫기" 순서로 동작합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyTopPolicy(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; Stack 비어있으면 ApplyFallbackPolicy(PC) 후 return<br>
+                &bull; Stack.Last()의 Policy를 ApplyPolicyToPC(PC, Policy)로 적용<br>
+                &bull; InitialFocusWidget이 유효하면 SetKeyboardFocus()
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyFallbackPolicy(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; AAO_PlayerState로 Cast &rarr; bIsAlive == false이면 bIsDead = true<br>
+                &bull; <strong>사망 상태:</strong><br>
+                &nbsp;&nbsp;- FInputModeGameAndUI + DoNotLock + HideCursorDuringCapture=false<br>
+                &nbsp;&nbsp;- bShowMouseCursor=true, bEnableClickEvents=true, bEnableMouseOverEvents=true<br>
+                &nbsp;&nbsp;- SetIgnoreLookInput(true), SetIgnoreMoveInput(true) &mdash; 관전 모드<br>
+                &nbsp;&nbsp;- SetFocusToGameViewport() + FlushPressedKeys() 후 return<br>
+                &bull; <strong>생존 상태:</strong><br>
+                &nbsp;&nbsp;- RestoreBaselineInput(PC) 시도<br>
+                &nbsp;&nbsp;- 실패 시 FInputModeGameOnly + bShowMouseCursor=false (안전 기본값)<br>
+                &nbsp;&nbsp;- SetFocusToGameViewport() + FlushPressedKeys()<br>
+                &nbsp;&nbsp;- SetIgnoreLookInput(false), SetIgnoreMoveInput(false)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사망 상태 처리</div>
+                사망 시 커서를 표시하고 클릭/마우스오버를 활성화하되, 캐릭터 조작(이동/시점)은 차단합니다.
+                이로써 사망 후에도 UI 버튼을 클릭할 수 있지만 캐릭터는 움직이지 않는 관전 모드가 구현됩니다.
+                TODO 주석: "앉기 점프 등 확인 요망" &mdash; 추가 입력 차단이 필요할 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyPolicyToPC(APlayerController*, const FAOUIStackPolicy&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PC null 체크<br>
+                &bull; LastAppliedInputByPC[PC] = FAOUIInputSnapshot(PC) &mdash; 현재 상태 저장<br>
+                &bull; switch(Policy.InputMode):<br>
+                &nbsp;&nbsp;- GameOnly: FInputModeGameOnly + SetConsumeCaptureMouseDown(bHideCursorDuringCapture)<br>
+                &nbsp;&nbsp;- UIOnly: FInputModeUIOnly + SetLockMouseToViewportBehavior(MouseLockMode)<br>
+                &nbsp;&nbsp;- GameAndUI: FInputModeGameAndUI + SetLockMouseToViewportBehavior + SetHideCursorDuringCapture<br>
+                &bull; PC-&gt;bShowMouseCursor = Policy.bShowMouseCursor<br>
+                &bull; InitialFocusWidget이 유효하면 SetKeyboardFocus()
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleSettingsOpen() / HandleSettingsClose()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">HandleSettingsOpen 구현 (.cpp)</div>
+                &bull; PlayerController(0)을 AAO_PlayerController로 Cast<br>
+                &bull; PC-&gt;GetOrCreateSettingsWidgetInstance()로 설정 위젯 획득<br>
+                &bull; GameAndUI + bShowMouseCursor=true 정책으로 PushWidgetInstance()<br>
+                &bull; PC-&gt;SetIgnoreMoveInput(true), SetIgnoreLookInput(true) &mdash; 설정 중 조작 차단
+              </div>
+              <div class="fn-section"><div class="fn-section-title">HandleSettingsClose 구현 (.cpp)</div>
+                &bull; PlayerController(0) 획득<br>
+                &bull; PopTop(PC) &mdash; 설정 위젯 제거<br>
+                &bull; Stack에 남은 UI가 있으면 Top 위젯에 SetIsFocusable(true) + SetKeyboardFocus() &mdash; 포커스 복원
+              </div>
+              <div class="fn-section"><div class="fn-section-title">포커스 복원 이유</div>
+                설정창을 닫으면 Pause 메뉴가 Top이 될 수 있습니다. 이때 Pause 메뉴에 포커스를 다시 줘야
+                키보드 입력(ESC 등)을 받을 수 있습니다. SetIsFocusable + SetKeyboardFocus 호출로 이를 보장합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetTopUserWidget() / IsTopPauseMenu()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>GetTopUserWidget:</strong> Stack 비어있으면 nullptr, Stack.Last().Widget을 UAO_UserWidget으로 Cast, 실패 시 nullptr<br>
+                &bull; <strong>IsTopPauseMenu:</strong> Stack 비어있거나 Widget이 null이면 false, Widget-&gt;IsA&lt;UAO_PauseMenuWidget&gt;()으로 판별
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">LockPauseMenu() / UnlockPauseMenu() / CanOpenPauseMenu()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>LockPauseMenu:</strong> ++PauseMenuLockCount<br>
+                &bull; <strong>UnlockPauseMenu:</strong> PauseMenuLockCount = FMath::Max(0, PauseMenuLockCount - 1) &mdash; 음수 방지<br>
+                &bull; <strong>CanOpenPauseMenu:</strong> return (PauseMenuLockCount &lt;= 0) &mdash; 0 이하이면 열기 가능
+              </div>
+              <div class="fn-section"><div class="fn-section-title">잠금 카운터 패턴</div>
+                bool 대신 카운터를 사용하여 여러 시스템이 독립적으로 잠금/해제할 수 있습니다.
+                예: 컷씬 시작 시 Lock, 컷씬 종료 시 Unlock. 두 개의 컷씬이 겹쳐도 카운터가 2이므로
+                하나만 끝나도 잠금이 유지됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CacheBaselineIfNeeded() / RestoreBaselineInput() / InferCurrentSnapshot()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>CacheBaselineIfNeeded:</strong> BaselineInputByPC에 PC가 없으면 InferCurrentSnapshot으로 캡처 후 Add<br>
+                &bull; <strong>InferCurrentSnapshot:</strong> PC의 bShowMouseCursor, bEnableClickEvents, bEnableMouseOverEvents, IsLookInputIgnored(), IsMoveInputIgnored()를 스냅샷<br>
+                &bull; <strong>RestoreBaselineInput:</strong> BaselinePtr를 Find, null이면 false 반환. bShowMouseCursor 기준으로 GameAndUI/GameOnly 모드 복원, 나머지 플래그도 복원, true 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">베이스라인 전략</div>
+                처음 UI가 Push될 때만 캡처하고, 이후 Push에서는 이미 캐시된 상태를 유지합니다.
+                이로써 UI 스택이 여러 단계 중첩되어도, 모두 Pop되면 원래 상태로 정확히 복구됩니다.
+                RestoreBaselineInput의 입력 모드 복원이 bShowMouseCursor 기반이라 정확하지 않을 수 있지만,
+                대부분의 경우 커서가 보이면 GameAndUI, 안 보이면 GameOnly로 충분합니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="uistack" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>의존</td><td><span class="rel-cls">UAO_DelegateManager</span></td><td>Initialize에서 OnSettingsOpen/Close 델리게이트를 AddDynamic으로 바인딩합니다.</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>TryTogglePauseMenu에서 GetPauseMenuWidgetClass(), GetOrCreatePauseMenuWidget()을 호출합니다.</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">AAO_PlayerController</span></td><td>HandleSettingsOpen에서 Cast하여 GetOrCreateSettingsWidgetInstance()를 호출합니다.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>ApplyFallbackPolicy에서 bIsAlive를 확인하여 사망/생존 상태별 입력 정책을 분기합니다.</td></tr>
+          <tr><td>관리</td><td><span class="rel-cls">UAO_PauseMenuWidget</span></td><td>TryTogglePauseMenu에서 Push/Pop 및 IsTopPauseMenu() 판별에 사용합니다.</td></tr>
+          <tr><td>관리</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>GetTopUserWidget()에서 스택 최상단을 UAO_UserWidget으로 캐스트합니다.</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">WidgetBlueprintLibrary.h</span></td><td>ApplyFallbackPolicy에서 SetFocusToGameViewport()를 호출합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_UIStackManager -->
+
+    <!-- ==================== AO_UIActionKeySubsystem ==================== -->
+    <div class="class-card" id="uikey">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_UIActionKeySubsystem</div>
+        <div class="class-parent">부모: UGameInstanceSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'uikey','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'uikey','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'uikey','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'uikey','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="uikey" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">UI 열기/닫기 키를 InputMappingContext에서 읽어 캐시하고, 특정 키가 UI 키인지 판별하는 서브시스템</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UGameInstanceSubsystem (맵 전환에도 영속)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">로컬 클라이언트에서만 동작 (UI 키바인드 추상화 계층)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">IMC에서 IA_UI_Open/Close 매핑 키 추출, IsUIOpenKey/CloseKey 판별 함수 제공, 캐시된 에셋 Getter</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GameInstance 서브시스템으로 초기화 시 RefreshCache()를 호출하여 에셋을 로드합니다.<br><br>
+          <strong>에셋 경로 (하드코딩):</strong><br>
+          &bull; IMC: <code>/Game/AVaOut/Character/Input/IMC_Player</code><br>
+          &bull; IA_UI_Open: <code>/Game/AVaOut/UI/ActionKey/IA_UI_Open.IA_UI_Open</code><br>
+          &bull; IA_UI_Close: <code>/Game/AVaOut/UI/ActionKey/IA_UI_Close.IA_UI_Close</code><br><br>
+          LoadObject&lt;UInputMappingContext&gt;로 IMC를 로드하고, LoadObject&lt;UInputAction&gt;으로
+          Open/Close InputAction을 로드합니다. IMC의 GetMappings()를 순회하여 각 FEnhancedActionKeyMapping에서
+          Mapping.Action이 Open이면 해당 Key를 CachedOpenKeys에, Close이면 CachedCloseKeys에 추가합니다.<br><br>
+          IsUIOpenKey()/IsUICloseKey()는 전달받은 FKey가 캐시된 배열에 Contains로 존재하는지 확인합니다.
+          이를 통해 UI 코드에서 EKeys::P, EKeys::Escape 등을 하드코딩하지 않고,
+          InputAction 기반으로 키바인드를 추상화합니다. 키 리매핑 시 IMC만 변경하면 됩니다.<br><br>
+          GetUIIMC(), GetUIOpenAction(), GetUICloseAction() getter는 캐시된 에셋 포인터를 반환하여
+          외부에서 IMC를 Enhanced Input에 추가하거나 Action을 바인딩할 때 사용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="uikey" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CachedIMC</span></td>
+            <td><span class="var-type">UInputMappingContext*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>LoadObject로 로드한 IMC_Player 에셋입니다. GetMappings()를 통해 키 매핑 정보를 순회하는 데 사용합니다. null이면 RefreshCache가 조기 종료됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedOpenAction</span></td>
+            <td><span class="var-type">UInputAction*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>LoadObject로 로드한 IA_UI_Open InputAction 에셋입니다. Mappings 순회 시 Action 비교 기준으로 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedCloseAction</span></td>
+            <td><span class="var-type">UInputAction*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>LoadObject로 로드한 IA_UI_Close InputAction 에셋입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedOpenKeys</span></td>
+            <td><span class="var-type">TArray&lt;FKey&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>IA_UI_Open에 매핑된 물리 키 배열입니다. IsUIOpenKey()에서 Contains로 검색합니다. AddUniqueKey로 중복 방지됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedCloseKeys</span></td>
+            <td><span class="var-type">TArray&lt;FKey&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>IA_UI_Close에 매핑된 물리 키 배열입니다. IsUICloseKey()에서 Contains로 검색합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="uikey" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize(FSubsystemCollectionBase&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::Initialize(Collection) 호출<br>
+                &bull; RefreshCache() &mdash; IMC, InputAction 로드 및 키 캐시 구축
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RefreshCache()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; CachedOpenKeys.Reset(), CachedCloseKeys.Reset() &mdash; 기존 캐시 초기화<br>
+                &bull; CachedIMC = LoadObject&lt;UInputMappingContext&gt;(nullptr, AOUIActionKeyPath::IMC_UI)<br>
+                &nbsp;&nbsp;경로: "/Game/AVaOut/Character/Input/IMC_Player"<br>
+                &bull; !CachedIMC이면 return (에셋 로드 실패)<br>
+                &bull; CachedOpenAction = LoadObject&lt;UInputAction&gt;(nullptr, IA_UI_Open 경로)<br>
+                &bull; CachedCloseAction = LoadObject&lt;UInputAction&gt;(nullptr, IA_UI_Close 경로)<br>
+                &bull; 둘 다 null이면 return<br>
+                &bull; CachedIMC-&gt;GetMappings() 순회:<br>
+                &nbsp;&nbsp;- Mapping.Action이 null이면 continue<br>
+                &nbsp;&nbsp;- Action == CachedOpenAction이면 AddUniqueKey(CachedOpenKeys, Mapping.Key)<br>
+                &nbsp;&nbsp;- Action == CachedCloseAction이면 AddUniqueKey(CachedCloseKeys, Mapping.Key)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">에셋 경로 하드코딩</div>
+                namespace AOUIActionKeyPath에 const TCHAR* 문자열로 에셋 경로가 하드코딩되어 있습니다.
+                에셋 이동이나 이름 변경 시 코드도 함께 수정해야 합니다.
+                SoftObjectPath나 DataAsset으로 관리하면 유연성이 높아질 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsUIOpenKey(const FKey&amp;) / IsUICloseKey(const FKey&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>IsUIOpenKey:</strong> return CachedOpenKeys.Contains(Key)<br>
+                &bull; <strong>IsUICloseKey:</strong> return CachedCloseKeys.Contains(Key)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용 패턴</div>
+                UI 위젯의 NativeOnKeyDown/OnKeyDown에서 눌린 키가 UI 닫기 키인지 확인하여
+                해당 위젯을 닫거나 UIStackManager의 PopTop을 호출하는 데 사용합니다.
+                TArray::Contains는 선형 검색이지만, 키 수가 1~3개 수준이므로 성능 영향은 없습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetUIIMC() / GetUIOpenAction() / GetUICloseAction()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; 각각 CachedIMC, CachedOpenAction, CachedCloseAction을 직접 반환하는 단순 getter입니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용 패턴</div>
+                GetUIIMC()는 PlayerController에서 AddMappingContext()로 UI 전용 IMC를 등록할 때 사용합니다.
+                GetUIOpenAction()/GetUICloseAction()은 Enhanced Input 바인딩 시 직접 Action을 참조할 때 사용합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AddUniqueKey(TArray&lt;FKey&gt;&amp;, const FKey&amp;) [static]</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; !Key.IsValid()이면 return &mdash; 유효하지 않은 키 무시<br>
+                &bull; Keys.Contains(Key)이면 return &mdash; 중복 방지<br>
+                &bull; Keys.Add(Key)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">설계 의도</div>
+                하나의 InputAction에 여러 매핑이 있을 수 있으므로(예: P와 Escape 모두 UI_Close에 매핑),
+                중복 키가 추가되지 않도록 합니다. TSet 대신 TArray를 사용하는 이유는
+                Contains 검색이 소규모 배열에서 충분히 빠르고, UPROPERTY 직렬화가 더 단순하기 때문입니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="uikey" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>로드</td><td><span class="rel-cls">UInputMappingContext (IMC_Player)</span></td><td>LoadObject로 /Game/AVaOut/Character/Input/IMC_Player 에셋을 로드하여 키 매핑을 읽습니다.</td></tr>
+          <tr><td>로드</td><td><span class="rel-cls">UInputAction (IA_UI_Open, IA_UI_Close)</span></td><td>LoadObject로 /Game/AVaOut/UI/ActionKey/ 경로의 InputAction 에셋을 로드합니다.</td></tr>
+          <tr><td>사용처</td><td><span class="rel-cls">UI 위젯 NativeOnKeyDown</span></td><td>IsUIOpenKey/CloseKey를 호출하여 키 입력이 UI 동작인지 판별합니다.</td></tr>
+          <tr><td>사용처</td><td><span class="rel-cls">PlayerController</span></td><td>GetUIIMC()로 UI 전용 InputMappingContext를 Enhanced Input에 등록합니다.</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_UIActionKeySubsystem -->
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['intcomp','intable','intwidget','intctrl','uistack','uikey'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click handler
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

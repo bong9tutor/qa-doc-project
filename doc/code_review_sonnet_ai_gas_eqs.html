@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — AI GAS 어빌리티 & EQS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#16a34a;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;font-weight:500;}
+
+/* Layout */
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+/* Sidebar TOC */
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f0fdf4;color:#16a34a;border-left-color:#16a34a;font-weight:600;}
+.toc-sep{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin:10px 0 4px 8px;}
+
+/* Content */
+.content{flex:1;min-width:0;}
+
+/* Class Card */
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#16a34a;border-bottom-color:#16a34a;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+/* Overview */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #16a34a;}
+
+/* Variable Table */
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+/* Function Accordion */
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f0fdf4;border-color:#bbf7d0;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #bbf7d0;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+/* Relation Table */
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#16a34a;font-weight:600;}
+
+/* Responsive */
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">AI GAS &amp; EQS</div>
+  <div class="nav-sub">AI GAS 어빌리티 &amp; EQS 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">AI GAS 어빌리티 &amp; EQS 클래스</div>
+  <div class="hero-sub">AI 전투 어빌리티 11종 + 환경 쿼리 7종 = 18개 클래스</div>
+  <div class="badges">
+    <span class="badge">AIAttackBase</span>
+    <span class="badge">AI_Stun</span>
+    <span class="badge">Bull_Charge</span>
+    <span class="badge">Insect_Kidnap</span>
+    <span class="badge">LavaMonster_Attack</span>
+    <span class="badge">Stalker_Attack</span>
+    <span class="badge">Troll_Attack</span>
+    <span class="badge">Werewolf_Attack</span>
+    <span class="badge">Werewolf_Howl</span>
+    <span class="badge">Interact_Base</span>
+    <span class="badge">Interact_Puzzle</span>
+    <span class="badge">Context_AllPlayers</span>
+    <span class="badge">Context_PackMembers</span>
+    <span class="badge">Context_Target</span>
+    <span class="badge">Test_LineOfSight</span>
+    <span class="badge">Test_NavArea</span>
+    <span class="badge">Test_PlayerFOV</span>
+    <span class="badge">Test_VolumeExclusion</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <div class="toc-sep">AI GAS 어빌리티</div>
+      <a class="toc-item active" href="#attackbase">AO_GA_AIAttackBase</a>
+      <a class="toc-item" href="#stun">AO_GA_AI_Stun</a>
+      <a class="toc-item" href="#bull">AO_GA_Bull_Charge</a>
+      <a class="toc-item" href="#insect">AO_GA_Insect_Kidnap</a>
+      <a class="toc-item" href="#lava">AO_GA_LavaMonster_Attack</a>
+      <a class="toc-item" href="#stalker">AO_GA_Stalker_Attack</a>
+      <a class="toc-item" href="#troll">AO_GA_Troll_Attack</a>
+      <a class="toc-item" href="#wattack">AO_GA_Werewolf_Attack</a>
+      <a class="toc-item" href="#whowl">AO_GA_Werewolf_Howl</a>
+      <div class="toc-sep">상호작용 어빌리티</div>
+      <a class="toc-item" href="#intbase">GA_Interact_Base</a>
+      <a class="toc-item" href="#intpuzzle">GA_Interact_PuzzleElement</a>
+      <div class="toc-sep">EQS Context</div>
+      <a class="toc-item" href="#allplayers">EQS_Context_AllPlayers</a>
+      <a class="toc-item" href="#packmembers">EQS_Context_PackMembers</a>
+      <a class="toc-item" href="#target">EQS_Context_Target</a>
+      <div class="toc-sep">EQS Test</div>
+      <a class="toc-item" href="#los">EQS_Test_LineOfSight</a>
+      <a class="toc-item" href="#navarea">EQS_Test_NavAreaExclusion</a>
+      <a class="toc-item" href="#fov">EQS_Test_PlayerFOV</a>
+      <a class="toc-item" href="#volexcl">EQS_Test_VolumeExclusion</a>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ==================== AO_GA_AIAttackBase ==================== -->
+    <div class="class-card" id="attackbase">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_AIAttackBase</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'attackbase','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'attackbase','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'attackbase','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'attackbase','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="attackbase" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">모든 AI 적의 공통 근접 공격 어빌리티 기반 클래스</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 시작하여 실행 및 히트 판정 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">공격 설정(FEnemyAttackConfig) 로드, 몽타주 재생, SphereTrace 히트 판정, 데미지/넉백 적용, HitReact 이벤트 전송</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          AAO_AICharacterBase의 GetCurrentAttackConfig()를 통해 공격 데이터(데미지, 몽타주 등)를 가져옵니다.
+          Event.Combat.Confirm 이벤트를 WaitGameplayEvent 태스크로 대기하고, AnimNotify 타이밍에 맞춰 SphereTrace를 수행합니다.
+          무적(Status.Invulnerable) 확인 후 데미지를 적용하고, 넉백 강도에 따라 Light 또는 Knockdown HitReact 이벤트를 전송합니다.
+          타격음은 MulticastPlayHitSound(NetMulticast, Unreliable)로 모든 클라이언트에서 재생합니다.
+          Werewolf_Attack 등의 자식 클래스가 OnTargetHit/ApplyDamageAndKnockback을 오버라이드하여 동작을 확장합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="attackbase" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CurrentAttackConfig</span></td>
+            <td><span class="var-type">FEnemyAttackConfig</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 수행 중인 공격 설정. ActivateAbility에서 AICharacterBase로부터 가져옴.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>SphereTrace에 사용하는 충돌 채널. 기본값 ECC_Pawn.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">KnockdownHitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>넉다운 히트 리액트 태그. 기본값 Event.Combat.HitReact.Knockdown.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultHitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>일반 히트 리액트 태그. 기본값 Event.Combat.HitReact.Light.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitSound</span></td>
+            <td><span class="var-type">TObjectPtr&lt;USoundBase&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>타격음 사운드 에셋.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitSoundAttenuation</span></td>
+            <td><span class="var-type">TObjectPtr&lt;USoundAttenuation&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>타격음 감쇠 설정.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="attackbase" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GA_AIAttackBase()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>InstancingPolicy를 InstancedPerActor, NetExecutionPolicy를 ServerInitiated로 설정합니다. KnockdownHitReactTag와 DefaultHitReactTag를 기본 Gameplay 태그로 초기화합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>부모 CanActivateAbility 체크 후, AvatarActor를 AAO_AICharacterBase로 캐스트하여 기절 상태(IsStunned)와 공격 중 상태(IsAttacking)를 확인합니다. 둘 중 하나라도 해당하면 false를 반환합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CommitAbility 후 AI 캐릭터에서 GetCurrentAttackConfig()로 공격 설정을 로드합니다. SetIsAttacking(true)을 호출하고, WaitGameplayEvent(Event.Combat.Confirm) 태스크와 PlayMontageAndWait 태스크를 생성하여 활성화합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>StateTree AI가 공격 판단을 내리고 ASC에서 TryActivateAbility를 호출할 때.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>AI 캐릭터의 SetIsAttacking(false)를 호출하여 공격 상태를 해제하고 부모 EndAbility()를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHitConfirmEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>AnimNotify에서 전달된 Payload를 분석하여 SphereTrace 시작/종료 지점을 결정합니다. Payload에 UAO_MeleeHitEventPayload가 있으면 해당 정보를, 없으면 정면 방향으로 fallback합니다. SphereTraceMulti 결과에서 플레이어만 필터링하여 ApplyDamageAndKnockback을 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageAndKnockback()</span>
+              <span class="fn-spec server">virtual</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>무적(Status.Invulnerable) 확인 후, DamageEffectClass를 SetByCaller 방식으로 적용합니다. SendHitReactEvent를 호출하고, 넉백 방향 계산(Z=0.2) 후 MovementMode를 Falling으로 전환하여 LaunchCharacter를 실행합니다. 마지막으로 OnTargetHit 가상 함수를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendHitReactEvent()</span>
+              <span class="fn-spec server">virtual</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>넉백 강도가 400 이상이면 KnockdownHitReactTag, 미만이면 DefaultHitReactTag를 선택하여 SendGameplayEventToActor로 타겟에게 HitReact 이벤트를 전송합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastPlayHitSound()</span>
+              <span class="fn-spec multicast">NetMulticast</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>지정 위치에서 HitSound를 PlaySoundAtLocation으로 재생합니다. Unreliable로 선언되어 네트워크 부하를 줄입니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnTargetHit()</span>
+              <span class="fn-spec server">virtual</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>기본 구현은 비어 있습니다. 자식 클래스(UAO_GA_Werewolf_Attack 등)에서 오버라이드하여 추가 히트 처리 로직을 구현합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="attackbase" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속됨</td><td><span class="rel-cls">UAO_GA_Werewolf_Attack</span></td><td>Werewolf 전용 공격 어빌리티가 이 클래스를 상속하여 Heavy HitReact 적용</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AICharacterBase</span></td><td>GetCurrentAttackConfig()로 공격 데이터를 가져오고, IsStunned/IsAttacking 상태 체크</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_MeleeHitEventPayload</span></td><td>AnimNotify에서 전달되는 히트 판정용 Trace 파라미터 데이터</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAbilityTask_WaitGameplayEvent</span></td><td>Event.Combat.Confirm 이벤트를 대기하는 GAS 태스크</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAbilityTask_PlayMontageAndWait</span></td><td>공격 몽타주를 재생하고 완료/취소 콜백을 받는 GAS 태스크</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_AI_Stun ==================== -->
+    <div class="class-card" id="stun">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_AI_Stun</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'stun','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'stun','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stun','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stun','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="stun" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">AI 기절 처리 어빌리티 &mdash; 이동 비활성화, 기절 Effect 적용, 복구까지 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.State.Stunned &middot; InstancedPerActor &middot; Event.AI.Stunned 트리거</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 기절 상태를 관리하고 Effect 적용/해제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">이동 비활성화(DisableMovement), 기절 Effect(Status.Debuff.Stunned) 부여, 몽타주 또는 타이머 기반 기절 해제, OnStunBegin/OnStunEnd 알림</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Event.AI.Stunned 이벤트로 트리거되는 기절 전용 어빌리티입니다.
+          기절 중에는 ActivationBlockedTags(Status.Debuff.Stunned)로 중복 기절을 방지합니다.
+          활성화 시 AICharacter의 OnStunBegin()을 호출하고, 서버에서 이동을 비활성화하며 StunEffectClass를 적용합니다.
+          StunMontage가 있으면 몽타주 완료 시 종료하고, 없으면 DefaultStunDuration(3초) 타이머로 자동 해제합니다.
+          EndAbility에서 이동 모드를 Walking으로 복구하고 Effect를 제거한 뒤 OnStunEnd()를 호출합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stun" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">StunMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>기절 모션 몽타주. 없으면 타이머 기반 기절.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StunEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>기절 중 Status.Debuff.Stunned 태그를 부여하는 GameplayEffect.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultStunDuration</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>몽타주 없을 때 기절 지속 시간. 기본값 3초.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StunEffectHandle</span></td>
+            <td><span class="var-type">FActiveGameplayEffectHandle</span></td>
+            <td>(private)</td>
+            <td>적용된 기절 Effect의 핸들. EndAbility에서 제거용.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="stun" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GA_AI_Stun()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>InstancedPerActor, ServerInitiated로 설정. AbilityTrigger를 Event.AI.Stunned에 등록. AbilityTags에 Ability.State.Stunned, ActivationBlockedTags에 Status.Debuff.Stunned를 추가합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CommitAbility 후 AICharacter의 OnStunBegin()을 호출합니다. 서버(HasAuthority)에서 이동을 DisableMovement()로 비활성화하고, StunEffectClass를 적용합니다. StunMontage가 있으면 PlayMontageAndWait 태스크로 재생하고, 없으면 DefaultStunDuration 타이머를 설정합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서 이동 모드를 MOVE_Walking으로 복구하고, StunEffectHandle을 통해 기절 Effect를 제거합니다. AICharacter의 OnStunEnd()를 호출한 뒤 부모 EndAbility()를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stun" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AICharacterBase</span></td><td>OnStunBegin()/OnStunEnd() 호출, 이동 컴포넌트 접근</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAbilityTask_PlayMontageAndWait</span></td><td>기절 몽타주 재생 태스크</td></tr>
+          <tr><td>트리거</td><td><span class="rel-cls">플레이어 근접 공격</span></td><td>Event.AI.Stunned 이벤트로 활성화</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Bull_Charge ==================== -->
+    <div class="class-card" id="bull">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Bull_Charge</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'bull','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="bull" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Bull 돌진 공격 어빌리티 &mdash; 돌진 몽타주, 전방 SphereTrace, 넉다운 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 돌진 판정 및 데미지 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">Bull::SetIsCharging 상태 관리, SphereTrace 히트 판정, 데미지 GE 적용, 넉다운 HitReact 이벤트 발송, 공격 후 후퇴(StartPostAttackRetreat)</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Bull 전용 돌진 공격 어빌리티입니다. AIAttackBase를 상속하지 않고 독립적으로 구현되었으며, Troll 공격 로직을 참조합니다.
+          활성화 시 Bull의 SetIsCharging(true)을 호출하고, Event.Combat.Confirm 이벤트를 대기합니다.
+          히트 확정 시 전방으로 SphereTrace를 수행하여 플레이어를 감지하고, SetByCaller 방식으로 데미지를 적용합니다.
+          넉다운 HitReact 이벤트를 먼저 전송한 뒤 Falling 모드로 전환하여 넉백을 적용합니다.
+          몽타주 정상 완료 시 StartPostAttackRetreat()로 후퇴 및 쿨다운을 시작합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="bull" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ChargeMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>돌진 애니메이션 몽타주.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceRadius</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>SphereTrace 반경. 기본값 100.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>SphereTrace 거리. 기본값 150.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ChargeDamage</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>돌진 데미지. 기본값 30.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">KnockbackStrength</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>넉백 강도. 기본값 1000.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">KnockdownHitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>넉다운 HitReact 태그. 미설정 시 Event.Combat.HitReact.Knockdown 사용.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DamageEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>데미지 적용용 GameplayEffect 클래스.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitSound / HitSoundAttenuation</span></td>
+            <td><span class="var-type">TObjectPtr&lt;USoundBase/USoundAttenuation&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>타격음 및 감쇠 설정.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="bull" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CommitAbility 후 Bull::SetIsCharging(true)을 호출합니다. WaitGameplayEvent(Event.Combat.Confirm) 태스크와 PlayMontageAndWait(ChargeMontage) 태스크를 생성하여 활성화합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Bull::SetIsCharging(false)를 호출하고, 취소가 아닌 정상 종료 시 StartPostAttackRetreat()로 후퇴를 시작합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHitConfirmEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Bull 위치에서 전방 TraceDistance만큼 SphereTraceMulti를 수행합니다. 감지된 플레이어에 대해 ApplyDamageAndKnockback을 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageAndKnockback()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>무적 확인 후 타격음을 로컬 재생(PlaySoundAtLocation)합니다. DamageEffectClass를 SetByCaller로 적용하고, SendKnockdownEvent 후 Falling 모드 전환 및 LaunchCharacter로 넉백합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendKnockdownEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>KnockdownHitReactTag(또는 기본 Event.Combat.HitReact.Knockdown)를 사용하여 타겟에게 넉다운 이벤트를 발송합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="bull" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Bull</span></td><td>SetIsCharging, StartPostAttackRetreat 호출</td></tr>
+          <tr><td>대상</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>SphereTrace로 감지되는 데미지 대상</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_GA_Troll_Attack</span></td><td>히트 판정/넉백 로직 패턴을 Troll에서 참조</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Insect_Kidnap ==================== -->
+    <div class="class-card" id="insect">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Insect_Kidnap</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'insect','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="insect" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Insect 납치 시도 어빌리티 &mdash; SphereTrace로 플레이어 감지 후 KidnapComponent를 통해 납치 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 납치 판정 및 상태 전환</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">몽타주 재생, 이벤트/타이머 이중 Trace, 납치 중복 방지(AISubsystem 체크), KidnapComponent::TryKidnapPlayer 호출</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Insect가 플레이어를 납치하려 할 때 활성화됩니다.
+          CanActivateAbility에서 이미 납치 중(IsKidnapping)이거나 기절 상태이면 활성화를 차단합니다.
+          Event.Combat.Confirm 이벤트 대기와 별도로, 몽타주 중간 지점(PlayLength * 0.5)에 타이머를 설정하여 이중 안전장치를 제공합니다.
+          PerformKidnapTrace에서 이미 납치된 플레이어(Status.Debuff.Kidnapped)와 다른 Insect가 예약한 플레이어(AISubsystem)를 건너뛰고,
+          KidnapComponent::TryKidnapPlayer로 한 명만 납치합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insect" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">KidnapMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>납치 시도 몽타주.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceRadius</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>SphereTrace 반경. 기본값 100.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>SphereTrace 거리. 기본값 150.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>트레이스 채널. 기본값 ECC_Pawn.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(private)</td>
+            <td>몽타주 중간 지점 Trace 타이머 핸들.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="insect" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>부모 체크 후 AAO_Insect로 캐스트하여 IsKidnapping()과 IsStunned()를 확인합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>WaitGameplayEvent(Event.Combat.Confirm)과 PlayMontageAndWait(KidnapMontage)를 생성합니다. 추가로 몽타주 PlayLength * 0.5 지점에 PerformKidnapTrace 타이머를 설정합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PerformKidnapTrace()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>이미 납치 중이면 스킵합니다. 전방 SphereTraceMulti를 수행하고, 감지된 플레이어에 대해 Status.Debuff.Kidnapped 태그와 AISubsystem::IsPlayerBeingKidnapped를 체크한 뒤, KidnapComponent::TryKidnapPlayer를 호출합니다. 성공하면 타이머를 취소합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>TraceTimerHandle을 클리어하고 부모 EndAbility()를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insect" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Insect</span></td><td>IsKidnapping 상태 확인, GetKidnapComponent 접근</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_KidnapComponent</span></td><td>TryKidnapPlayer()로 납치 실행</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_AISubsystem</span></td><td>IsPlayerBeingKidnapped()로 중복 납치 방지</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_LavaMonster_Attack ==================== -->
+    <div class="class-card" id="lava">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_LavaMonster_Attack</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'lava','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="lava" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">용암 몬스터 공격 전용 어빌리티 &mdash; 근접/중거리/땅속 범위 공격 4종 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 공격 타입 결정 및 데미지 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">공격 타입별 분기(일반 SphereTrace vs 땅속 GroundStrike), 전조 현상 VFX(Multicast RPC), 타이머 기반 타겟별 공격 발동, 데미지/넉백 적용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          LavaMonster의 다양한 공격 타입(MeleePunch, 중거리, 원거리, GroundStrike)을 하나의 어빌리티에서 처리합니다.
+          일반 공격(SphereTrace 기반)은 Event.Combat.Confirm 이벤트를 대기하고, 땅속 범위 공격은 StartGroundStrike()에서 범위 내 모든 플레이어를 탐지합니다.
+          GroundStrike는 플레이어 발밑에 전조 VFX를 Multicast RPC로 스폰하고, WarningDuration 후 타겟별 타이머가 만료되면 ExecuteGroundStrikeAtTarget()으로 데미지를 적용합니다.
+          구조체 FAO_GroundStrikeTarget으로 각 타겟의 위치, 시작 시간, 공격 여부를 추적합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lava" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CurrentAttackConfig</span></td>
+            <td><span class="var-type">FAO_LavaMonsterAttackConfig</span></td>
+            <td>(protected)</td>
+            <td>현재 공격 설정. LavaMonster에서 가져옴.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentAttackType</span></td>
+            <td><span class="var-type">ELavaMonsterAttackType</span></td>
+            <td>(protected)</td>
+            <td>현재 공격 타입. 기본값 MeleePunch.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DamageEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>데미지 적용용 GameplayEffect.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>HitReact 태그. 미설정 시 Knockdown 기본값.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">GroundStrikeTargets</span></td>
+            <td><span class="var-type">TArray&lt;FAO_GroundStrikeTarget&gt;</span></td>
+            <td>(protected, UPROPERTY)</td>
+            <td>땅속 공격 타겟 목록. 플레이어 WeakPtr, 위치, 공격 완료 여부 포함.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">GroundStrikeAttackTimers</span></td>
+            <td><span class="var-type">TMap&lt;int32, FTimerHandle&gt;</span></td>
+            <td>(protected)</td>
+            <td>타겟 인덱스별 공격 발동 타이머 핸들.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="lava" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>LavaMonster에서 공격 타입과 Config를 가져오고, GroundStrike이면 StartGroundStrike(), 일반 공격이면 WaitGameplayEvent를 설정합니다. 모든 타입에서 PlayMontageAndWait 태스크를 실행합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StartGroundStrike()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>GetAllActorsOfClass로 범위 내 플레이어를 수집하고, 캡슐 하단 위치를 계산하여 FAO_GroundStrikeTarget 배열에 추가합니다. Multicast_SpawnGroundStrikeVFX로 전조 VFX를 스폰하고, 타겟별 WarningDuration 타이머를 설정합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ExecuteGroundStrikeAtTarget()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>타이머 만료 시 호출됩니다. 분출 VFX를 Multicast로 스폰하고, 플레이어가 여전히 AttackRadius * 2 이내에 있으면 데미지를 적용합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHitConfirmEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>일반 공격용. MeleeHitEventPayload에서 Trace 정보를 가져와 SphereTraceMulti를 수행하고, 플레이어에게 ApplyDamageAndKnockback을 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnMontageCompleted()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>GroundStrike인 경우 모든 타겟이 공격 완료될 때까지 대기합니다. 일반 공격이면 즉시 EndAbility를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lava" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_LavaMonster</span></td><td>공격 타입/설정 조회, Multicast VFX RPC 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">FAO_LavaMonsterAttackConfig</span></td><td>공격별 데미지, 반경, 넉백, WarningDuration 설정</td></tr>
+          <tr><td>구조체</td><td><span class="rel-cls">FAO_GroundStrikeTarget</span></td><td>타겟 플레이어, 위치, 시작 시간, 공격 완료 여부 추적</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Stalker_Attack ==================== -->
+    <div class="class-card" id="stalker">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Stalker_Attack</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'stalker','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="stalker" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Stalker 기습 공격 어빌리티 &mdash; 몽타주 재생, SphereTrace 히트 판정, 후퇴 모드 전환</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 기습 판정 및 데미지 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">기습 몽타주 재생, MeleeHitEventPayload 기반 SphereTrace, 데미지/넉백 적용, 공격 후 SetRetreatMode(true) 호출</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Stalker 전용 기습 공격 어빌리티입니다. AIAttackBase를 상속하지 않고 독립 구현되었습니다.
+          활성화 시 Stalker::SetIsAttacking(true)을 호출하고, Event.Combat.Confirm 이벤트를 대기합니다.
+          히트 확정 시 MeleeHitEventPayload에서 Trace 파라미터를 가져와 SphereTrace를 수행합니다.
+          무적 확인 후 데미지를 적용하고, HitReact 이벤트를 전송한 뒤 넉백을 적용합니다.
+          EndAbility에서 정상 종료 시 SetRetreatMode(true)를 호출하여 Stalker를 후퇴 모드로 전환합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stalker" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AttackMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>기습 공격 몽타주.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DamageEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>데미지 적용용 GameplayEffect.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AttackDamage</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>공격 데미지. 기본값 30.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">KnockbackStrength</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>넉백 강도. 기본값 500.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>플레이어에게 보낼 HitReact 태그. 미설정 시 Light 기본값.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>트레이스 채널. 기본값 ECC_Pawn.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="stalker" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Stalker::SetIsAttacking(true) 후 WaitGameplayEvent와 PlayMontageAndWait 태스크를 생성합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>SetIsAttacking(false) 후, 취소가 아닌 정상 종료 시 SetRetreatMode(true)를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHitConfirmEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>MeleeHitEventPayload에서 Trace 파라미터를 가져와 SphereTraceMulti를 수행하고, 플레이어에게 ApplyDamageAndKnockback을 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageAndKnockback()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>무적 확인, 타격음 재생, SetByCaller 데미지 적용, HitReact 이벤트 발송, Falling 전환 후 LaunchCharacter 넉백.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stalker" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Stalker</span></td><td>SetIsAttacking, SetRetreatMode 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_MeleeHitEventPayload</span></td><td>AnimNotify에서 전달되는 Trace 파라미터</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Troll_Attack ==================== -->
+    <div class="class-card" id="troll">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Troll_Attack</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'troll','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="troll" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Troll 공격 전용 어빌리티 &mdash; 랜덤 공격 타입 선택, 몽타주 재생, 넉다운 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 공격 타입 결정 및 데미지 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">랜덤 공격 타입(ETrollAttackType) 선택, FAO_TrollAttackConfig 기반 히트 판정, 데미지/넉백 적용, 넉다운 HitReact 전송</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Troll 전용 공격 어빌리티로, SelectRandomAttackType()으로 공격 타입을 결정하고 해당 Config의 몽타주를 재생합니다.
+          Event.Combat.Confirm 이벤트를 다중 수신(OnlyTriggerOnce=false) 가능하게 대기하여 다단 히트를 지원합니다.
+          히트 확정 시 MeleeHitEventPayload에서 Trace 정보를 가져와 SphereTrace를 수행하고,
+          TWeakObjectPtr 기반 중복 제거로 같은 플레이어에게 한 번만 데미지를 적용합니다.
+          넉다운 HitReact 이벤트를 먼저 전송한 뒤 Falling 모드로 전환하여 강력한 넉백을 적용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="troll" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CurrentAttackConfig</span></td>
+            <td><span class="var-type">FAO_TrollAttackConfig</span></td>
+            <td>(protected)</td>
+            <td>현재 공격 설정. Troll에서 가져옴.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentAttackType</span></td>
+            <td><span class="var-type">ETrollAttackType</span></td>
+            <td>(protected)</td>
+            <td>현재 공격 타입. 기본값 HorizontalSingle.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DamageEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>데미지 적용용 GameplayEffect.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">KnockdownHitReactTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>넉다운 HitReact 태그. 미설정 시 Knockdown 기본값.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>트레이스 채널. 기본값 ECC_Pawn.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="troll" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>기절/공격 상태 확인 후, GetAvailableAttackTypes().Num() > 0인지 검사합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>SetIsAttacking(true), SelectRandomAttackType()으로 공격 타입/Config를 결정합니다. WaitGameplayEvent(다중 수신)와 PlayMontageAndWait를 생성합니다. OnBlendOut은 바인딩하지 않아 NotifyEnd 이벤트를 놓치지 않도록 합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHitConfirmEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>MeleeHitEventPayload 기반 SphereTrace 수행. TWeakObjectPtr 기반 중복 제거 후 ApplyDamageAndKnockback 호출.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageAndKnockback()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>무적 확인, 타격음 재생, SetByCaller 데미지 적용, SendKnockdownEvent, Falling 전환 후 LaunchCharacter(Z=0.3) 넉백.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="troll" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Troll</span></td><td>SelectRandomAttackType, GetAttackConfig, GetAvailableAttackTypes 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">FAO_TrollAttackConfig</span></td><td>공격별 몽타주, 데미지, 넉백 강도 설정</td></tr>
+          <tr><td>참조됨</td><td><span class="rel-cls">UAO_GA_Bull_Charge</span></td><td>Bull_Charge가 이 클래스의 히트 판정 패턴을 참조</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Werewolf_Attack ==================== -->
+    <div class="class-card" id="wattack">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Werewolf_Attack</div>
+        <div class="class-parent">부모: UAO_GA_AIAttackBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'wattack','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'wattack','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wattack','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wattack','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="wattack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Werewolf 근접 공격(Heavy Hit) &mdash; AIAttackBase를 상속하여 Heavy HitReact 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 부모 클래스의 서버 실행 정책을 상속</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">DefaultHitReactTag를 Heavy로 오버라이드, OnTargetHit에서 Heavy HitReact 이벤트 명시적 재전송, 자체 DamageEffectClass 사용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UAO_GA_AIAttackBase를 상속하는 유일한 자식 클래스입니다.
+          생성자에서 DefaultHitReactTag를 Event.Combat.HitReact.Heavy로 설정합니다.
+          ApplyDamageAndKnockback을 오버라이드하여 자체 DamageEffectClass를 사용하고, 부모의 타격음 재생 및 넉백 로직을 재구현합니다.
+          OnTargetHit 콜백에서 Heavy HitReact 이벤트를 명시적으로 재전송하여, 부모 클래스가 다른 태그를 사용하더라도 Heavy 반응이 보장됩니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="wattack" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DamageEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>Werewolf 전용 데미지 GameplayEffect. 부모의 Config.DamageEffectClass 대신 사용.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="wattack" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GA_Werewolf_Attack()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>DefaultHitReactTag를 Event.Combat.HitReact.Heavy로 설정합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageAndKnockback()</span>
+              <span class="fn-spec server">override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>무적 확인 후 자체 DamageEffectClass로 데미지를 적용합니다. SendHitReactEvent, 넉백(Z=0.2), OnTargetHit 콜백을 순서대로 실행합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnTargetHit()</span>
+              <span class="fn-spec server">override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>부모의 빈 구현을 오버라이드합니다. Event.Combat.HitReact.Heavy 태그로 HitReact 이벤트를 명시적으로 재전송합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="wattack" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속</td><td><span class="rel-cls">UAO_GA_AIAttackBase</span></td><td>공통 AI 공격 로직(몽타주, Trace, 넉백) 상속</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>AvatarActor로 사용 (캐스트는 부모에서 AICharacterBase로)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GA_Werewolf_Howl ==================== -->
+    <div class="class-card" id="whowl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GA_Werewolf_Howl</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'whowl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'whowl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'whowl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'whowl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="whowl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Werewolf 하울링 어빌리티 &mdash; 주변 동료 호출 및 포위 모드 전환</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerInitiated</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 하울 전파 및 동료 호출 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">PackCoordComp::BroadcastHowl로 하울 전파, Controller의 ChaseTarget 전달, 하울 몽타주 재생</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Werewolf가 동료를 호출하는 비전투 어빌리티입니다.
+          활성화 시 PackCoordComp의 BroadcastHowl을 호출하여 Controller의 ChaseTarget 정보와 함께 하울을 전파합니다.
+          동료가 있으면 포위 모드로 전환되고(BroadcastHowl에서 처리), 없으면 일반 추격/공격으로 계속합니다.
+          HowlMontage를 PlayMontageAndWait로 재생하며, 모든 종료 콜백(BlendOut, Completed, Interrupted, Cancelled)에서 EndAbility를 호출합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="whowl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HowlMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>하울링 애니메이션 몽타주.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="whowl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerInitiated</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super::ActivateAbility 후 CommitAbility를 수행합니다. Werewolf의 PackCoordComp에서 BroadcastHowl을 호출하여 AggressiveAICtrl의 ChaseTarget을 전파합니다. HowlMontage가 있으면 PlayMontageAndWait 태스크를 생성합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>부모 EndAbility()를 호출합니다. 별도 정리 로직 없음.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="whowl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>AvatarActor 캐스트, GetPackCoordComp 접근</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_PackCoordComp</span></td><td>BroadcastHowl()로 동료 호출/포위 전파</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>GetChaseTarget()으로 추격 대상 전달</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== GA_Interact_Base ==================== -->
+    <div class="class-card" id="intbase">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UGA_Interact_Base</div>
+        <div class="class-parent">부모: UAO_InteractionGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intbase','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intbase','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intbase','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intbase','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intbase" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">범용 상호작용 어빌리티 &mdash; Finalize 이벤트로 트리거되어 타겟의 OnInteractionSuccess 호출</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerOnly</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerOnly &mdash; 상호작용 결과를 서버에서만 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">TriggerEventData에서 Target/Instigator 추출, WorldInteractable 또는 InteractableComponent에 상호작용 성공 알림</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          대부분의 간단한 상호작용에 사용되는 범용 어빌리티입니다.
+          Ability_Action_AbilityInteract_Finalize 태그로 트리거되며, ServerOnly로 실행됩니다.
+          활성화 시 TriggerEventData에서 Target과 Instigator를 추출합니다.
+          Target이 AAO_WorldInteractable이면 OnInteractionSuccess를, UAO_InteractableComponent를 가지고 있으면 NotifyInteractionSuccess를 호출합니다.
+          둘 다 아니면 취소(bWasCancelled=true)로 종료합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intbase" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">자체 멤버 변수 없음 &mdash; 부모 UAO_InteractionGameplayAbility의 변수를 사용</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intbase" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UGA_Interact_Base()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>InstancedPerActor, ServerOnly로 설정. CDO에서만 AbilityTrigger를 Ability_Action_AbilityInteract_Finalize 태그로 등록합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerOnly</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CommitAbility 후 Super::ActivateAbility를 호출합니다. TriggerEventData에서 Target과 Instigator를 추출하고, AAO_WorldInteractable 캐스트 또는 FindComponentByClass&lt;UAO_InteractableComponent&gt;로 상호작용 대상을 찾아 OnInteractionSuccess/NotifyInteractionSuccess를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intbase" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>트리거됨</td><td><span class="rel-cls">GA_Interact_Execute</span></td><td>Finalize 이벤트로 이 어빌리티를 활성화</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_WorldInteractable</span></td><td>OnInteractionSuccess() 호출</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_InteractableComponent</span></td><td>NotifyInteractionSuccess() 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== GA_Interact_PuzzleElement ==================== -->
+    <div class="class-card" id="intpuzzle">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UGA_Interact_PuzzleElement</div>
+        <div class="class-parent">부모: UAO_InteractionGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'intpuzzle','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'intpuzzle','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intpuzzle','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'intpuzzle','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="intpuzzle" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">퍼즐 요소 상호작용 어빌리티 &mdash; PuzzleElement의 실제 로직 실행 담당</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">InstancedPerActor &middot; ServerOnly</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerOnly &mdash; 퍼즐 상태 변경은 서버에서만 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">Finalize 태그로 트리거, TriggerEventData에서 PuzzleElement 추출, OnInteractionSuccess 호출</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GA_Interact_Base와 유사하지만 퍼즐 요소(AAO_PuzzleElement) 전용입니다.
+          Ability_Action_AbilityInteract_Finalize 태그로 트리거되며, ServerOnly로 실행됩니다.
+          TriggerEventData의 Target을 AAO_PuzzleElement로 캐스트하고, 성공하면 OnInteractionSuccess(Instigator)를 호출합니다.
+          캐스트 실패 시 취소로 종료합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intpuzzle" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">자체 멤버 변수 없음 &mdash; 부모 UAO_InteractionGameplayAbility의 변수를 사용</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="intpuzzle" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UGA_Interact_PuzzleElement()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>InstancedPerActor, ServerOnly로 설정. CDO에서 AbilityTrigger를 Finalize 태그로 등록합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerOnly</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CommitAbility 후 Super::ActivateAbility를 호출합니다. TriggerEventData의 Target을 AAO_PuzzleElement로 캐스트하고, Instigator와 함께 OnInteractionSuccess를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="intpuzzle" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>트리거됨</td><td><span class="rel-cls">GA_Interact_Execute</span></td><td>Finalize 이벤트로 이 어빌리티를 활성화</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_PuzzleElement</span></td><td>OnInteractionSuccess(Instigator) 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Context_AllPlayers ==================== -->
+    <div class="class-card" id="allplayers">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Context_AllPlayers</div>
+        <div class="class-parent">부모: UEnvQueryContext</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'allplayers','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'allplayers','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'allplayers','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'allplayers','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="allplayers" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">월드 내 모든 플레이어 캐릭터의 위치를 반환하는 EQS Context</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">EQS 용도</div>
+            <div class="info-value">"다른 플레이어들로부터 먼 곳" 등의 거리 기반 EQS 테스트에서 사용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          QueryInstance.Owner에서 World를 가져와 GetAllActorsOfClass로 모든 AAO_PlayerCharacter를 수집합니다.
+          CDO에서 GetWorld()가 nullptr을 반환하는 문제를 방지하기 위해 GEngine-&gt;GetWorldFromContextObject를 사용합니다.
+          결과를 UEnvQueryItemType_Actor::SetContextHelper로 ContextData에 설정합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="allplayers" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">자체 멤버 변수 없음</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="allplayers" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ProvideContext()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>QueryInstance.Owner에서 World를 가져와 GetAllActorsOfClass(AAO_PlayerCharacter)로 모든 플레이어를 수집하고, SetContextHelper로 ContextData에 설정합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="allplayers" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">UAO_EQS_Test_LineOfSight</span></td><td>시야 차단 테스트에서 플레이어 목록 참조</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">UAO_EQS_Test_PlayerFOV</span></td><td>FOV 밖 위치 테스트에서 플레이어 목록 참조</td></tr>
+          <tr><td>수집</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>월드 내 모든 플레이어 캐릭터를 수집</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Context_PackMembers ==================== -->
+    <div class="class-card" id="packmembers">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Context_PackMembers</div>
+        <div class="class-parent">부모: UEnvQueryContext</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'packmembers','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'packmembers','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'packmembers','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'packmembers','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="packmembers" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">주변 Werewolf 무리 멤버들(자신 제외)을 반환하는 EQS Context</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">EQS 용도</div>
+            <div class="info-value">포위 시 다른 무리 멤버와 겹치지 않는 위치를 찾기 위해 사용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          QueryOwner를 Pawn 또는 Controller에서 AAO_Werewolf로 캐스트합니다.
+          PackCoordComp의 GetNearbyPackMembers()로 주변 무리 멤버 배열을 가져와
+          UEnvQueryItemType_Actor::SetContextHelper로 ContextData에 설정합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="packmembers" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">자체 멤버 변수 없음</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="packmembers" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ProvideContext()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>QueryOwner를 Pawn/Controller에서 AAO_Werewolf로 캐스트합니다. GetPackCoordComp()-&gt;GetNearbyPackMembers()로 무리 멤버를 수집하고, SetContextHelper로 설정합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="packmembers" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>QueryOwner에서 Werewolf로 캐스트</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_PackCoordComp</span></td><td>GetNearbyPackMembers()로 무리 멤버 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Context_Target ==================== -->
+    <div class="class-card" id="target">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Context_Target</div>
+        <div class="class-parent">부모: UEnvQueryContext</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'target','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'target','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'target','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'target','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="target" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">추격 대상(플레이어) 위치를 반환하는 EQS Context</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">EQS 용도</div>
+            <div class="info-value">AI가 추격 대상 근처/주위 위치를 평가할 때 기준점으로 사용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          QueryOwner를 Pawn 또는 Controller에서 AAO_AggressiveAICtrl로 캐스트합니다.
+          GetChaseTarget()으로 현재 추격 대상 플레이어를 가져와 SetContextHelper로 ContextData에 설정합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="target" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">자체 멤버 변수 없음</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="target" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ProvideContext()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>QueryOwner를 Pawn/직접 캐스트로 AAO_AggressiveAICtrl을 얻고, GetChaseTarget()으로 추격 대상 플레이어를 가져와 SetContextHelper로 설정합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="target" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>GetChaseTarget()으로 추격 대상 조회</td></tr>
+          <tr><td>반환</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>추격 대상 플레이어를 Context로 반환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Test_LineOfSight ==================== -->
+    <div class="class-card" id="los">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Test_LineOfSight</div>
+        <div class="class-parent">부모: UEnvQueryTest</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'los','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'los','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'los','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'los','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="los" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">모든 플레이어의 시야에서 보이지 않는 위치인지 체크하는 EQS Test</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비용</div>
+            <div class="info-value">EEnvTestCost::Medium &mdash; Line Trace를 플레이어 수만큼 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">결과 타입</div>
+            <div class="info-value">Bool (float 아님) &mdash; 모든 플레이어가 못 보면 1.0, 아니면 0.0</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 용도</div>
+            <div class="info-value">적 스폰 위치 선정 시 플레이어 시야 밖 필터링</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          모든 플레이어의 눈 위치(PlayerEyeHeightOffset)에서 각 EQS 아이템(SpawnLocationHeightOffset 적용)으로
+          LineTraceSingleByChannel을 수행합니다. 하나라도 막히지 않으면(플레이어가 볼 수 있으면) 해당 아이템은 실패(0.0)합니다.
+          HitResult의 Distance가 전체 거리의 95% 이상이면 "거의 막히지 않음"으로 판정하여 볼 수 있는 것으로 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="los" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PlayerEyeHeightOffset</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>플레이어 눈 높이 오프셋. 기본값 160.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpawnLocationHeightOffset</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>스폰 위치 높이 오프셋. 기본값 100.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>Line Trace 채널. 기본값 ECC_Visibility.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="los" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RunTest()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>모든 플레이어를 수집하고, 각 EQS 아이템에 대해 모든 플레이어의 눈 위치에서 LineTrace를 수행합니다. 하나라도 막히지 않으면 0.0, 전부 막히면 1.0으로 점수를 설정합니다. 플레이어가 없으면 모든 위치를 통과시킵니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="los" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>수집</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>GetAllActorsOfClass로 모든 플레이어를 수집</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_EQS_Context_AllPlayers</span></td><td>동일 패턴의 플레이어 수집 로직 사용</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Test_NavAreaExclusion ==================== -->
+    <div class="class-card" id="navarea">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Test_NavAreaExclusion</div>
+        <div class="class-parent">부모: UEnvQueryTest</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'navarea','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'navarea','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'navarea','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'navarea','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="navarea" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">특정 NavArea(스폰 금지 영역)와의 겹침을 체크하는 EQS Test</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비용</div>
+            <div class="info-value">EEnvTestCost::Low</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">결과 타입</div>
+            <div class="info-value">Bool &mdash; 금지 NavArea 밖이면 1.0, 안이면 0.0</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 용도</div>
+            <div class="info-value">스폰 금지 NavModifierVolume 내부 위치를 필터링</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          NavMesh에 투영(ProjectPointToNavigation)한 뒤, 월드 내 모든 ANavModifierVolume을 순회하며
+          RestrictedNavAreaClass와 일치하는 볼륨의 EncompassesPoint를 체크합니다.
+          기본 RestrictedNavAreaClass는 UAO_NavArea_SpawnRestriction입니다.
+          NavSystem이 없거나 NavArea가 지정되지 않았으면 모든 위치를 통과시킵니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="navarea" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">RestrictedNavAreaClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UNavArea&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>제외할 NavArea 클래스. 기본값 UAO_NavArea_SpawnRestriction.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="navarea" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RunTest()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>NavigationSystem에서 ProjectPointToNavigation으로 아이템을 NavMesh에 투영합니다. GetAllActorsOfClass로 모든 NavModifierVolume을 수집하고, RestrictedNavAreaClass와 일치하는 볼륨의 EncompassesPoint를 체크합니다. 금지 영역 안이면 0.0, 밖이면 1.0.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="navarea" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_NavArea_SpawnRestriction</span></td><td>기본 스폰 금지 NavArea 클래스</td></tr>
+          <tr><td>순회</td><td><span class="rel-cls">ANavModifierVolume</span></td><td>월드 내 모든 NavModifierVolume과 겹침 체크</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Test_PlayerFOV ==================== -->
+    <div class="class-card" id="fov">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Test_PlayerFOV</div>
+        <div class="class-parent">부모: UEnvQueryTest</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'fov','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'fov','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'fov','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'fov','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="fov" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">모든 플레이어의 시야각(FOV) 밖에 있는지 체크하는 EQS Test</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비용</div>
+            <div class="info-value">EEnvTestCost::Low &mdash; Dot Product 연산만 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">결과 타입</div>
+            <div class="info-value">Bool &mdash; 모든 플레이어 FOV 밖이면 1.0, 아니면 0.0</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 용도</div>
+            <div class="info-value">리썰 컴퍼니/REPO 스타일 적 스폰 &mdash; 플레이어가 보지 않는 곳에서 스폰</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          모든 플레이어에 대해 시선 방향(카메라 또는 캐릭터 Forward)과 아이템 방향의 Dot Product를 계산합니다.
+          FOVCosine(PlayerFOVDegrees의 절반 각도의 코사인)보다 크면 시야 안에 있는 것으로 판정합니다.
+          MinDistanceFromPlayer(기본 500) 이내면 FOV 무관하게 실패하여 바로 옆/뒤 스폰을 방지합니다.
+          bUseCameraDirection이 true(기본)이면 PlayerController의 ControlRotation을 사용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="fov" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PlayerFOVDegrees</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>플레이어 시야각(도). 기본값 90. 절반 각도로 계산.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MinDistanceFromPlayer</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>최소 거리. 이 이내면 FOV 무관 실패. 기본값 500.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bUseCameraDirection</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>카메라 방향 사용 여부. 기본값 true.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="fov" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RunTest()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>FOVCosine을 미리 계산합니다. 각 아이템에 대해 모든 플레이어와의 거리(MinDistanceFromPlayer)와 Dot Product(FOVCosine)를 체크합니다. bUseCameraDirection이면 PC의 ControlRotation을, 아니면 캐릭터 ForwardVector를 사용합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="fov" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>수집</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>GetAllActorsOfClass로 모든 플레이어를 수집</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">APlayerController</span></td><td>GetControlRotation으로 카메라 방향 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_EQS_Test_VolumeExclusion ==================== -->
+    <div class="class-card" id="volexcl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_EQS_Test_VolumeExclusion</div>
+        <div class="class-parent">부모: UEnvQueryTest</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'volexcl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'volexcl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'volexcl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'volexcl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="volexcl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">스폰 금지 볼륨(AAO_Area_SpawnRestriction)과의 겹침을 체크하는 EQS Test</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비용</div>
+            <div class="info-value">EEnvTestCost::Low</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">결과 타입</div>
+            <div class="info-value">Bool &mdash; 금지 볼륨 밖이면 1.0, 안이면 0.0</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 용도</div>
+            <div class="info-value">레벨 디자이너가 배치한 스폰 금지 볼륨 영역 필터링</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          NavAreaExclusion과 유사하지만, NavMesh 대신 커스텀 볼륨 액터(AAO_Area_SpawnRestriction)를 사용합니다.
+          RestrictionVolumeClass가 지정되면 해당 클래스, 아니면 기본 AAO_Area_SpawnRestriction를 대상으로 합니다.
+          GetAllActorsOfClass로 모든 금지 볼륨을 수집하고, 각 아이템에 대해 EncompassesPoint를 체크합니다.
+          금지 볼륨이 없으면 모든 위치를 통과시킵니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="volexcl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">RestrictionVolumeClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;AAO_Area_SpawnRestriction&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>테스트할 스폰 금지 볼륨 클래스. 미지정 시 기본 AAO_Area_SpawnRestriction 사용.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="volexcl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RunTest()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>RestrictionVolumeClass(또는 기본 AAO_Area_SpawnRestriction)로 GetAllActorsOfClass를 수행합니다. 각 아이템에 대해 모든 금지 볼륨의 EncompassesPoint를 체크하여, 금지 영역 안이면 0.0, 밖이면 1.0으로 점수를 설정합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="volexcl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>순회</td><td><span class="rel-cls">AAO_Area_SpawnRestriction</span></td><td>월드 내 모든 스폰 금지 볼륨과 겹침 체크</td></tr>
+          <tr><td>유사</td><td><span class="rel-cls">UAO_EQS_Test_NavAreaExclusion</span></td><td>동일 패턴이지만 NavMesh 대신 커스텀 볼륨 사용</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용
+</div>
+
+<script>
+// Tab switching
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+// Accordion
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// TOC active highlight on scroll
+const sections = ['attackbase','stun','bull','insect','lava','stalker','troll','wattack','whowl','intbase','intpuzzle','allplayers','packmembers','target','los','navarea','fov','volexcl'];
+const tocItems = {};
+sections.forEach(id => {
+  tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`);
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      const key = e.target.id;
+      if (tocItems[key]) tocItems[key].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// TOC click -> immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

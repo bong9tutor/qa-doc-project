@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 메카닉 & 컴포넌트</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#ea580c;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;max-height:calc(100vh - 80px);overflow-y:auto;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-group{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#ea580c;margin:10px 0 4px 4px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#fff7ed;color:#ea580c;border-left-color:#ea580c;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#ea580c;border-bottom-color:#ea580c;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #ea580c;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#fff7ed;border-color:#fed7aa;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #fed7aa;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#ea580c;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#ea580c;font-weight:600;}
+
+.flow-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">Mechanics</div>
+  <div class="nav-sub">메카닉 &amp; 컴포넌트 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">메카닉 &amp; 컴포넌트 클래스</div>
+  <div class="hero-sub">애니메이션 노티파이 &middot; 게임플레이 큐 &middot; 오디오 &middot; AI 컴포넌트 &middot; 스폰 영역 25개 클래스</div>
+  <div class="badges">
+    <span class="badge">AnimNotify</span>
+    <span class="badge">GameplayCue</span>
+    <span class="badge">Foley Audio</span>
+    <span class="badge">AI Component</span>
+    <span class="badge">Passive</span>
+    <span class="badge">Spawn Area</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <div class="toc-group">Animation</div>
+      <a class="toc-item active" href="#aianim">AO_AIAnimInstance</a>
+      <a class="toc-item" href="#footstep">AO_AN_AIFootstep</a>
+      <a class="toc-item" href="#ceiling-tr">AO_AN_StalkerCeilingTransition</a>
+      <a class="toc-item" href="#death-ragdoll">AO_AnimNotify_SendDeathRagdollEvent</a>
+      <a class="toc-item" href="#melee-coll">AO_NotifyState_MeleeCollision</a>
+      <a class="toc-item" href="#blend-out">AO_NotifyState_MontageBlendOut</a>
+      <div class="toc-group">Gameplay Cue</div>
+      <a class="toc-item" href="#cue-dmg">AO_GCN_Burst_DamageVolume</a>
+      <a class="toc-item" href="#cue-death">AO_GCN_Burst_Death</a>
+      <a class="toc-item" href="#cue-fuel">AO_GCN_Burst_Fuel</a>
+      <div class="toc-group">Audio</div>
+      <a class="toc-item" href="#foley-bank">AO_FoleyAudioBank</a>
+      <a class="toc-item" href="#foley-iface">AO_FoleyAudioBankInterface</a>
+      <div class="toc-group">Input</div>
+      <a class="toc-item" href="#input-mod">UInputModifier_SlotIndex</a>
+      <div class="toc-group">AI Component</div>
+      <a class="toc-item" href="#ceiling-move">AO_CeilingMoveComponent</a>
+      <a class="toc-item" href="#kidnap">AO_KidnapComponent</a>
+      <a class="toc-item" href="#weapon">AO_WeaponHolderComp</a>
+      <a class="toc-item" href="#pack">AO_PackCoordComp</a>
+      <div class="toc-group">Passive</div>
+      <a class="toc-item" href="#passive-comp">AO_PassiveComponent</a>
+      <a class="toc-item" href="#passive-cont">AO_PassiveContainer</a>
+      <a class="toc-item" href="#passive-sub">AO_Passive_WorldSubsystem</a>
+      <div class="toc-group">Customizing</div>
+      <a class="toc-item" href="#dummy-custom">AO_DummyCustomComponent</a>
+      <div class="toc-group">Spawn Area</div>
+      <a class="toc-item" href="#area-intensive">AO_Area_SpawnIntensive</a>
+      <a class="toc-item" href="#area-restrict">AO_Area_SpawnRestriction</a>
+      <a class="toc-item" href="#nav-intensive">AO_NavArea_SpawnIntensive</a>
+      <a class="toc-item" href="#nav-restrict">AO_NavArea_SpawnRestriction</a>
+      <div class="toc-group">Data</div>
+      <a class="toc-item" href="#melee-payload">AO_MeleeHitEventPayload</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_AIAnimInstance ==================== -->
+    <div class="class-card" id="aianim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AIAnimInstance</div>
+        <div class="class-parent">부모: UAnimInstance</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'aianim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'aianim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'aianim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'aianim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="aianim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">AI 캐릭터 공통 애니메이션 인스턴스 - 이동 속도/상태를 ABP에 공급</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버 &amp; 클라이언트 모두 (시뮬레이션 프록시 포함)</div></div>
+          <div class="info-item"><div class="info-label">업데이트 빈도</div><div class="info-value">NativeUpdateAnimation - 매 프레임 호출</div></div>
+          <div class="info-item"><div class="info-label">파생 클래스</div><div class="info-value">Bull, Crab, Insect 등 종별 AnimInstance가 이 클래스를 상속</div></div>
+        </div>
+        <div class="desc-block">
+          AI 캐릭터 공통 애니메이션 인스턴스입니다. NativeInitializeAnimation에서 소유 캐릭터와 MovementComponent를 캐싱하고,
+          NativeUpdateAnimation에서 매 프레임 Velocity, GroundSpeed, bShouldMove, bIsFalling을 갱신합니다.
+          AnimBP의 블렌드 스페이스와 스테이트 머신이 이 변수들을 읽어 이동/정지/낙하 애니메이션을 선택합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="aianim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Character</span></td><td><span class="var-type">TObjectPtr&lt;ACharacter&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>소유 AI 캐릭터. NativeInitializeAnimation에서 TryGetPawnOwner()로 캐싱합니다.</td></tr>
+          <tr><td><span class="var-name">MovementComponent</span></td><td><span class="var-type">TObjectPtr&lt;UCharacterMovementComponent&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>Character의 이동 컴포넌트. 가속도, 낙하 상태를 읽는 데 사용합니다.</td></tr>
+          <tr><td><span class="var-name">Velocity</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>캐릭터의 3D 속도 벡터. 매 프레임 GetVelocity()로 갱신됩니다.</td></tr>
+          <tr><td><span class="var-name">GroundSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>Velocity의 2D 크기(Size2D). 블렌드 스페이스의 X축 입력으로 사용됩니다.</td></tr>
+          <tr><td><span class="var-name">bShouldMove</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>GroundSpeed &gt; 3.0 이고 가속도가 0이 아닐 때 true. Idle/Move 스테이트 전환 조건입니다.</td></tr>
+          <tr><td><span class="var-name">bIsFalling</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>MovementComponent.IsFalling()의 캐시. 공중 상태 애니메이션 분기에 사용됩니다.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="aianim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeInitializeAnimation()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; TryGetPawnOwner()로 소유 Pawn을 ACharacter로 Cast하여 Character에 저장<br>
+                &#9313; Character-&gt;GetCharacterMovement()로 MovementComponent 캐싱
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeUpdateAnimation(float DeltaSeconds)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; Character 또는 MovementComponent가 null이면 조기 리턴<br>
+                &#9313; Velocity = Character-&gt;GetVelocity()<br>
+                &#9314; GroundSpeed = Velocity.Size2D()<br>
+                &#9315; bShouldMove = GroundSpeed &gt; 3.0 &amp;&amp; 가속도 != ZeroVector<br>
+                &#9316; bIsFalling = MovementComponent-&gt;IsFalling()
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="aianim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">ACharacter</span></td><td>소유 AI 캐릭터의 Velocity를 읽어 애니메이션 변수 갱신</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UCharacterMovementComponent</span></td><td>가속도, IsFalling 상태를 매 프레임 조회</td></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">AnimBP (Blueprint)</span></td><td>GroundSpeed, bShouldMove 등 변수를 블렌드 스페이스와 스테이트 머신이 참조</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_AN_AIFootstep ==================== -->
+    <div class="class-card" id="footstep">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AN_AIFootstep</div>
+        <div class="class-parent">부모: UAnimNotify</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'footstep','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'footstep','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'footstep','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'footstep','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="footstep" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">AI 캐릭터용 범용 사운드 AnimNotify (발걸음, 공격, 으르렁거림 등)</div></div>
+          <div class="info-item"><div class="info-label">3D 공간화</div><div class="info-value">AttenuationSettings가 있으면 SpawnSoundAtLocation, 없으면 PlaySoundAtLocation 사용</div></div>
+          <div class="info-item"><div class="info-label">조절 파라미터</div><div class="info-value">Volume, Pitch, MaxDuration(최대 재생 시간 제한)</div></div>
+          <div class="info-item"><div class="info-label">사용법</div><div class="info-value">애니메이션 타임라인에서 원하는 프레임에 추가, Sound 에셋 할당</div></div>
+        </div>
+        <div class="desc-block">
+          AI 캐릭터의 발걸음, 공격 사운드 등을 애니메이션 프레임에 맞춰 재생하는 AnimNotify입니다.
+          AttenuationSettings가 설정되어 있으면 3D 공간 사운드(SpawnSoundAtLocation)로 재생하고,
+          MaxDuration이 설정되어 있으면 StopDelayed로 해당 시간 후 자동 중지합니다.
+          Attenuation이 없으면 기본 PlaySoundAtLocation을 사용합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="footstep" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Sound</span></td><td><span class="var-type">TObjectPtr&lt;USoundBase&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>재생할 사운드 에셋. SoundCue, MetaSound, WAV 등 모두 가능합니다.</td></tr>
+          <tr><td><span class="var-name">AttenuationSettings</span></td><td><span class="var-type">TObjectPtr&lt;USoundAttenuation&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>3D 공간화, 거리 감쇠, 리버브 설정. null이면 기본 2D 방식으로 재생됩니다.</td></tr>
+          <tr><td><span class="var-name">VolumeMultiplier</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>볼륨 배수 (0.0~5.0, 기본 1.0)</td></tr>
+          <tr><td><span class="var-name">PitchMultiplier</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>피치 배수 (0.1~3.0, 기본 1.0). 낮을수록 무거운 느낌.</td></tr>
+          <tr><td><span class="var-name">MaxDuration</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>최대 재생 시간(초). 0이면 제한 없이 사운드 끝까지 재생됩니다.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="footstep" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Notify(USkeletalMeshComponent*, UAnimSequenceBase*, ...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; MeshComp 또는 Sound가 null이면 조기 리턴<br>
+                &#9313; Owner 액터의 위치에서 사운드 재생<br>
+                &#9314; AttenuationSettings 유무에 따라 SpawnSoundAtLocation 또는 PlaySoundAtLocation 분기<br>
+                &#9315; MaxDuration &gt; 0이면 AudioComp-&gt;StopDelayed(MaxDuration)로 자동 중지
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetNotifyName_Implementation()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Sound 에셋이 있으면 "AI Sound: {에셋명}", 없으면 "AI Sound"를 반환합니다. 에디터 타임라인에 표시되는 이름입니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="footstep" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">UAnimSequenceBase</span></td><td>AnimMontage/Sequence의 타임라인에서 자동 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UGameplayStatics</span></td><td>SpawnSoundAtLocation / PlaySoundAtLocation으로 사운드 재생</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_AN_StalkerCeilingTransition ==================== -->
+    <div class="class-card" id="ceiling-tr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AN_StalkerCeilingTransition</div>
+        <div class="class-parent">부모: UAnimNotify</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'ceiling-tr','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-tr','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-tr','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-tr','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="ceiling-tr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker AI의 천장/바닥 전환을 몽타주 특정 프레임에서 트리거</div></div>
+          <div class="info-item"><div class="info-label">전환 방향</div><div class="info-value">bToCeiling = true(바닥->천장), false(천장->바닥)</div></div>
+          <div class="info-item"><div class="info-label">안전 체크</div><div class="info-value">에디터 프리뷰(IsGameWorld 실패)에서는 실행하지 않음</div></div>
+          <div class="info-item"><div class="info-label">대상 캐릭터</div><div class="info-value">AAO_Stalker로 Cast 성공 시에만 SetCeilingMode 호출</div></div>
+        </div>
+        <div class="desc-block">
+          Stalker AI 캐릭터가 천장과 바닥 사이를 전환하는 몽타주의 특정 프레임에 배치하는 AnimNotify입니다.
+          JumpToCeiling 몽타주에서는 bToCeiling = true로, JumpToFloor 몽타주에서는 false로 설정합니다.
+          Owner를 AAO_Stalker로 Cast하여 SetCeilingMode()를 호출합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="ceiling-tr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">bToCeiling</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>true: 천장 모드로 전환, false: 바닥 모드로 전환. 기본값 true.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="ceiling-tr" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Notify(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; MeshComp null 체크<br>
+                &#9313; 에디터 프리뷰 필터링 (IsGameWorld)<br>
+                &#9314; Owner를 AAO_Stalker로 Cast<br>
+                &#9315; Stalker-&gt;SetCeilingMode(bToCeiling) 호출
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetNotifyName_Implementation()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>bToCeiling에 따라 "Stalker: To Ceiling" 또는 "Stalker: To Floor"를 반환합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="ceiling-tr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_Stalker</span></td><td>SetCeilingMode()를 호출하여 천장/바닥 모드 전환</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">UAO_CeilingMoveComponent</span></td><td>Stalker가 내부적으로 CeilingMoveComponent에 위임</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_AnimNotify_SendDeathRagdollEvent ==================== -->
+    <div class="class-card" id="death-ragdoll">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AnimNotify_SendDeathRagdollEvent</div>
+        <div class="class-parent">부모: UAnimNotify</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'death-ragdoll','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'death-ragdoll','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'death-ragdoll','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'death-ragdoll','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="death-ragdoll" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">사망 몽타주 특정 프레임에서 Ragdoll 전환 GAS 이벤트를 전송</div></div>
+          <div class="info-item"><div class="info-label">서버 처리</div><div class="info-value">Authority가 있으면 직접 GAS 이벤트 전송</div></div>
+          <div class="info-item"><div class="info-label">클라이언트 처리</div><div class="info-value">Authority가 없으면 DeathSpectateComponent의 Server RPC를 통해 전송</div></div>
+          <div class="info-item"><div class="info-label">기본 태그</div><div class="info-value">Event.Death.Ragdoll (RagdollEventTag가 비어있으면 자동 할당)</div></div>
+        </div>
+        <div class="desc-block">
+          사망 애니메이션 몽타주의 래그돌 전환 시점에 배치하여, GAS 이벤트(Event.Death.Ragdoll)를 통해
+          사망 어빌리티가 래그돌 물리 전환을 수행하도록 트리거합니다.
+          서버에서는 직접 SendGameplayEventToActor를 호출하고,
+          클라이언트에서는 DeathSpectateComponent의 ServerRPC_NotifyDeathRagdoll()을 통해 서버에 요청합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="death-ragdoll" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">RagdollEventTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>래그돌 전환 이벤트 태그. 비어있으면 "Event.Death.Ragdoll"로 자동 할당됩니다.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="death-ragdoll" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Notify(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; MeshComp null 체크, 에디터 필터링<br>
+                &#9313; RagdollEventTag가 Invalid이면 "Event.Death.Ragdoll"로 자동 설정<br>
+                &#9314; HasAuthority() &rarr; SendGameplayEventToActor 직접 호출<br>
+                &#9315; 클라이언트 &rarr; DeathSpectateComponent-&gt;ServerRPC_NotifyDeathRagdoll()
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="death-ragdoll" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>전송</td><td><span class="rel-cls">UAbilitySystemBlueprintLibrary</span></td><td>SendGameplayEventToActor로 GAS 이벤트 전송</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_DeathSpectateComponent</span></td><td>클라이언트에서 ServerRPC_NotifyDeathRagdoll() 호출</td></tr>
+          <tr><td>수신</td><td><span class="rel-cls">UAO_GameplayAbility_Death</span></td><td>Event.Death.Ragdoll 이벤트를 수신하여 래그돌 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_NotifyState_MeleeCollision ==================== -->
+    <div class="class-card" id="melee-coll">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NotifyState_MeleeCollision</div>
+        <div class="class-parent">부모: UAnimNotifyState</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'melee-coll','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-coll','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-coll','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-coll','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="melee-coll" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">근접 공격 몽타주 구간 동안 소켓 궤적을 추적, 히트 확인 이벤트를 GAS로 전송</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버에서만 히트 이벤트 전송 (HasAuthority 체크)</div></div>
+          <div class="info-item"><div class="info-label">중복 방지</div><div class="info-value">bHasSentHitEvent 플래그로 구간 내 1회만 전송</div></div>
+          <div class="info-item"><div class="info-label">폴백</div><div class="info-value">NotifyTick에서 전송 못하면 NotifyEnd에서 재시도</div></div>
+        </div>
+        <div class="desc-block">
+          근접 공격 몽타주에 배치하는 AnimNotifyState입니다.
+          NotifyBegin에서 소켓 시작 위치를 저장하고, NotifyTick에서 매 프레임 궤적(PreviousLocation &rarr; CurrentLocation)을 갱신하며
+          SendHitConfirmEvent를 통해 UAO_MeleeHitEventPayload에 Trace 정보를 담아 GAS 이벤트(Event.Combat.Confirm)를 전송합니다.
+          히트 확인 어빌리티가 이 이벤트를 수신하여 실제 데미지 처리를 수행합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="melee-coll" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">DamageEffectClass</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>데미지 적용에 사용할 GameplayEffect 클래스. Payload에 포함되어 전달됩니다.</td></tr>
+          <tr><td><span class="var-name">SocketName</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>궤적 추적 소켓 이름. 비어있으면 메시 컴포넌트 위치를 사용합니다.</td></tr>
+          <tr><td><span class="var-name">DamageAmount</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>데미지 량 (기본 -20.0). EventMagnitude로도 전달됩니다.</td></tr>
+          <tr><td><span class="var-name">TraceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>궤적 Trace 반경 (기본 30.0). SphereTrace 반경으로 사용됩니다.</td></tr>
+          <tr><td><span class="var-name">HitConfirmEventTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>히트 확인 이벤트 태그. 기본 "Event.Combat.Confirm".</td></tr>
+          <tr><td><span class="var-name">bHasSentHitEvent</span></td><td><span class="var-type">bool</span></td><td>(private)</td><td>이번 구간에서 이미 히트 이벤트를 보냈는지 여부. 중복 전송 방지.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="melee-coll" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyBegin(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 에디터 필터링, OwningActor 캐싱<br>
+                &#9313; bHasSentHitEvent = false 초기화<br>
+                &#9314; SocketName 또는 컴포넌트 위치를 StartLocation/PreviousLocation에 저장
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyTick(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 이미 전송했으면 리턴<br>
+                &#9313; HasAuthority 체크<br>
+                &#9314; 현재 소켓 위치 갱신<br>
+                &#9315; SendHitConfirmEvent() 호출<br>
+                &#9316; PreviousLocation 갱신
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyEnd(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Tick에서 전송하지 못한 경우 폴백으로 SendHitConfirmEvent()를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendHitConfirmEvent(USkeletalMeshComponent*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 중복/유효성 체크<br>
+                &#9313; UAO_MeleeHitEventPayload 생성, TraceStart/End/Radius/DamageEffectClass/DamageAmount 설정<br>
+                &#9314; FGameplayEventData에 Payload를 OptionalObject로 세팅<br>
+                &#9315; SendGameplayEventToActor(Owner, HitConfirmEventTag, EventData)<br>
+                &#9316; bHasSentHitEvent = true
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="melee-coll" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_MeleeHitEventPayload</span></td><td>Trace 파라미터를 Payload에 담아 GAS 이벤트로 전달</td></tr>
+          <tr><td>전송</td><td><span class="rel-cls">UAbilitySystemBlueprintLibrary</span></td><td>SendGameplayEventToActor로 히트 확인 이벤트 전송</td></tr>
+          <tr><td>수신</td><td><span class="rel-cls">히트 확인 GameplayAbility</span></td><td>Event.Combat.Confirm을 수신하여 SphereTrace + 데미지 적용</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_NotifyState_MontageBlendOut ==================== -->
+    <div class="class-card" id="blend-out">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NotifyState_MontageBlendOut</div>
+        <div class="class-parent">부모: UAnimNotifyState</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'blend-out','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'blend-out','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'blend-out','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'blend-out','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="blend-out" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">트래버설 몽타주의 조건부 블렌드 아웃 처리</div></div>
+          <div class="info-item"><div class="info-label">조건 종류</div><div class="info-value">ForceBlendOut / WithMovementInput / IfFalling</div></div>
+          <div class="info-item"><div class="info-label">블렌드 방식</div><div class="info-value">HermiteCubic 알파, BlendProfile(관절별 가중치) 적용</div></div>
+          <div class="info-item"><div class="info-label">기본 프로파일</div><div class="info-value">FastFeet_InstantRoot (발은 빠르게, 루트는 즉시 전환)</div></div>
+        </div>
+        <div class="desc-block">
+          트래버설(파쿠르) 몽타주의 마무리 구간에 배치하여, 조건에 따라 블렌드 아웃을 수행하는 AnimNotifyState입니다.
+          ForceBlendOut은 즉시, WithMovementInput은 이동 입력이 있을 때, IfFalling은 낙하 중일 때 블렌드 아웃합니다.
+          Montage_StopWithBlendSettings를 사용하여 관절별 BlendProfile을 적용합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="blend-out" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">BlendOutCondition</span></td><td><span class="var-type">EAO_TraversalBlendOutCondition</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>블렌드 아웃 조건 (ForceBlendOut, WithMovementInput, IfFalling)</td></tr>
+          <tr><td><span class="var-name">BlendOutTime</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>블렌드 아웃 시간 (기본 0.2초)</td></tr>
+          <tr><td><span class="var-name">BlendProfile</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>관절별 블렌딩 가중치 프로파일 (기본 FastFeet_InstantRoot)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="blend-out" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyBegin(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; Character, CharacterMovement, AnimInstance, AnimMontage 캐싱 (checkf 포함)
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyTick(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; BlendOutCondition에 따라 bShouldBlendOut 결정<br>
+                &nbsp;&nbsp;- ForceBlendOut: 항상 true<br>
+                &nbsp;&nbsp;- WithMovementInput: 가속도 != 0이면 true<br>
+                &nbsp;&nbsp;- IfFalling: IsFalling()이면 true<br>
+                &#9313; bShouldBlendOut이 false이면 리턴<br>
+                &#9314; FAlphaBlendArgs(BlendOutTime, HermiteCubic) 생성<br>
+                &#9315; FMontageBlendSettings(BlendProfile, BlendArgs) 구성<br>
+                &#9316; Montage_StopWithBlendSettings로 몽타주 중지
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="blend-out" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UCharacterMovementComponent</span></td><td>가속도, IsFalling으로 블렌드 아웃 조건 판단</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAnimInstance</span></td><td>Montage_StopWithBlendSettings로 몽타주 중지 요청</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">UAO_GameplayAbility_Traversal</span></td><td>트래버설 어빌리티의 몽타주에 배치되어 마무리 처리</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== GameplayCue: DamageVolume ==================== -->
+    <div class="class-card" id="cue-dmg">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayCueNotify_Burst_DamageVolume</div>
+        <div class="class-parent">부모: UGameplayCueNotify_Burst</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'cue-dmg','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-dmg','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-dmg','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-dmg','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="cue-dmg" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">데미지 볼륨(용암, 독가스 등)에 의한 피격 시 사운드 재생</div></div>
+          <div class="info-item"><div class="info-label">사망 체크</div><div class="info-value">Status.Death 태그가 있으면 재생하지 않음 (사망 사운드와 중복 방지)</div></div>
+          <div class="info-item"><div class="info-label">로컬/원격 분기</div><div class="info-value">로컬 플레이어는 2D 사운드, 원격은 3D Attached 사운드</div></div>
+          <div class="info-item"><div class="info-label">사운드 소스</div><div class="info-value">PlayerSoundSubsystem에서 Sound.Player.DamageReact 태그로 조회</div></div>
+        </div>
+        <div class="desc-block">
+          데미지 볼륨에 피격당했을 때 실행되는 Burst 타입 GameplayCue입니다.
+          사망 상태이면 사운드를 재생하지 않고, PlayerSoundSubsystem에서 캐릭터에 매핑된 DamageReact 사운드를 가져옵니다.
+          로컬 플레이어는 PlaySound2D, 원격 플레이어는 SpawnSoundAttached(메시 부착)로 재생합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-dmg" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">별도의 UPROPERTY 멤버 변수가 없습니다. 사운드는 런타임에 PlayerSoundSubsystem에서 조회합니다.</p>
+      </div>
+      <div class="tab-panel" data-class="cue-dmg" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnExecute_Implementation(AActor*, FGameplayCueParameters&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; ASC에서 Status.Death 태그 확인 &rarr; 사망이면 false 리턴<br>
+                &#9313; PlayDamageReactSound() 호출
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PlayDamageReactSound(AActor*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; PlayerSoundSubsystem에서 Sound.Player.DamageReact 태그로 사운드 조회<br>
+                &#9313; 로컬 컨트롤러 &rarr; PlaySound2D<br>
+                &#9314; 원격 + Character &rarr; SpawnSoundAttached(Mesh)<br>
+                &#9315; 최종 폴백 &rarr; PlaySoundAtLocation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-dmg" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_PlayerSoundSubsystem</span></td><td>GetSoundFromActor로 캐릭터별 피격 사운드 조회</td></tr>
+          <tr><td>실행됨</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>GAS에서 GameplayCue 이벤트로 자동 실행</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== GameplayCue: Death ==================== -->
+    <div class="class-card" id="cue-death">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayCueNotify_Burst_Death</div>
+        <div class="class-parent">부모: UGameplayCueNotify_Burst</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'cue-death','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-death','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-death','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-death','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="cue-death" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">플레이어 사망 시 사망 사운드 재생</div></div>
+          <div class="info-item"><div class="info-label">사운드 태그</div><div class="info-value">Sound.Player.Death</div></div>
+          <div class="info-item"><div class="info-label">로컬/원격 분기</div><div class="info-value">로컬: PlaySound2D, 원격: PlaySoundAtLocation</div></div>
+          <div class="info-item"><div class="info-label">사운드 소스</div><div class="info-value">PlayerSoundSubsystem에서 캐릭터별 사망 사운드 조회</div></div>
+        </div>
+        <div class="desc-block">
+          사망 GameplayEffect 적용 시 실행되는 Burst 타입 GameplayCue입니다.
+          PlayerSoundSubsystem에서 Sound.Player.Death 태그로 사운드를 조회하고,
+          로컬 플레이어는 2D로, 원격 플레이어는 위치 기반으로 재생합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-death" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">별도의 UPROPERTY 멤버 변수가 없습니다.</p>
+      </div>
+      <div class="tab-panel" data-class="cue-death" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnExecute_Implementation(AActor*, FGameplayCueParameters&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; MyTarget null 체크<br>
+                &#9313; PlayDeathSound(MyTarget) 호출
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PlayDeathSound(AActor*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; PlayerSoundSubsystem에서 Sound.Player.Death 태그로 사운드 조회<br>
+                &#9313; 로컬 컨트롤러 &rarr; PlaySound2D<br>
+                &#9314; 원격 &rarr; PlaySoundAtLocation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-death" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_PlayerSoundSubsystem</span></td><td>GetSoundFromActor로 캐릭터별 사망 사운드 조회</td></tr>
+          <tr><td>실행됨</td><td><span class="rel-cls">UAO_GameplayAbility_Death</span></td><td>사망 어빌리티가 적용하는 GE에서 GameplayCue 이벤트로 실행</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== GameplayCue: Fuel ==================== -->
+    <div class="class-card" id="cue-fuel">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayCueNotify_Burst_Fuel</div>
+        <div class="class-parent">부모: UGameplayCueNotify_Burst</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'cue-fuel','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-fuel','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-fuel','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cue-fuel','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="cue-fuel" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">기차에 연료 충전 시 파티클 + 사운드 이펙트 재생</div></div>
+          <div class="info-item"><div class="info-label">파티클</div><div class="info-value">FuelParticles(UParticleSystem)를 InteractableMeshComponent 위치에 스폰</div></div>
+          <div class="info-item"><div class="info-label">사운드</div><div class="info-value">FuelSound를 동일 위치에 재생</div></div>
+          <div class="info-item"><div class="info-label">위치 결정</div><div class="info-value">AAO_newTrain의 InteractableMeshComponent 위치 사용, 없으면 Parameters.Location</div></div>
+        </div>
+        <div class="desc-block">
+          기차에 연료를 충전할 때 실행되는 Burst 타입 GameplayCue입니다.
+          HandleGameplayCue를 오버라이드하여 Executed 이벤트일 때 파티클과 사운드를 스폰합니다.
+          Target을 AAO_newTrain으로 Cast하여 InteractableMeshComponent의 위치에 이펙트를 배치합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-fuel" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">FuelParticles</span></td><td><span class="var-type">UParticleSystem*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>연료 충전 시 스폰할 파티클 시스템.</td></tr>
+          <tr><td><span class="var-name">FuelSound</span></td><td><span class="var-type">USoundBase*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>연료 충전 시 재생할 사운드.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="cue-fuel" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleGameplayCue(AActor*, EGameplayCueEvent::Type, FGameplayCueParameters&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; EventType == Executed일 때만 실행<br>
+                &#9313; Target을 AAO_newTrain으로 Cast &rarr; InteractableMeshComponent 위치 사용<br>
+                &#9314; SpawnEmitterAtLocation으로 파티클 스폰<br>
+                &#9315; PlaySoundAtLocation으로 사운드 재생
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="cue-fuel" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">AAO_newTrain</span></td><td>InteractableMeshComponent 위치를 이펙트 스폰 위치로 사용</td></tr>
+          <tr><td>실행됨</td><td><span class="rel-cls">연료 추가 GameplayEffect</span></td><td>AddFuel GE가 실행될 때 GameplayCue 이벤트로 자동 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_FoleyAudioBank ==================== -->
+    <div class="class-card" id="foley-bank">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_FoleyAudioBank</div>
+        <div class="class-parent">부모: UPrimaryDataAsset</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'foley-bank','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-bank','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-bank','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-bank','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="foley-bank" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">GameplayTag를 키로 하여 Foley 사운드를 매핑하는 데이터 에셋</div></div>
+          <div class="info-item"><div class="info-label">타입</div><div class="info-value">UPrimaryDataAsset 기반 - 에셋 매니저에 등록 가능</div></div>
+          <div class="info-item"><div class="info-label">조회 방식</div><div class="info-value">GetSoundFromFoleyEvent(Tag) &rarr; USoundBase 반환</div></div>
+          <div class="info-item"><div class="info-label">사용처</div><div class="info-value">캐릭터의 발걸음, 착지, 슬라이딩 등 Foley 사운드</div></div>
+        </div>
+        <div class="desc-block">
+          캐릭터 Foley(질감) 사운드를 GameplayTag로 분류하여 관리하는 데이터 에셋입니다.
+          TMap&lt;FGameplayTag, USoundBase*&gt; 구조로, 태그를 키로 사운드를 조회합니다.
+          IAO_FoleyAudioBankInterface를 통해 캐릭터에서 접근합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="foley-bank" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Assets</span></td><td><span class="var-type">TMap&lt;FGameplayTag, TObjectPtr&lt;USoundBase&gt;&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>Foley 이벤트 태그 &rarr; 사운드 에셋 매핑. 에디터에서 편집합니다.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="foley-bank" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetSoundFromFoleyEvent(const FGameplayTag&amp; Event)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Assets 맵에서 Event 태그에 해당하는 사운드를 찾아 반환합니다. 없으면 checkf로 어서션 실패합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="foley-bank" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>제공</td><td><span class="rel-cls">IAO_FoleyAudioBankInterface</span></td><td>인터페이스를 통해 캐릭터가 이 에셋에 접근</td></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">Foley AnimNotify</span></td><td>발걸음 AnimNotify가 GetSoundFromFoleyEvent로 사운드 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_FoleyAudioBankInterface ==================== -->
+    <div class="class-card" id="foley-iface">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">IAO_FoleyAudioBankInterface</div>
+        <div class="class-parent">부모: UInterface</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'foley-iface','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-iface','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-iface','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'foley-iface','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="foley-iface" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">캐릭터가 자신의 FoleyAudioBank를 노출하는 인터페이스</div></div>
+          <div class="info-item"><div class="info-label">타입</div><div class="info-value">UINTERFACE(MinimalAPI, BlueprintType) - C++ &amp; BP 모두 구현 가능</div></div>
+          <div class="info-item"><div class="info-label">주요 함수</div><div class="info-value">GetFoleyAudioBank(), CanPlayFootstepSounds()</div></div>
+          <div class="info-item"><div class="info-label">순수 가상</div><div class="info-value">두 함수 모두 pure virtual (_Implementation = 0)</div></div>
+        </div>
+        <div class="desc-block">
+          캐릭터가 구현하여 Foley 오디오 뱅크와 발걸음 사운드 재생 가능 여부를 노출하는 UE 인터페이스입니다.
+          AnimNotify나 사운드 시스템이 이 인터페이스를 통해 캐릭터의 FoleyAudioBank에 접근하고,
+          CanPlayFootstepSounds로 현재 발걸음 사운드를 재생해도 되는 상태인지 확인합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="foley-iface" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">인터페이스이므로 멤버 변수가 없습니다.</p>
+      </div>
+      <div class="tab-panel" data-class="foley-iface" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetFoleyAudioBank() const</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>구현 클래스(캐릭터)의 FoleyAudioBank 데이터 에셋을 반환합니다. Pure virtual이므로 반드시 구현해야 합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanPlayFootstepSounds() const</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>현재 발걸음 사운드를 재생할 수 있는 상태인지 반환합니다. 사망, 스턴 등의 상태에서는 false를 반환하도록 구현합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="foley-iface" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>구현</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>플레이어 캐릭터가 이 인터페이스를 구현하여 Foley Bank 제공</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_FoleyAudioBank</span></td><td>GetFoleyAudioBank()가 반환하는 데이터 에셋 타입</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== InputModifier_SlotIndex ==================== -->
+    <div class="class-card" id="input-mod">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UInputModifier_SlotIndex</div>
+        <div class="class-parent">부모: UInputModifier</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'input-mod','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'input-mod','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'input-mod','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'input-mod','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="input-mod" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Enhanced Input의 InputAction 값을 슬롯 인덱스로 대체하는 Modifier</div></div>
+          <div class="info-item"><div class="info-label">방식</div><div class="info-value">원래 입력값을 무시하고 SlotIndex(float)를 반환</div></div>
+          <div class="info-item"><div class="info-label">사용처</div><div class="info-value">인벤토리 슬롯 선택 (숫자키 1~9를 슬롯 인덱스로 변환)</div></div>
+          <div class="info-item"><div class="info-label">헤더 전용</div><div class="info-value">.cpp 파일 없이 헤더에 인라인 구현</div></div>
+        </div>
+        <div class="desc-block">
+          Enhanced Input 시스템의 InputModifier를 상속하여, 숫자키 입력을 인벤토리 슬롯 인덱스로 변환합니다.
+          같은 InputAction에 다른 SlotIndex 값을 가진 Modifier를 여러 키에 매핑하면,
+          어떤 키를 눌러도 해당 슬롯 번호가 값으로 전달됩니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="input-mod" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">SlotIndex</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>반환할 슬롯 인덱스 (기본 0). InputAction 값을 이 숫자로 대체합니다.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="input-mod" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ModifyRaw_Implementation(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>원래 입력값(CurrentValue)을 무시하고 FInputActionValue((float)SlotIndex)를 반환합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="input-mod" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>슬롯 선택 InputAction의 값으로 SelectedSlotIndex를 설정</td></tr>
+          <tr><td>시스템</td><td><span class="rel-cls">UEnhancedPlayerInput</span></td><td>Enhanced Input 파이프라인에서 Modifier로 자동 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_CeilingMoveComponent ==================== -->
+    <div class="class-card" id="ceiling-move">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_CeilingMoveComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'ceiling-move','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-move','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-move','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ceiling-move','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="ceiling-move" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker AI의 천장 이동 기능 - NavMesh는 바닥, Mesh만 천장으로 오프셋</div></div>
+          <div class="info-item"><div class="info-label">핵심 원리</div><div class="info-value">Actor(캡슐)는 바닥 NavMesh를 따라 이동, SkeletalMesh만 Z 오프셋으로 천장에 부착</div></div>
+          <div class="info-item"><div class="info-label">복제</div><div class="info-value">bIsCeilingMode가 ReplicatedUsing으로 클라이언트 동기화</div></div>
+          <div class="info-item"><div class="info-label">천장 감지</div><div class="info-value">SphereTrace(반경 30)로 천장 감지, Normal 각도 체크(MaxCeilingAngle=60도)</div></div>
+        </div>
+        <div class="desc-block">
+          Stalker AI가 천장에 매달려 이동하는 기능을 담당하는 컴포넌트입니다.
+          NavMesh는 바닥에만 존재하므로, 캐릭터의 캡슐은 바닥을 걸어다니고 SkeletalMesh만 천장 높이로 오프셋하여
+          시각적으로 천장에 붙어 보이게 합니다. 천장 모드에서는 중력을 0으로 설정하고,
+          매 틱 LineTrace로 천장 높이를 찾아 Mesh 위치와 회전을 보간합니다.
+          천장이 끊기면 자동으로 바닥 모드로 전환됩니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="ceiling-move" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">bIsCeilingMode</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag bp">BPReadOnly</span></td><td>천장 모드 활성화 여부. 클라이언트에 복제되어 Mesh 시각 업데이트를 트리거합니다.</td></tr>
+          <tr><td><span class="var-name">CeilingTraceDistance</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>천장 감지 거리 (기본 500). 이 거리 이내의 천장을 감지합니다.</td></tr>
+          <tr><td><span class="var-name">CeilingOffset</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>천장에 붙을 때의 보정 오프셋 (기본 10).</td></tr>
+          <tr><td><span class="var-name">MaxCeilingAngle</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>지원하는 최대 천장 기울기 각도 (기본 60도).</td></tr>
+          <tr><td><span class="var-name">JumpUpMontage / JumpDownMontage</span></td><td><span class="var-type">UAnimMontage*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>바닥&harr;천장 전환 몽타주.</td></tr>
+          <tr><td><span class="var-name">RotationInterpSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>천장 Normal에 맞춘 Mesh 회전 보간 속도 (기본 2.0).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="ceiling-move" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetCeilingMode(bool bEnable)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 서버에서 천장 가용성 체크 (CheckCeilingAvailability)<br>
+                &#9313; bEnable=true: GravityScale=0, Mesh 초기 위치/회전 저장, 천장 높이 계산, 보간 시작<br>
+                &#9314; bEnable=false: 바닥으로 보간 시작 (TargetOffsetZ=0)<br>
+                &#9315; bIsCeilingMode 플래그 변경 &rarr; 복제로 클라이언트 동기화
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TickComponent(float DeltaTime, ...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                <strong>서버:</strong> 보간 중이면 EaseInOut 곡선으로 Mesh 위치/회전 보간, 완료 후 UpdateCeilingPosition으로 실시간 추적<br>
+                <strong>클라이언트:</strong> LineTrace로 천장 높이를 찾아 Mesh 위치/회전만 로컬에서 보간
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CheckCeilingAvailability() const</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>현재 위치 위쪽에 천장이 있는지 SphereTrace(반경 30)로 확인합니다. Normal 각도와 최소 거리를 체크합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateCapsuleRotationToCeiling(const FVector&amp; CeilingNormal)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>천장 Normal에 맞춰 Mesh를 회전시킵니다. MakeFromZX로 월드 회전 계산 후 로컬 변환, RInterpTo로 부드럽게 보간합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="ceiling-move" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Stalker</span></td><td>Stalker 캐릭터가 이 컴포넌트를 보유</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">UAO_AN_StalkerCeilingTransition</span></td><td>AnimNotify가 SetCeilingMode()를 트리거</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UNavigationSystemV1</span></td><td>NavMesh 프로젝션으로 바닥 위치 확인</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_KidnapComponent ==================== -->
+    <div class="class-card" id="kidnap">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_KidnapComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'kidnap','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'kidnap','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'kidnap','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'kidnap','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="kidnap" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Insect AI의 납치 기능 - 플레이어 부착/DoT 데미지/해제</div></div>
+          <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">CurrentVictim이 ReplicatedUsing으로 클라이언트 동기화</div></div>
+          <div class="info-item"><div class="info-label">쿨다운</div><div class="info-value">AISubsystem을 통해 같은 플레이어 연속 납치 방지 (기본 10초)</div></div>
+          <div class="info-item"><div class="info-label">사망 처리</div><div class="info-value">피해자 사망 시 DoT 중지하되 납치는 유지 (시체 끌고 다님)</div></div>
+        </div>
+        <div class="desc-block">
+          Insect AI가 플레이어를 납치하는 전체 생명주기를 관리하는 컴포넌트입니다.
+          TryKidnapPlayer에서 AISubsystem 예약, 충돌/물리 비활성화, 소켓 부착, 입력 차단, DoT 타이머 시작을 처리하고,
+          ReleaseKidnap에서 부착 해제, 물리 복구, NavMesh 위 안전 위치 배치, 넉다운 이벤트 전송을 수행합니다.
+          클라이언트에서는 OnRep_CurrentVictim 콜백으로 Attach/Detach, 입력 차단 등을 동기화합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="kidnap" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">CurrentVictim</span></td><td><span class="var-type">TObjectPtr&lt;AAO_PlayerCharacter&gt;</span></td><td><span class="prop-tag rep">ReplicatedUsing</span></td><td>현재 납치 중인 플레이어. 복제되어 클라이언트에서 Attach/Detach 동기화.</td></tr>
+          <tr><td><span class="var-name">KidnapSocketName</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>Insect 메시의 납치 소켓 이름 (기본 "KidnapSocket").</td></tr>
+          <tr><td><span class="var-name">DotDamageAmount</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>DoT 1회 데미지량 (기본 10).</td></tr>
+          <tr><td><span class="var-name">DotInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>DoT 주기 (기본 1초).</td></tr>
+          <tr><td><span class="var-name">DotDamageEffectClass</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>DoT 데미지 GameplayEffect 클래스.</td></tr>
+          <tr><td><span class="var-name">KidnapCooldownDuration</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>납치 해제 후 같은 플레이어 재납치 쿨다운 (기본 10초).</td></tr>
+          <tr><td><span class="var-name">KidnappedStatusTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>납치 시 플레이어에게 적용할 상태 태그 (Status.Debuff.Kidnapped).</td></tr>
+          <tr><td><span class="var-name">OnKidnapStateChanged</span></td><td><span class="var-type">FOnKidnapStateChanged</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>납치 상태 변경 시 브로드캐스트. StateTree 등에서 반응.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="kidnap" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryKidnapPlayer(AAO_PlayerCharacter*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 이미 납치 중이거나 대상이 Kidnapped 태그를 가지면 실패<br>
+                &#9313; AISubsystem에 납치 예약 (TryReservePlayerForKidnap)<br>
+                &#9314; 물리/충돌 비활성화, Flying 모드 전환<br>
+                &#9315; 소켓 부착, 사망 델리게이트 바인딩<br>
+                &#9316; DoT 타이머 시작, 델리게이트 브로드캐스트
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ReleaseKidnap(bool bThrow)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 부착 해제 + 회전 보정<br>
+                &#9313; 생존: 충돌/물리 복구, 제약 해제, OnSpawn 어빌리티 재활성화<br>
+                &#9314; 사망: 래그돌 복구, 물리 힘 적용<br>
+                &#9315; NavMesh 위 안전 위치 배치<br>
+                &#9316; bThrow=true: 넉다운 이벤트 전송 + LaunchCharacter로 던지기<br>
+                &#9317; AISubsystem 납치 해제 + 쿨다운 등록<br>
+                &#9318; Insect 추격 대상 초기화
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDotDamage()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>타이머 콜백. 사망/무적 상태를 확인한 후 SetByCallerMagnitude로 DotDamageAmount만큼 GE를 적용합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="kidnap" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Insect</span></td><td>Insect 캐릭터가 이 컴포넌트를 보유</td></tr>
+          <tr><td>예약</td><td><span class="rel-cls">UAO_AISubsystem</span></td><td>납치 예약/해제/쿨다운을 AISubsystem에 위임</td></tr>
+          <tr><td>대상</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>납치 대상 플레이어 - 물리/입력/충돌 제어</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_InsectController</span></td><td>ReleaseKidnap 후 추격 대상 초기화</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_WeaponHolderComp ==================== -->
+    <div class="class-card" id="weapon">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_WeaponHolderComp</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'weapon','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'weapon','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'weapon','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'weapon','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="weapon" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Troll AI의 무기 소지/드롭/탐지를 관리</div></div>
+          <div class="info-item"><div class="info-label">탐지 방식</div><div class="info-value">시야 내(Controller에서 OnWeaponDetected 호출) + 반경 기반(GetAllActorsOfClass)</div></div>
+          <div class="info-item"><div class="info-label">무기 상태</div><div class="info-value">TWeakObjectPtr로 현재 무기 추적 - GC 안전</div></div>
+          <div class="info-item"><div class="info-label">Tick</div><div class="info-value">bCanEverTick = false - 이벤트 기반</div></div>
+        </div>
+        <div class="desc-block">
+          Troll AI가 무기(AAO_TrollWeapon)를 줍고/버리는 로직을 관리하는 컴포넌트입니다.
+          Controller의 Perception에서 무기 감지 시 OnWeaponDetected/OnWeaponLost를 호출하여 시야 목록을 갱신하고,
+          StateTree가 FindNearestWeaponInSight/InRadius로 가장 가까운 무기를 찾아 PickupWeapon을 요청합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="weapon" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">CurrentWeapon</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_TrollWeapon&gt;</span></td><td>(UPROPERTY)</td><td>현재 소지 중인 무기. WeakPtr로 GC에 의해 파괴되어도 안전합니다.</td></tr>
+          <tr><td><span class="var-name">WeaponsInSight</span></td><td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;...&gt;&gt;</span></td><td>(UPROPERTY)</td><td>시야 내 감지된 무기 목록.</td></tr>
+          <tr><td><span class="var-name">OnWeaponStateChanged</span></td><td><span class="var-type">FOnWeaponStateChanged</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>무기 소지 상태 변경 시 bool 브로드캐스트.</td></tr>
+          <tr><td><span class="var-name">OnWeaponPickedUp / OnWeaponDropped</span></td><td><span class="var-type">Delegate</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>무기 줍기/드롭 시 무기 포인터와 함께 브로드캐스트.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="weapon" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PickupWeapon(AAO_TrollWeapon*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 이미 무기 소지 중이거나 대상이 다른 Troll 소지 중이면 실패<br>
+                &#9313; Weapon-&gt;PickupByTroll(Troll) 호출<br>
+                &#9314; CurrentWeapon 설정, 시야 목록에서 제거, 델리게이트 브로드캐스트
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">DropWeapon()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CurrentWeapon의 Drop() 호출 후 포인터 해제, 델리게이트 브로드캐스트.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindNearestWeaponInSight() / FindNearestWeaponInRadius(float)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>시야 목록 또는 월드 전체 검색으로 가장 가까운 미소지 무기를 반환합니다. InRadius는 GetAllActorsOfClass를 사용합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="weapon" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Troll</span></td><td>Troll 캐릭터가 이 컴포넌트를 보유</td></tr>
+          <tr><td>관리</td><td><span class="rel-cls">AAO_TrollWeapon</span></td><td>PickupByTroll/Drop으로 무기 액터 상태 제어</td></tr>
+          <tr><td>호출자</td><td><span class="rel-cls">AAO_TrollController</span></td><td>Perception에서 OnWeaponDetected/Lost 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PackCoordComp ==================== -->
+    <div class="class-card" id="pack">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PackCoordComp</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pack','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pack','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pack','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pack','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="pack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf 무리(Pack) 행동 조율 - Howl 전파, 포위, 일제공격</div></div>
+          <div class="info-item"><div class="info-label">Howl 범위</div><div class="info-value">OverlapMultiByObjectType로 HowlRadius(2000) 내 Werewolf 검색</div></div>
+          <div class="info-item"><div class="info-label">일제공격</div><div class="info-value">포위 시작 후 5~8초 뒤 타이머로 자동 실행, 전체 동료에게 전파</div></div>
+          <div class="info-item"><div class="info-label">위치 관리</div><div class="info-value">포위 위치/도주로 예약 시스템 (만료 자동 정리)</div></div>
+        </div>
+        <div class="desc-block">
+          Werewolf 무리의 협동 전투를 관리하는 컴포넌트입니다.
+          BroadcastHowl로 주변 동료에게 타겟을 알리고 포위 모드를 시작합니다.
+          동료가 포위 위치에 도달하면 일제공격 타이머(5~8초)가 만료되어 ExecuteAttack이 실행되며,
+          ForceStartCoordinatedAttack으로 즉시 시작할 수도 있습니다.
+          포위 위치와 도주로 차단 위치는 예약 시스템으로 동료 간 충돌을 방지합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="pack" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">HowlRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td><td>Howl 전파 반경 (기본 2000). Pack 멤버 검색에도 사용됩니다.</td></tr>
+          <tr><td><span class="var-name">MinAttackDelay / MaxAttackDelay</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>일제공격까지 대기 시간 범위 (기본 5~8초).</td></tr>
+          <tr><td><span class="var-name">OnHowlReceived</span></td><td><span class="var-type">FOnHowlReceived</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>Howl 수신 시 타겟 액터와 함께 브로드캐스트.</td></tr>
+          <tr><td><span class="var-name">OnCoordinatedAttackStarted</span></td><td><span class="var-type">Delegate</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>일제공격 시작 시 브로드캐스트.</td></tr>
+          <tr><td><span class="var-name">ReservedPositions</span></td><td><span class="var-type">TArray&lt;FAO_SurroundPosition&gt;</span></td><td>(UPROPERTY)</td><td>포위 위치 예약 목록. 동료 간 겹침 방지.</td></tr>
+          <tr><td><span class="var-name">ReservedEscapeRoutes</span></td><td><span class="var-type">TArray&lt;FAO_EscapeRouteReservation&gt;</span></td><td>(UPROPERTY)</td><td>도주로 차단 예약 목록.</td></tr>
+        </table>
+        <div class="section-title">관련 구조체</div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_HowlResult</div>
+          <div class="struct-field"><span class="sf-name">bFoundAlly</span><span class="sf-desc">동료를 찾았는지 여부</span></div>
+          <div class="struct-field"><span class="sf-name">AllyCount</span><span class="sf-desc">발견한 동료 수</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_SurroundPosition</div>
+          <div class="struct-field"><span class="sf-name">Location</span><span class="sf-desc">포위 위치</span></div>
+          <div class="struct-field"><span class="sf-name">ReservedBy</span><span class="sf-desc">예약한 Werewolf</span></div>
+          <div class="struct-field"><span class="sf-name">ReservationTime</span><span class="sf-desc">예약 시각 (만료 체크용)</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_EscapeRouteReservation</div>
+          <div class="struct-field"><span class="sf-name">RouteLocation</span><span class="sf-desc">도주로 위치</span></div>
+          <div class="struct-field"><span class="sf-name">ReservedBy</span><span class="sf-desc">예약한 Werewolf</span></div>
+          <div class="struct-field"><span class="sf-name">RouteIndex</span><span class="sf-desc">도주로 인덱스</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="pack" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BroadcastHowl(AActor* Target) &rarr; FAO_HowlResult</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; HowlRadius 내 Pawn 채널 OverlapMulti<br>
+                &#9313; Werewolf만 필터링, 각 동료의 ReceiveHowl() 호출<br>
+                &#9314; 동료가 있으면 포위 모드 시작, 없으면 일반 추격
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindAvailableSurroundPosition(...)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어 주변을 16방향으로 샘플링하여 NavMesh 프로젝션 후 다른 Werewolf와 MinDistanceFromOthers 이상 떨어진 최적 위치를 반환합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AssignEscapeRouteToWolf(...)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>WerewolfController의 FindPotentialEscapeRoutesImproved로 도주 경로를 탐색하고, 미예약 경로를 할당합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="pack" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>Werewolf 캐릭터가 이 컴포넌트를 보유</td></tr>
+          <tr><td>전파</td><td><span class="rel-cls">UAO_PackCoordComp (동료)</span></td><td>ReceiveHowl/ExecuteAttack으로 동료에게 상태 전파</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_WerewolfController</span></td><td>도주 경로 탐색 위임</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PassiveComponent ==================== -->
+    <div class="class-card" id="passive-comp">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PassiveComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'passive-comp','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-comp','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-comp','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-comp','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="passive-comp" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">패시브 아이템 사용 시 GAS 이벤트를 수신하여 GameplayEffect 적용</div></div>
+          <div class="info-item"><div class="info-label">구독 태그</div><div class="info-value">Event.Interaction.AddPassive.MaxHP / Stamina / MoveSpeed</div></div>
+          <div class="info-item"><div class="info-label">적용 방식</div><div class="info-value">SetByCallerMagnitude(Data.PassiveAmount, EventMagnitude)로 값 전달</div></div>
+          <div class="info-item"><div class="info-label">MaxHP 특수</div><div class="info-value">MaxHP 이벤트 시 추가로 AddHpPassive GE를 적용하여 현재 체력도 증가</div></div>
+        </div>
+        <div class="desc-block">
+          플레이어 캐릭터에 부착되어 패시브 업그레이드를 처리하는 컴포넌트입니다.
+          BeginPlay에서 ASC의 GenericGameplayEventCallbacks에 3종의 패시브 태그를 구독하고,
+          이벤트 수신 시 태그에 맞는 GameplayEffect를 선택하여 SetByCallerMagnitude로 적용합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-comp" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">MaxHpPassive</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>최대 체력 증가 GE 클래스.</td></tr>
+          <tr><td><span class="var-name">AddHpPassive</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>MaxHP 증가 시 현재 체력도 함께 올리는 보조 GE.</td></tr>
+          <tr><td><span class="var-name">MaxStaminaPassive</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>최대 스태미나 증가 GE.</td></tr>
+          <tr><td><span class="var-name">MovementPassive</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>이동속도 증가 GE.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="passive-comp" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnGameplayEventReceived(const FGameplayEventData*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; EventTag에 따라 SelectedPassive 결정 (MaxHP/Stamina/MoveSpeed)<br>
+                &#9313; MakeOutgoingSpec &rarr; SetByCallerMagnitude(Data.PassiveAmount, EventMagnitude) &rarr; ApplyToSelf<br>
+                &#9314; MaxHP 이벤트이면 추가로 AddHpPassive도 적용 (Data.Item 태그로)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-comp" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>수신</td><td><span class="rel-cls">AAO_PassiveContainer</span></td><td>PassiveContainer가 HandleGameplayEvent로 이벤트 발신</td></tr>
+          <tr><td>적용</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>GE를 Self에 적용하여 어트리뷰트 변경</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PassiveContainer ==================== -->
+    <div class="class-card" id="passive-cont">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PassiveContainer</div>
+        <div class="class-parent">부모: AActor &middot; IAbilitySystemInterface</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'passive-cont','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-cont','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-cont','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-cont','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="passive-cont" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">패시브 아이템을 넣으면 전체 플레이어에게 패시브 효과를 적용하는 상호작용 액터</div></div>
+          <div class="info-item"><div class="info-label">적용 범위</div><div class="info-value">모든 플레이어에게 동일 효과 적용 (전체 적용)</div></div>
+          <div class="info-item"><div class="info-label">아이템 타입</div><div class="info-value">EItemType::Passive인 아이템만 처리, 그 외 무시</div></div>
+          <div class="info-item"><div class="info-label">기록</div><div class="info-value">Passive_WorldSubsystem에 플레이어별 누적 패시브 기록</div></div>
+        </div>
+        <div class="desc-block">
+          레벨에 배치되는 상호작용 액터로, 플레이어가 패시브 아이템을 선택한 상태에서 상호작용하면
+          ItemDataTable에서 PassiveAmount를 조회한 후, GetAllActorsOfClass로 모든 플레이어를 찾아
+          HandleGameplayEvent로 패시브 이벤트를 전송합니다.
+          Passive_WorldSubsystem에 누적 기록을 남겨 맵 전환 후에도 재적용이 가능합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-cont" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">StaticMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>외형 메시 (루트 컴포넌트).</td></tr>
+          <tr><td><span class="var-name">InteractableComp</span></td><td><span class="var-type">UAO_InteractableComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>상호작용 컴포넌트. OnInteractionSuccess에 바인딩.</td></tr>
+          <tr><td><span class="var-name">ASC</span></td><td><span class="var-type">UAbilitySystemComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>GAS 컴포넌트 (Minimal 복제 모드).</td></tr>
+          <tr><td><span class="var-name">ItemDataTable</span></td><td><span class="var-type">UDataTable*</span></td><td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span></td><td>아이템 데이터 테이블 - PassiveAmount 조회용.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="passive-cont" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 인벤토리에서 선택 슬롯의 아이템 타입이 Passive인지 확인<br>
+                &#9313; ItemDataTable에서 PassiveAmount 조회<br>
+                &#9314; ItemID에 따라 이벤트 태그 결정 (MaxHP/Stamina/MoveSpeed)<br>
+                &#9315; GetAllActorsOfClass로 전체 플레이어에게 HandleGameplayEvent 전송<br>
+                &#9316; Passive_WorldSubsystem에 기록<br>
+                &#9317; 인벤토리 슬롯 클리어
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-cont" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>알림</td><td><span class="rel-cls">UAO_PassiveComponent</span></td><td>HandleGameplayEvent로 패시브 이벤트 전송</td></tr>
+          <tr><td>기록</td><td><span class="rel-cls">UAO_Passive_WorldSubsystem</span></td><td>RecordPassiveUpgrade로 누적 기록</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>선택 슬롯의 아이템 정보 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_Passive_WorldSubsystem ==================== -->
+    <div class="class-card" id="passive-sub">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Passive_WorldSubsystem</div>
+        <div class="class-parent">부모: UGameInstanceSubsystem</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'passive-sub','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-sub','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-sub','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'passive-sub','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="passive-sub" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">플레이어별 누적 패시브 업그레이드를 기록하고 맵 전환 후 재적용</div></div>
+          <div class="info-item"><div class="info-label">생존 범위</div><div class="info-value">GameInstanceSubsystem - 앱 전체 생존, 맵 전환에도 유지</div></div>
+          <div class="info-item"><div class="info-label">식별자</div><div class="info-value">PlayerState의 PlayerName을 키로 사용</div></div>
+          <div class="info-item"><div class="info-label">저장 구조</div><div class="info-value">TMap&lt;FString, FAO_PlayerPassiveData&gt; - 태그별 누적 값</div></div>
+        </div>
+        <div class="desc-block">
+          GameInstanceSubsystem으로 앱 수명 동안 유지되며, 맵 전환 시에도 패시브 데이터가 보존됩니다.
+          RecordPassiveUpgrade로 패시브를 기록하고, ReapplyAllPassives로 새 맵 진입 시
+          저장된 누적값을 GAS 이벤트로 다시 전송합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-sub" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">PlayerPassiveStats</span></td><td><span class="var-type">TMap&lt;FString, FAO_PlayerPassiveData&gt;</span></td><td>(private UPROPERTY)</td><td>플레이어 이름 &rarr; 누적 패시브 데이터 맵.</td></tr>
+        </table>
+        <div class="section-title">관련 구조체</div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_PlayerPassiveData</div>
+          <div class="struct-field"><span class="sf-name">CumulativePassives</span><span class="sf-desc">TMap&lt;FGameplayTag, float&gt; - 패시브 태그별 누적 값</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-sub" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RecordPassiveUpgrade(APlayerController*, FGameplayTag, float)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어 ID로 찾아서 해당 태그의 누적값에 Amount를 더합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ReapplyAllPassives(APlayerController*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; 서버에서만 실행 (HasAuthority)<br>
+                &#9313; 플레이어 ID로 저장된 패시브 데이터 조회<br>
+                &#9314; 모든 패시브 태그에 대해 HandleGameplayEvent로 누적값 재전송
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ClearAllPlayerData()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PlayerPassiveStats를 비웁니다. 게임 초기화 시 사용합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="passive-sub" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>기록자</td><td><span class="rel-cls">AAO_PassiveContainer</span></td><td>RecordPassiveUpgrade 호출원</td></tr>
+          <tr><td>재적용</td><td><span class="rel-cls">AO_GameMode (맵 전환 시)</span></td><td>ReapplyAllPassives 호출하여 패시브 복원</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_DummyCustomComponent ==================== -->
+    <div class="class-card" id="dummy-custom">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_DummyCustomComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'dummy-custom','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'dummy-custom','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'dummy-custom','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'dummy-custom','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="dummy-custom" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">커스터마이징 UI 더미 캐릭터의 외형 변경 관리</div></div>
+          <div class="info-item"><div class="info-label">시스템</div><div class="info-value">Mutable (CustomizableObject) 기반 메시/옵션 변경</div></div>
+          <div class="info-item"><div class="info-label">저장</div><div class="info-value">PlayerState와 CustomizingComponent에 ServerRPC로 데이터 동기화</div></div>
+          <div class="info-item"><div class="info-label">초기화</div><div class="info-value">BeginPlay에서 플레이어의 현재 커스터마이징 데이터를 복사하여 적용</div></div>
+        </div>
+        <div class="desc-block">
+          커스터마이징 화면에서 사용하는 더미(미리보기) 캐릭터에 부착되는 컴포넌트입니다.
+          CustomizableObjectMap에서 캐릭터 메시 타입별 CustomizableObject를 관리하고,
+          ChangeCharacterMeshInBlueprint/ChangeOptionInBlueprint으로 실시간 미리보기를 제공합니다.
+          SaveCustomizingData로 확정 시 ServerRPC를 통해 서버와 동기화합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="dummy-custom" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">CustomizableObjectMap</span></td><td><span class="var-type">TMap&lt;ECharacterMesh, UCustomizableObject*&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td><td>캐릭터 메시 타입별 CustomizableObject 에셋 매핑.</td></tr>
+          <tr><td><span class="var-name">CustomizingData</span></td><td><span class="var-type">FCustomizingData</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>현재 커스터마이징 상태 (메시 타입, 헤어, 의상).</td></tr>
+          <tr><td><span class="var-name">CustomizingCharacter</span></td><td><span class="var-type">AAO_CustomizingCharacter*</span></td><td>(private UPROPERTY)</td><td>소유 더미 캐릭터 참조.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="dummy-custom" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SaveCustomizingData()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; Instance에서 현재 Hair/Cloth 옵션 읽기<br>
+                &#9313; Player-&gt;CustomizingComponent-&gt;ServerRPC_ChangeCustomizing(Data)<br>
+                &#9314; PlayerState에 데이터 저장 + ServerRPC_SetCharacterCustomizingData
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ChangeCharacterMeshInBlueprint(ECharacterMesh, USkeletalMesh*, float)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CustomizingData 갱신 후 해당 인스턴스의 ChangeCharacterMesh를 호출하여 메시 교체합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="dummy-custom" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_CustomizingCharacter</span></td><td>커스터마이징 더미 캐릭터가 보유</td></tr>
+          <tr><td>저장</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>커스터마이징 데이터를 PlayerState에 동기화</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_CustomizingComponent</span></td><td>플레이어 캐릭터의 현재 데이터를 읽어 초기화</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_Area_SpawnIntensive ==================== -->
+    <div class="class-card" id="area-intensive">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_Area_SpawnIntensive</div>
+        <div class="class-parent">부모: ANavModifierVolume</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'area-intensive','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-intensive','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-intensive','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-intensive','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="area-intensive" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">이 볼륨 내에서 AI를 더 자주, 더 많이 스폰하도록 지시</div></div>
+          <div class="info-item"><div class="info-label">기반</div><div class="info-value">ANavModifierVolume 상속 - NavMesh 수정 + 스폰 정보 제공</div></div>
+          <div class="info-item"><div class="info-label">설정</div><div class="info-value">스폰 간격, 랜덤 편차, 영역 내 최대 수, 허용 몬스터 종류</div></div>
+          <div class="info-item"><div class="info-label">카운트</div><div class="info-value">GetCurrentMonsterCountInArea로 영역 내 AI 수 실시간 계산</div></div>
+        </div>
+        <div class="desc-block">
+          레벨에 배치하여 특정 영역에서 AI 스폰을 집중시키는 볼륨입니다.
+          AO_Spawner_AIManager가 이 볼륨의 설정을 읽어 스폰 빈도를 높이고,
+          AllowedMonsterClasses로 스폰 가능한 몬스터 종류를 제한할 수 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="area-intensive" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">AllowedMonsterClasses</span></td><td><span class="var-type">TArray&lt;TSubclassOf&lt;...&gt;&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>이 영역에서 스폰할 수 있는 몬스터 종류. 비어있으면 기본 사용.</td></tr>
+          <tr><td><span class="var-name">bEnabled</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>집중 스폰 활성화 여부 (기본 true).</td></tr>
+          <tr><td><span class="var-name">IntensiveSpawnInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>집중 스폰 간격(초, 기본 2.0). 일반 스폰보다 짧게 설정.</td></tr>
+          <tr><td><span class="var-name">IntensiveSpawnIntervalRandomDeviation</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>스폰 간격 랜덤 편차 (+-값, 기본 1.0초).</td></tr>
+          <tr><td><span class="var-name">MaxMonstersInArea</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>영역 내 최대 AI 수 (0=무제한).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="area-intensive" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetCurrentMonsterCountInArea() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>GetAllActorsOfClass(AAO_AICharacterBase)로 전체 AI를 찾고 EncompassesPoint로 이 볼륨 내에 있는 AI 수를 세어 반환합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="area-intensive" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">AO_Spawner_AIManager</span></td><td>스포너가 이 볼륨의 설정을 읽어 스폰 빈도 조절</td></tr>
+          <tr><td>NavArea</td><td><span class="rel-cls">UAO_NavArea_SpawnIntensive</span></td><td>이 볼륨의 AreaClass로 지정 가능</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_Area_SpawnRestriction ==================== -->
+    <div class="class-card" id="area-restrict">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_Area_SpawnRestriction</div>
+        <div class="class-parent">부모: ANavModifierVolume</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'area-restrict','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-restrict','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-restrict','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'area-restrict','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="area-restrict" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">이 볼륨 내에서는 AI가 스폰되지 않는 금지 영역</div></div>
+          <div class="info-item"><div class="info-label">기반</div><div class="info-value">ANavModifierVolume 상속 - NavMesh 수정 기능 내장</div></div>
+          <div class="info-item"><div class="info-label">구현</div><div class="info-value">생성자만 존재하는 마커 클래스</div></div>
+          <div class="info-item"><div class="info-label">사용처</div><div class="info-value">플레이어 스폰 지점, 안전지대, NPC 근처 등</div></div>
+        </div>
+        <div class="desc-block">
+          레벨에 배치하여 해당 영역 내 AI 스폰을 차단하는 볼륨입니다.
+          AO_Spawner_AIManager가 스폰 위치를 결정할 때 이 볼륨 내 위치를 제외합니다.
+          별도 로직 없이 타입만으로 식별하는 마커 클래스입니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="area-restrict" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">추가 멤버 변수가 없습니다. 마커 클래스입니다.</p>
+      </div>
+      <div class="tab-panel" data-class="area-restrict" data-tab="funcs">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">생성자 외 추가 함수가 없습니다.</p>
+      </div>
+      <div class="tab-panel" data-class="area-restrict" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">AO_Spawner_AIManager</span></td><td>스포너가 이 볼륨 내 위치를 스폰 후보에서 제외</td></tr>
+          <tr><td>NavArea</td><td><span class="rel-cls">UAO_NavArea_SpawnRestriction</span></td><td>이 볼륨의 AreaClass로 지정 가능</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_NavArea_SpawnIntensive ==================== -->
+    <div class="class-card" id="nav-intensive">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NavArea_SpawnIntensive</div>
+        <div class="class-parent">부모: UNavArea</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'nav-intensive','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-intensive','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-intensive','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-intensive','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="nav-intensive" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">집중 스폰 영역을 NavMesh에 표시하는 NavArea 클래스</div></div>
+          <div class="info-item"><div class="info-label">비용</div><div class="info-value">DefaultCost=0, FixedAreaEnteringCost=0 (이동 비용 없음)</div></div>
+          <div class="info-item"><div class="info-label">시각화</div><div class="info-value">DrawColor = Green (에디터에서 녹색으로 표시)</div></div>
+          <div class="info-item"><div class="info-label">사용법</div><div class="info-value">NavModifierVolume의 AreaClass에 지정</div></div>
+        </div>
+        <div class="desc-block">
+          NavModifierVolume에서 이 AreaClass를 지정하면 해당 NavMesh 영역이 집중 스폰 영역으로 표시됩니다.
+          이동 비용을 0으로 설정하여 AI 경로 탐색에 영향을 주지 않습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="nav-intensive" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">추가 멤버 변수 없음. 생성자에서 DefaultCost, DrawColor만 설정합니다.</p>
+      </div>
+      <div class="tab-panel" data-class="nav-intensive" data-tab="funcs">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">생성자 외 추가 함수가 없습니다.</p>
+      </div>
+      <div class="tab-panel" data-class="nav-intensive" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용처</td><td><span class="rel-cls">AAO_Area_SpawnIntensive</span></td><td>NavModifierVolume의 AreaClass로 지정됨</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_NavArea_SpawnRestriction ==================== -->
+    <div class="class-card" id="nav-restrict">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NavArea_SpawnRestriction</div>
+        <div class="class-parent">부모: UNavArea</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'nav-restrict','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-restrict','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-restrict','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nav-restrict','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="nav-restrict" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">스폰 금지 영역을 NavMesh에 표시하는 NavArea 클래스</div></div>
+          <div class="info-item"><div class="info-label">비용</div><div class="info-value">DefaultCost=0, FixedAreaEnteringCost=0</div></div>
+          <div class="info-item"><div class="info-label">시각화</div><div class="info-value">DrawColor = Red (에디터에서 빨간색으로 표시)</div></div>
+          <div class="info-item"><div class="info-label">사용법</div><div class="info-value">NavModifierVolume의 AreaClass에 지정</div></div>
+        </div>
+        <div class="desc-block">
+          NavModifierVolume에서 이 AreaClass를 지정하면 해당 NavMesh 영역이 스폰 금지 영역으로 표시됩니다.
+          에디터에서 빨간색으로 시각화되어 스폰 금지 구역을 쉽게 식별할 수 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="nav-restrict" data-tab="vars">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">추가 멤버 변수 없음. 생성자에서 DefaultCost, DrawColor만 설정합니다.</p>
+      </div>
+      <div class="tab-panel" data-class="nav-restrict" data-tab="funcs">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">생성자 외 추가 함수가 없습니다.</p>
+      </div>
+      <div class="tab-panel" data-class="nav-restrict" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용처</td><td><span class="rel-cls">AAO_Area_SpawnRestriction</span></td><td>NavModifierVolume의 AreaClass로 지정됨</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_MeleeHitEventPayload ==================== -->
+    <div class="class-card" id="melee-payload">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_MeleeHitEventPayload</div>
+        <div class="class-parent">부모: UObject</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'melee-payload','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-payload','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-payload','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee-payload','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="melee-payload" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">근접 공격 히트 확인 이벤트의 Trace 파라미터를 GAS 이벤트에 실어 보내는 페이로드</div></div>
+          <div class="info-item"><div class="info-label">전달 방식</div><div class="info-value">FGameplayEventData.OptionalObject에 담겨 전달</div></div>
+          <div class="info-item"><div class="info-label">구조</div><div class="info-value">FAO_MeleeHitTraceParams 구조체를 Params 멤버로 보유</div></div>
+          <div class="info-item"><div class="info-label">.cpp</div><div class="info-value">빈 파일 (헤더에서 모든 정의 완료)</div></div>
+        </div>
+        <div class="desc-block">
+          NotifyState_MeleeCollision이 생성하여 GAS 이벤트의 OptionalObject로 전달하는 데이터 컨테이너입니다.
+          히트 확인 어빌리티가 이 오브젝트를 꺼내어 TraceStart/End/Radius로 SphereTrace를 수행하고,
+          DamageEffectClass와 DamageAmount로 데미지를 적용합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="melee-payload" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Params</span></td><td><span class="var-type">FAO_MeleeHitTraceParams</span></td><td><span class="prop-tag bp">BPReadWrite</span></td><td>Trace 파라미터 구조체 (TraceStart, TraceEnd, TraceRadius, DamageEffectClass, DamageAmount).</td></tr>
+        </table>
+        <div class="section-title">관련 구조체</div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_MeleeHitTraceParams</div>
+          <div class="struct-field"><span class="sf-name">TraceStart</span><span class="sf-desc">Trace 시작 위치 (이전 프레임 소켓 위치)</span></div>
+          <div class="struct-field"><span class="sf-name">TraceEnd</span><span class="sf-desc">Trace 종료 위치 (현재 프레임 소켓 위치)</span></div>
+          <div class="struct-field"><span class="sf-name">TraceRadius</span><span class="sf-desc">SphereTrace 반경 (기본 25)</span></div>
+          <div class="struct-field"><span class="sf-name">DamageEffectClass</span><span class="sf-desc">적용할 GameplayEffect 클래스</span></div>
+          <div class="struct-field"><span class="sf-name">DamageAmount</span><span class="sf-desc">데미지 값 (SetByCallerMagnitude로 전달)</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="melee-payload" data-tab="funcs">
+        <p style="font-size:13px;color:#6b7280;padding:8px 0;">별도 함수가 없습니다. 순수 데이터 컨테이너입니다.</p>
+      </div>
+      <div class="tab-panel" data-class="melee-payload" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_NotifyState_MeleeCollision</span></td><td>SendHitConfirmEvent에서 NewObject로 생성하여 이벤트에 첨부</td></tr>
+          <tr><td>소비자</td><td><span class="rel-cls">히트 확인 GameplayAbility</span></td><td>OptionalObject에서 Cast하여 Trace 파라미터를 읽음</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 0 40px;font-size:11px;color:#9ca3af;">
+  이 문서는 학습 목적으로 작성되었습니다 &middot; AVaOut QA 교육 프로젝트
+</div>
+
+<script>
+function switchTab(btn, cls, tab) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  card.querySelector(`.tab-panel[data-class="${cls}"][data-tab="${tab}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['aianim','footstep','ceiling-tr','death-ragdoll','melee-coll','blend-out','cue-dmg','cue-death','cue-fuel','foley-bank','foley-iface','input-mod','ceiling-move','kidnap','weapon','pack','passive-comp','passive-cont','passive-sub','dummy-custom','area-intensive','area-restrict','nav-intensive','nav-restrict','melee-payload'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click handler
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

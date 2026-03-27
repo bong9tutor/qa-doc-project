@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 플레이어 컴포넌트 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#2563eb;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#eff6ff;color:#2563eb;border-left-color:#2563eb;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#2563eb;border-bottom-color:#2563eb;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #2563eb;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fffbeb;border:1px solid #fef3c7;color:#d97706;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#eff6ff;border-color:#bfdbfe;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #bfdbfe;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#2563eb;font-weight:600;}
+
+.tip{display:inline;cursor:help;border-bottom:1px dashed #9ca3af;color:inherit;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">Player Components &mdash; Opus</div>
+  <div class="nav-sub">플레이어 컴포넌트 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">플레이어 컴포넌트 클래스</div>
+  <div class="hero-sub">.h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">AO_PlayerCharacter_AnimInstance</span>
+    <span class="badge">AO_PlayerSoundSubsystem</span>
+    <span class="badge">AO_CameraManagerComponent</span>
+    <span class="badge">AO_DeathSpectateComponent</span>
+    <span class="badge">AO_TraversableComponent</span>
+    <span class="badge">AO_NameplateComponent</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#anim">AO_PlayerCharacter_AnimInstance</a>
+      <a class="toc-item" href="#sound">AO_PlayerSoundSubsystem</a>
+      <a class="toc-item" href="#cam">AO_CameraManagerComponent</a>
+      <a class="toc-item" href="#spectate">AO_DeathSpectateComponent</a>
+      <a class="toc-item" href="#trav">AO_TraversableComponent</a>
+      <a class="toc-item" href="#nameplate">AO_NameplateComponent</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_PlayerCharacter_AnimInstance ==================== -->
+    <div class="class-card" id="anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PlayerCharacter_AnimInstance</div>
+        <div class="class-parent">부모: UAnimInstance &middot; IAO_TraversalTransform</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'anim','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 캐릭터의 애니메이션 상태 갱신 및 Motion Matching용 궤적(Trajectory) 생성</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAnimInstance, IAO_TraversalTransform (트래버설 위치 인터페이스). CreateAnimInstanceProxy/DestroyAnimInstanceProxy를 오버라이드하여 자체 FAOAnimInstanceProxy를 사용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">모든 클라이언트. NativeThreadSafeUpdateAnimation으로 워커 스레드에서 실행 가능. NativeUpdateAnimation도 오버라이드되어 있으나 내부는 Super 호출만 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">속도/가속도/상태(Gait, Stance, MovementMode) 갱신, PoseSearch 궤적 계산, 이동 분석 함수(IsMoving/IsStarting/IsPivoting/ShouldTurnInPlace 등) 블루프린트 노출</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">프록시 구조</div>
+            <div class="info-value">FAOAnimInstanceProxy가 FAnimInstanceProxy를 상속하여 Owner(APawn*), Character(AAO_PlayerCharacter*), MovementComponent(UCharacterMovementComponent*) 3개 참조를 스레드 안전하게 보관. InitializeObjects에서 캐스팅 및 checkf 검증 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">ABP 연동</div>
+            <div class="info-value">모든 상태 변수(Speed2D, Gait, MovementMode 등)와 이동 분석 함수(IsMoving, IsPivoting 등)에 BlueprintThreadSafe 메타 지정. ABP의 스테이트 머신/전이 판단에서 직접 호출 가능. CurrentSelectedDatabase/CurrentDatabaseTags는 ABP에서 BlueprintReadWrite로 양방향 통신</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UAnimInstance를 상속하며, CreateAnimInstanceProxy를 오버라이드하여 자체 FAOAnimInstanceProxy 인스턴스의 포인터를 반환합니다 (DestroyAnimInstanceProxy는 빈 구현 &mdash; Proxy가 멤버 변수이므로 별도 해제 불필요).
+          FAOAnimInstanceProxy::InitializeObjects에서 TryGetPawnOwner &rarr; Cast&lt;AAO_PlayerCharacter&gt; &rarr; GetCharacterMovement 순서로 참조를 획득하며, 프리뷰 월드(IsPreviewWorld)에서는 조기 반환합니다. PreUpdate와 Update는 Super만 호출하는 패스스루입니다.
+          NativeThreadSafeUpdateAnimation에서 Proxy의 3개 참조가 모두 유효할 때만 UpdateTrajectory &rarr; UpdateEssentialValues &rarr; UpdateStates를 순서대로 실행합니다.
+          PoseSearch(Motion Matching)를 위한 궤적은 Speed2D에 따라 Idle/Moving 파라미터를 선택하고, PoseSearchGenerateTransformTrajectory &rarr; HandleTransformTrajectoryWorldCollisions &rarr; GetTransformTrajectoryVelocity(3구간: 과거 -0.3~-0.2s, 현재 0~0.2s, 미래 0.4~0.5s) 순서로 생성됩니다.
+          IAO_TraversalTransform 인터페이스를 구현하여 트래버설 어빌리티가 목표 트랜스폼을 Set하면 ABP에서 Get하여 MotionWarping 대상 위치로 사용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="anim" data-tab="vars">
+        <div class="section-title">Essential Values</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Proxy</span></td>
+            <td><span class="var-type">FAOAnimInstanceProxy</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>스레드 안전 프록시. Owner(APawn*), Character(AAO_PlayerCharacter*), MovementComponent(UCharacterMovementComponent*) 3개 참조를 보관합니다. CreateAnimInstanceProxy()에서 &amp;Proxy를 반환하여 엔진이 이 인스턴스를 사용하도록 합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CharacterTransform / CharacterTransformLastFrame</span></td>
+            <td><span class="var-type">FTransform</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 및 이전 프레임의 캐릭터 월드 트랜스폼. UpdateEssentialValues()에서 Proxy.Character-&gt;GetActorTransform()으로 갱신됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Velocity / VelocityLastFrame / VelocityAcceleration</span></td>
+            <td><span class="var-type">FVector</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 속도(MovementComponent-&gt;Velocity에서 직접 읽음), 이전 프레임 속도, 속도의 변화율(가속도). VelocityAcceleration = (Velocity - VelocityLastFrame) / GetDeltaSeconds()로 계산됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Speed2D / bHasVelocity</span></td>
+            <td><span class="var-type">float / bool</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>2D 수평 속도 크기(Velocity.Size2D())와 유효 속도 존재 여부(5.f 이상일 때 true). 궤적 파라미터 선택(Idle vs Moving)과 ShouldSpinTransition 판정에 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Acceleration / AccelerationLastFrame / AccelerationAmount / bHasAcceleration</span></td>
+            <td><span class="var-type">FVector / FVector / float / bool</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 가속도(MovementComponent-&gt;GetCurrentAcceleration()), 이전 프레임 가속도, 정규화된 가속량(Length / GetMaxAcceleration(), 0~1 범위), 가속 존재 여부(AccelerationAmount &gt; 0). IsMoving()에서 Acceleration.IsNearlyZero() 판정에 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HeavyLandSpeedThreshold</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>강한 착지(Heavy Land) 판정 속도 임계값. 기본값 700.f. JustLanded_Heavy/Light에서 abs(LandVelocity.Z)와 비교하여 착지 세기를 판별합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentSelectedDatabase / CurrentDatabaseTags</span></td>
+            <td><span class="var-type">UPoseSearchDatabase* / TArray&lt;FName&gt;</span></td>
+            <td><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재 선택된 PoseSearch 데이터베이스와 해당 데이터베이스의 태그 목록. ABP에서 BlueprintReadWrite로 양방향 접근 가능. IsStarting()/IsPivoting()에서 "Pivots" 태그 포함 여부를 확인합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraversalTransform</span></td>
+            <td><span class="var-type">FTransform</span></td>
+            <td><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>트래버설 어빌리티에서 설정한 목표 트랜스폼. IAO_TraversalTransform 인터페이스의 Set/Get으로 접근. ABP에서 MotionWarping 대상 위치로 사용됩니다.</td>
+          </tr>
+        </table>
+        <div class="section-title">States</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">MovementMode / MovementModeLastFrame</span></td>
+            <td><span class="var-type">ECustomMovementMode</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이동 모드. MOVE_None/Walking/Flying &rarr; OnGround, MOVE_Falling &rarr; InAir. UpdateStates()에서 MovementComponent-&gt;MovementMode을 읽어 변환합니다. 기본값 OnGround.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MovementState / MovementStateLastFrame</span></td>
+            <td><span class="var-type">EMovementState</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이동 상태(Idle/Moving). IsMoving() 결과에 따라 결정됩니다. 기본값 Idle, LastFrame 기본값 Moving (첫 프레임에 상태 변화를 감지하기 위함).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Gait / GaitLastFrame</span></td>
+            <td><span class="var-type">EGait</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>보행 상태(Walk/Run/Sprint). Proxy.Character-&gt;Gait(Replicated 변수)에서 직접 읽습니다. 기본값 Run.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Stance / StanceLastFrame</span></td>
+            <td><span class="var-type">EStance</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>자세(Stand/Crouch). MovementComponent-&gt;IsCrouching()으로 판정합니다. 기본값 Stand.</td>
+          </tr>
+        </table>
+        <div class="section-title">Trajectory (PoseSearch)</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Trajectory</span></td>
+            <td><span class="var-type">FTransformTrajectory</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>PoseSearch용 변환 궤적 결과. PoseSearchGenerateTransformTrajectory의 입출력으로 동시에 사용되며(In-Out 파라미터), HandleTransformTrajectoryWorldCollisions로 보정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TrajectoryData_Idle / TrajectoryData_Moving</span></td>
+            <td><span class="var-type">FPoseSearchTrajectoryData</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>정지/이동 시 궤적 생성 파라미터. NativeInitializeAnimation에서 초기화: Idle=(RotateTowardsMovementSpeed=0, MaxControllerYawRate=100), Moving=(RotateTowardsMovementSpeed=0, MaxControllerYawRate=0). Speed2D &gt; 0이면 Moving 사용.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PreviousDesiredControllerYaw</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이전 프레임의 목표 컨트롤러 Yaw. PoseSearchGenerateTransformTrajectory의 In-Out 파라미터로 프레임 간 연속성을 유지합니다. 기본값 0.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Trajectory_Collision</span></td>
+            <td><span class="var-type">FPoseSearchTrajectory_WorldCollisionResults</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>HandleTransformTrajectoryWorldCollisions의 충돌 결과 출력. TraceTypeQuery1 채널, 충돌 허용 150.f 범위로 계산됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TrjPastVelocity / TrjCurrentVelocity / TrjFutureVelocity</span></td>
+            <td><span class="var-type">FVector</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>궤적에서 추출한 3구간 속도: Past(-0.3~-0.2s), Current(0~0.2s), Future(0.4~0.5s). GetTransformTrajectoryVelocity로 추출. IsMoving()은 TrjFutureVelocity.IsNearlyZero(10.f)로 판정, IsStarting()은 TrjFutureVelocity.Size2D() &gt;= Velocity.Size2D()로 가속 감지.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="anim" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeInitializeAnimation()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>애니메이션 인스턴스 초기화 시 호출됩니다. 정지/이동 상태의 PoseSearch 궤적 파라미터를 설정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::NativeInitializeAnimation() 호출<br>
+                2. TrajectoryData_Idle 설정: RotateTowardsMovementSpeed=0.f, MaxControllerYawRate=100.f (정지 시 컨트롤러 Yaw 회전 반영)<br>
+                3. TrajectoryData_Moving 설정: RotateTowardsMovementSpeed=0.f, MaxControllerYawRate=0.f (이동 시 컨트롤러 Yaw 미반영, 이동 방향만 사용)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">ABP 연동</div>이 함수 이전에 FAOAnimInstanceProxy::InitializeObjects가 호출되어 Character/MovementComponent 참조가 이미 유효합니다. ABP의 Event Graph에서 추가 초기화를 수행할 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeUpdateAnimation(float DeltaSeconds)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>게임 스레드에서 매 프레임 호출됩니다. Super만 호출하는 패스스루 구현입니다. 실제 갱신 로직은 NativeThreadSafeUpdateAnimation에 있습니다.</div>
+              <div class="fn-section"><div class="fn-section-title">설계 의도</div>모든 갱신을 ThreadSafe 버전에 배치하여 워커 스레드에서 병렬 실행 가능하게 합니다. 게임 스레드 부하를 줄이는 최적화입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeThreadSafeUpdateAnimation(float DeltaSeconds)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>워커 스레드에서 매 프레임 호출됩니다. Proxy의 3개 참조가 모두 유효한 경우에만 갱신을 실행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::NativeThreadSafeUpdateAnimation(DeltaSeconds) 호출<br>
+                2. Proxy.Owner / Proxy.Character / Proxy.MovementComponent 중 하나라도 null이면 조기 반환 (로딩 중 발생)<br>
+                3. UpdateTrajectory(DeltaSeconds) &mdash; PoseSearch 궤적 생성<br>
+                4. UpdateEssentialValues() &mdash; 트랜스폼/가속도/속도 갱신<br>
+                5. UpdateStates() &mdash; MovementMode/State/Gait/Stance 갱신
+              </div>
+              <div class="fn-section"><div class="fn-section-title">스레드 안전성</div>FAOAnimInstanceProxy를 통해 캐릭터 참조에 접근하므로 게임 스레드와의 동시 접근 문제를 방지합니다. 모든 호출 대상 함수도 BlueprintThreadSafe 메타가 지정되어 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateEssentialValues()</span>
+              <span class="fn-spec bp-call">BlueprintCallable, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>캐릭터 트랜스폼, 가속도, 속도 등 핵심 값을 MovementComponent로부터 읽어 갱신합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CharacterTransformLastFrame = CharacterTransform 저장<br>
+                2. CharacterTransform = Proxy.Character-&gt;GetActorTransform()<br>
+                3. AccelerationLastFrame = Acceleration 저장<br>
+                4. Acceleration = Proxy.MovementComponent-&gt;GetCurrentAcceleration()<br>
+                5. AccelerationAmount = Acceleration.Length() / GetMaxAcceleration() (0~1 정규화)<br>
+                6. bHasAcceleration = (AccelerationAmount &gt; 0.f)<br>
+                7. VelocityLastFrame = Velocity 저장<br>
+                8. Velocity = Proxy.MovementComponent-&gt;Velocity (직접 멤버 접근)<br>
+                9. Speed2D = Velocity.Size2D()<br>
+                10. bHasVelocity = (Speed2D &gt; 5.f)<br>
+                11. VelocityAcceleration = (Velocity - VelocityLastFrame) / GetDeltaSeconds()
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateStates()</span>
+              <span class="fn-spec bp-call">BlueprintCallable, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>4개 상태 열거형을 갱신합니다. 각각 LastFrame에 현재 값을 저장한 뒤 새 값을 결정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <strong>MovementMode</strong>: MOVE_None/Walking/Flying &rarr; OnGround, MOVE_Falling &rarr; InAir<br>
+                2. <strong>MovementState</strong>: IsMoving() ? Moving : Idle<br>
+                3. <strong>Gait</strong>: Proxy.Character-&gt;Gait 값을 그대로 복사 (Character의 Gait은 Replicated 변수)<br>
+                4. <strong>Stance</strong>: MovementComponent-&gt;IsCrouching() ? Crouch : Stand
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 동기화</div>Gait은 캐릭터의 Replicated 변수이므로 다른 클라이언트에서도 올바른 보행 상태를 읽을 수 있습니다. MovementMode/Stance는 CharacterMovementComponent의 로컬 상태에서 직접 읽습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateTrajectory(float DeltaSeconds)</span>
+              <span class="fn-spec bp-call">BlueprintCallable, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PoseSearch 궤적을 생성합니다. 3단계 파이프라인으로 예측 궤적 생성, 월드 충돌 처리, 속도 추출을 수행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. GetOwningComponent()-&gt;GetAnimInstance()로 AnimInstance 참조 획득<br>
+                2. Speed2D &gt; 0이면 TrajectoryData_Moving, 아니면 TrajectoryData_Idle 선택<br>
+                3. PoseSearchGenerateTransformTrajectory(AnimInstance, TrajectoryData, DeltaSeconds, Trajectory, PreviousDesiredControllerYaw, Trajectory) &mdash; In/Out 동일 변수 사용<br>
+                4. HandleTransformTrajectoryWorldCollisions(this, this, Trajectory, true, 0.01f, Trajectory, Trajectory_Collision, TraceTypeQuery1, false, 빈 배열, None, true, 150.f) &mdash; 중력/충돌 보정<br>
+                5. GetTransformTrajectoryVelocity(-0.3, -0.2, TrjPastVelocity) &mdash; 과거 속도<br>
+                6. GetTransformTrajectoryVelocity(0.0, 0.2, TrjCurrentVelocity) &mdash; 현재 속도<br>
+                7. GetTransformTrajectoryVelocity(0.4, 0.5, TrjFutureVelocity) &mdash; 미래 속도
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsMoving() / IsStarting() / IsPivoting()</span>
+              <span class="fn-spec bp-pure">BlueprintPure, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">IsMoving</div>TrjFutureVelocity.IsNearlyZero(10.f)가 false이고 Acceleration.IsNearlyZero()가 false일 때 true. 미래 속도와 현재 가속도가 모두 유효해야 이동 중으로 판정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">IsStarting</div>IsMoving()이 true이면서 TrjFutureVelocity.Size2D() &gt;= Velocity.Size2D() (가속 중)이고 CurrentDatabaseTags에 "Pivots" FName이 없을 때 true. 방향 전환 중이 아닌 가속 시작 상태를 감지합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">IsPivoting</div>IsMoving()이 true이면 무조건 true를 반환합니다. 이름과 달리 실질적으로 IsMoving과 동일한 결과를 반환합니다 &mdash; ABP에서 별도 조건과 결합하여 사용될 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ShouldTurnInPlace() / ShouldSpinTransition()</span>
+              <span class="fn-spec bp-pure">BlueprintPure, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">ShouldTurnInPlace</div>MovementState == Idle &amp;&amp; MovementState == Moving을 동시에 확인합니다. 하나의 열거형이 Idle과 Moving을 동시에 만족할 수 없으므로 항상 false를 반환합니다. 원래 의도는 MovementStateLastFrame과 MovementState를 비교하여 Idle에서 Moving으로 전환되는 순간을 감지하는 것으로 보입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">ShouldSpinTransition</div>Speed2D &gt;= 150.f이고 CurrentDatabaseTags에 "Pivots"가 없을 때 true. 일정 속도 이상에서 방향 전환이 아닌 경우 스핀 전환 애니메이션을 재생하는 조건입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">JustTraversal() / JustLanded_Heavy() / JustLanded_Light()</span>
+              <span class="fn-spec bp-pure">BlueprintPure, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">JustTraversal</div>!IsSlotActive("DefaultSlot") &amp;&amp; GetCurveValue("MovingTraversal") &gt; 0.0f &amp;&amp; abs(GetTrajectoryTurnAngle()) &lt; 50.f일 때 true. DefaultSlot이 비활성이고 MovingTraversal 애니메이션 커브가 활성이며 궤적 회전이 50도 미만일 때 트래버설 직후 이동으로 판정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">JustLanded_Heavy</div>Proxy.Character-&gt;bJustLanded(Replicated)가 true이고 abs(LandVelocity.Z) &gt;= abs(HeavyLandSpeedThreshold=700.f)일 때 true. Proxy null 검사를 먼저 수행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">JustLanded_Light</div>bJustLanded가 true이고 abs(LandVelocity.Z) &lt; abs(HeavyLandSpeedThreshold)일 때 true. Heavy와 반대 조건입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetTrajectoryTurnAngle()</span>
+              <span class="fn-spec bp-pure">BlueprintPure, ThreadSafe</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CurrentRotation = MakeRotFromX(Velocity) &mdash; 현재 속도 방향의 회전<br>
+                2. FutureRotation = MakeRotFromX(TrjFutureVelocity) &mdash; 미래 속도 방향의 회전<br>
+                3. NormalizedDeltaRotator(FutureRotation, CurrentRotation).Yaw 반환 &mdash; -180~180도 범위의 Yaw 차이
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용처</div>JustTraversal()에서 회전 각도 50도 미만 조건 판정에 사용됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetTraversalTransform_Implementation / GetTraversalTransform_Implementation</span>
+              <span class="fn-spec override">Interface Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>IAO_TraversalTransform 인터페이스 구현. Set은 this-&gt;TraversalTransform = InTraversalTransform으로 단순 대입, Get은 TraversalTransform을 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">사용 흐름</div>트래버설 어빌리티(AO_GameplayAbility_Traversal)가 벽/장애물 히트 시 Set을 호출하여 목표 위치를 설정하면, ABP에서 Get을 호출하여 MotionWarping 타겟 위치로 사용합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>Proxy.Character를 통해 Gait(Replicated), bJustLanded(Replicated), LandVelocity(Replicated) 읽음. 다른 클라이언트에서도 올바른 값을 수신</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UCharacterMovementComponent</span></td><td>Proxy.MovementComponent를 통해 Velocity(직접 멤버), GetCurrentAcceleration(), GetMaxAcceleration(), MovementMode, IsCrouching() 읽음</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UPoseSearchTrajectoryLibrary</span></td><td>궤적 생성(PoseSearchGenerateTransformTrajectory), 충돌 처리(HandleTransformTrajectoryWorldCollisions), 속도 추출(GetTransformTrajectoryVelocity) 3개 정적 함수 호출</td></tr>
+          <tr><td>구현</td><td><span class="rel-cls">IAO_TraversalTransform</span></td><td>Set/GetTraversalTransform 인터페이스 구현. 트래버설 어빌리티 &harr; ABP 간 트랜스폼 전달 브릿지</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">Animation Blueprint (ABP)</span></td><td>블루프린트에서 IsMoving, Speed2D, Gait, ShouldSpinTransition 등을 읽어 스테이트 머신 전이 판단. CurrentSelectedDatabase/CurrentDatabaseTags를 ABP에서 설정</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UKismetMathLibrary</span></td><td>GetTrajectoryTurnAngle에서 MakeRotFromX, NormalizedDeltaRotator 호출</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PlayerCharacter_AnimInstance -->
+
+    <!-- ==================== AO_PlayerSoundSubsystem ==================== -->
+    <div class="class-card" id="sound">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PlayerSoundSubsystem</div>
+        <div class="class-parent">부모: UGameInstanceSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'sound','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'sound','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'sound','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'sound','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="sound" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 캐릭터의 사운드(발소리, 피격음 등)를 캐릭터 메시 타입에 따라 조회하는 전역 서브시스템</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UGameInstanceSubsystem (GameInstance 수명 동안 유지 &mdash; 맵 전환 시에도 파괴되지 않음)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">모든 클라이언트 및 서버. 사운드 재생 자체는 호출자(AnimNotify 등)가 로컬에서 수행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">DeveloperSettings에서 SoundDataAsset 동기 로드, ECharacterMesh + GameplayTag 조합으로 사운드 조회, DefaultSounds 맵 기반 폴백 제공</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">복제</div>
+            <div class="info-value">서브시스템 자체는 복제되지 않음. 각 클라이언트/서버가 독립적으로 동일한 DataAsset을 로드하여 동일한 결과를 반환</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">데이터 소스</div>
+            <div class="info-value">UAO_PlayerSoundSettings(UDeveloperSettings 상속) &rarr; CharacterSoundDataAsset(TSoftObjectPtr) + DefaultSounds(TArray&lt;FDefaultSoundEntry&gt;) 구조. Settings는 프로젝트 설정 에디터에서 편집 가능</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UGameInstanceSubsystem을 상속하여 GameInstance가 생성될 때 자동으로 Initialize가 호출됩니다.
+          Initialize에서 GetDefault&lt;UAO_PlayerSoundSettings&gt;()로 DeveloperSettings 싱글턴을 가져와 ensure로 검증한 뒤,
+          CharacterSoundDataAsset.LoadSynchronous()로 메인 DataAsset을 동기 로드하고,
+          DefaultSounds 배열을 순회하며 각 FDefaultSoundEntry의 Sound(TSoftObjectPtr&lt;USoundBase&gt;)를 로드하여 LoadedDefaultSounds TMap에 GameplayTag &rarr; USoundBase* 매핑으로 캐싱합니다.
+          GetSound는 먼저 DataAsset-&gt;FindSound(MeshType, SoundTag)를 시도하고, 실패 시 LoadedDefaultSounds에서 태그로 폴백 검색하며, 둘 다 실패하면 nullptr을 반환합니다.
+          GetSoundFromActor는 액터에서 UAO_CustomizingComponent를 찾아 ECharacterMesh를 자동 추출한 뒤 GetSound를 위임 호출하는 편의 함수입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="sound" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">LoadedDA</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_PlayerSoundDataAsset&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>Initialize에서 동기 로드된 캐릭터 사운드 데이터 에셋. 메시 타입별 사운드 매핑을 보유합니다. Settings-&gt;CharacterSoundDataAsset.IsNull() 검사 후 LoadSynchronous로 로드합니다. 초기값 nullptr.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LoadedDefaultSounds</span></td>
+            <td><span class="var-type">TMap&lt;FGameplayTag, TObjectPtr&lt;USoundBase&gt;&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>GameplayTag를 키로 하는 기본 사운드 맵. DataAsset에서 사운드를 찾지 못했을 때 폴백으로 사용됩니다. Initialize에서 Settings-&gt;DefaultSounds 배열을 순회하며 Entry.Sound.IsValid() &amp;&amp; !IsNull() 조건으로 필터링 후 로드합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="sound" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize(FSubsystemCollectionBase&amp; Collection)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::Initialize(Collection) 호출<br>
+                2. GetDefault&lt;UAO_PlayerSoundSettings&gt;()로 Settings 획득, ensure 검증 &mdash; 실패 시 return<br>
+                3. Settings-&gt;CharacterSoundDataAsset.IsNull() 검사 후 LoadSynchronous() &rarr; LoadedDA에 저장<br>
+                4. Settings-&gt;DefaultSounds 배열 순회: 각 FDefaultSoundEntry에서 Entry.Sound.IsValid() &amp;&amp; !Entry.Sound.IsNull() 조건 통과 시 Entry.Sound.LoadSynchronous() 후 LoadedDefaultSounds.Add(Entry.SoundTag, 로드결과)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">로딩 전략</div>LoadSynchronous 사용 &mdash; 게임 시작 시 동기 로드. 에셋 크기가 크면 초기 로딩 시간에 영향을 줄 수 있으나, 서브시스템 특성상 한 번만 로드됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetSound(ECharacterMesh MeshType, FGameplayTag SoundTag) const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. GetDataAsset()으로 LoadedDA 획득 &mdash; 유효하면 DataAsset-&gt;FindSound(MeshType, SoundTag) 호출<br>
+                2. FindSound 성공 시 해당 USoundBase* 반환<br>
+                3. 실패 시 LoadedDefaultSounds.Find(SoundTag)로 폴백 검색 &mdash; 발견하면 Sound-&gt;Get() 반환<br>
+                4. 둘 다 실패하면 nullptr 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">const 한정</div>const 멤버 함수로 선언되어 서브시스템 상태를 변경하지 않으며, 여러 스레드에서 안전하게 호출 가능합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetSoundFromActor(const AActor* Actor, FGameplayTag SoundTag) const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. GetMeshTypeSafe(Actor)로 ECharacterMesh 추출<br>
+                2. GetSound(MeshType, SoundTag) 위임 호출 후 결과 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용 시나리오</div>AnimNotify에서 TryGetPawnOwner()로 액터를 전달하면, 해당 캐릭터의 메시 타입(Elsa/Anna 등)에 맞는 사운드를 자동으로 선택합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetMeshTypeSafe(const AActor* Actor) const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Actor가 null이면 ECharacterMesh::Elsa 반환 (기본 폴백)<br>
+                2. Actor-&gt;FindComponentByClass&lt;UAO_CustomizingComponent&gt;()로 커스터마이징 컴포넌트 검색<br>
+                3. 존재하면 CustomizingComp-&gt;GetCustomizingData().CharacterMeshType 반환<br>
+                4. 없으면 ECharacterMesh::Elsa 반환 (기본 폴백)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">폴백 기본값</div>Elsa를 기본값으로 사용하므로, 커스터마이징 컴포넌트가 없는 액터에서도 크래시 없이 사운드를 반환합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetDataAsset() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>return LoadedDA; &mdash; 캐싱된 DataAsset 포인터를 반환하는 단순 접근자입니다. nullptr일 수 있으며, 호출자(GetSound)가 유효성을 검사합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="sound" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_PlayerSoundSettings</span></td><td>GetDefault로 DeveloperSettings 싱글턴 접근. CharacterSoundDataAsset(TSoftObjectPtr) + DefaultSounds(TArray&lt;FDefaultSoundEntry&gt;) 읽기</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_PlayerSoundDataAsset</span></td><td>LoadSynchronous로 로드 후 FindSound(ECharacterMesh, FGameplayTag)로 메시 타입별 사운드 검색</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_CustomizingComponent</span></td><td>GetMeshTypeSafe에서 FindComponentByClass로 캐릭터의 메시 타입(ECharacterMesh)을 추출</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AnimNotify / AAO_PlayerCharacter</span></td><td>발소리/피격음 등 사운드 재생 시 GetSound/GetSoundFromActor 호출. USoundBase* 반환 후 호출자가 SpawnSoundAtLocation 등으로 재생</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PlayerSoundSubsystem -->
+
+    <!-- ==================== AO_CameraManagerComponent ==================== -->
+    <div class="class-card" id="cam">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_CameraManagerComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'cam','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'cam','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cam','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'cam','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="cam" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">캐릭터 상태(사망, 스프린트, 트래버설)에 따라 카메라 프로필을 우선순위 기반으로 전환하는 매니저 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent (BlueprintSpawnableComponent). PrimaryComponentTick.bCanEverTick = true &mdash; 매 프레임 TickComponent 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">로컬 클라이언트. TickComponent에서 매 프레임 카메라 값을 보간. 복제되지 않으며 로컬에서만 카메라에 영향</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">GAS 태그 이벤트 구독(Dead/Sprint/Traversal), 카메라 상태 Push/Pop, 가중치 기반 블렌딩, 우선순위 기반 프로필 선택, SpringArm/Camera 값 FInterpTo 보간 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">태그 매핑 구조</div>
+            <div class="info-value">캐릭터 상태 태그(Status.Death/Action.Sprint/Action.Traversal) &rarr; 카메라 프로필 태그(Camera.Dead/Sprint/Traversal) 변환. 생성자에서 RequestGameplayTag로 8개 태그 초기화</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">블렌딩 설계</div>
+            <div class="info-value">FAO_CameraRequest 구조체로 Tag/Priority/Weight/BlendIn/BlendOut/bActive를 관리. 활성화 시 Weight가 BlendIn 속도로 0&rarr;1, 비활성화 시 BlendOut 속도로 1&rarr;0. Weight=0이면 Requests에서 자동 제거</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UActorComponent를 상속하며, 생성자에서 bCanEverTick=true와 8개의 GameplayTag(상태 4개 + 카메라 4개)를 RequestGameplayTag로 초기화합니다.
+          BindCameraComponents로 SpringArm/Camera 참조를 받아 현재 값(ArmLength, SocketOffset, FOV, Lag)을 읽어 보간 초기값으로 저장합니다.
+          BindToASC로 ASC 참조를 설정하면, 현재 태그 카운트를 읽어 초기 상태를 반영한 뒤, State_Dead/Sprint/Traversal 3개 태그에 NewOrRemoved 이벤트를 구독합니다.
+          태그가 추가되면 OnStateTagChanged에서 대응하는 카메라 태그로 PushCameraState를 호출하고, 제거되면 PopCameraState를 호출합니다.
+          매 프레임 TickComponent에서 UpdateRequests(가중치 갱신) &rarr; ChooseTargetProfile(우선순위 최고 프로필 선택) &rarr; ApplyProfileBlended(InterpSpeed=12로 보간 적용) 순서로 실행합니다.
+          EndPlay에서 UnregisterGameplayTagEvent를 호출하여 모든 태그 이벤트를 해제합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="cam" data-tab="vars">
+        <div class="section-title">에디터 설정</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ProfileDB</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_CameraProfile&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>태그별 카메라 설정(FAO_CameraSettings: TargetArmLength, SocketOffset, FOV, bEnableCameraLag, CameraLagSpeed, Priority, BlendInTime, BlendOutTime)을 보유하는 데이터 에셋. FindByTag(FGameplayTag)로 검색합니다.</td>
+          </tr>
+        </table>
+        <div class="section-title">카메라 참조</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">SpringArm</span></td>
+            <td><span class="var-type">TObjectPtr&lt;USpringArmComponent&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>BindCameraComponents로 설정. TargetArmLength, SocketOffset, bEnableCameraLag, CameraLagSpeed를 매 프레임 갱신합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Camera</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UCameraComponent&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>BindCameraComponents로 설정. SetFieldOfView(CurFOV)로 FOV를 매 프레임 갱신합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ASC</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAbilitySystemComponent&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>BindToASC로 설정. RegisterGameplayTagEvent로 3개 태그 이벤트를 구독합니다. EndPlay에서 null로 초기화합니다.</td>
+          </tr>
+        </table>
+        <div class="section-title">요청 &amp; 상태</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Requests</span></td>
+            <td><span class="var-type">TMap&lt;FGameplayTag, FAO_CameraRequest&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>현재 활성/페이드 중인 카메라 요청 맵. FAO_CameraRequest: Tag, Priority(int32), Weight(float 0~1), BlendIn/BlendOut(float, 최소 0.01f), bActive(bool). Weight=0이면 자동 제거됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurArmLength / CurSocketOffset / CurFOV</span></td>
+            <td><span class="var-type">float / FVector / float</span></td>
+            <td>(Private)</td>
+            <td>현재 보간 중인 카메라 세팅 값. 기본값: ArmLength=150, SocketOffset=(0,50,50), FOV=90. FInterpTo(InterpSpeed=12)로 목표를 향해 부드럽게 갱신됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bCurEnableLag / CurLagSpeed</span></td>
+            <td><span class="var-type">bool / float</span></td>
+            <td>(Private)</td>
+            <td>현재 카메라 래그 설정. 보간 없이 즉시 적용됩니다 (bool과 속도 값은 보간 부적합). 기본값: true, 10.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">State_Dead / State_Sprint / State_Traversal</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td>(Private)</td>
+            <td>캐릭터 상태 태그. 생성자에서 초기화: "Status.Death", "Status.Action.Sprint", "Status.Action.Traversal"</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Camera_Default / Camera_Dead / Camera_Sprint / Camera_Traversal</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td>(Private)</td>
+            <td>카메라 프로필 태그. 생성자에서 초기화: "Camera.Default", "Camera.Dead", "Camera.Sprint", "Camera.Traversal". ProfileDB에서 FindByTag로 설정을 검색합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TagEventHandles</span></td>
+            <td><span class="var-type">TArray&lt;FDelegateHandle&gt;</span></td>
+            <td>(Private)</td>
+            <td>ASC 태그 이벤트 델리게이트 핸들 배열(3개). UnregisterGameplayTagEvent에서 모든 핸들을 3개 태그 이벤트에서 일괄 Remove 후 Reset합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="cam" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_CameraManagerComponent() [생성자]</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. PrimaryComponentTick.bCanEverTick = true<br>
+                2. State_Dead = RequestGameplayTag("Status.Death")<br>
+                3. State_Sprint = RequestGameplayTag("Status.Action.Sprint")<br>
+                4. State_Traversal = RequestGameplayTag("Status.Action.Traversal")<br>
+                5. Camera_Default = RequestGameplayTag("Camera.Default")<br>
+                6. Camera_Dead = RequestGameplayTag("Camera.Dead")<br>
+                7. Camera_Sprint = RequestGameplayTag("Camera.Sprint")<br>
+                8. Camera_Traversal = RequestGameplayTag("Camera.Traversal")
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TickComponent(float DeltaTime, ...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::TickComponent 호출<br>
+                2. Camera 또는 SpringArm이 null이면 조기 반환<br>
+                3. UpdateRequests(DeltaTime) &mdash; 모든 요청의 가중치 갱신<br>
+                4. ChooseTargetProfile() &mdash; 우선순위 최고 프로필 선택<br>
+                5. Target이 null이면 ProfileDB-&gt;FindByTag(Camera_Default)로 기본 프로필 적용 후 return<br>
+                6. ApplyProfileBlended(*Target, DeltaTime) &mdash; 보간 적용
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindCameraComponents(USpringArmComponent*, UCameraComponent*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. SpringArm/Camera 참조 저장<br>
+                2. SpringArm 유효 시: CurArmLength = SpringArm-&gt;TargetArmLength, CurSocketOffset = SpringArm-&gt;SocketOffset, bCurEnableLag = SpringArm-&gt;bEnableCameraLag, CurLagSpeed = SpringArm-&gt;CameraLagSpeed<br>
+                3. Camera 유효 시: CurFOV = Camera-&gt;FieldOfView
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AAO_PlayerCharacter의 초기화 과정에서 SpringArm/Camera 컴포넌트 생성 후 호출됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindToASC(UAbilitySystemComponent* InASC)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ASC = InASC 저장, TagEventHandles.Reset()<br>
+                2. checkf(ASC) 검증<br>
+                3. 현재 태그 카운트 읽기: ASC-&gt;GetTagCount(State_Dead/Sprint/Traversal)<br>
+                4. 각 카운트로 OnStateTagChanged 호출 &mdash; 이미 활성인 상태 반영<br>
+                5. ASC-&gt;RegisterGameplayTagEvent(State_Dead, NewOrRemoved).AddUObject(this, &amp;OnStateTagChanged)<br>
+                6. State_Sprint, State_Traversal에도 동일하게 구독<br>
+                7. 3개 핸들을 TagEventHandles에 Add
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnStateTagChanged(FGameplayTag Tag, int32 NewCount)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. bOn = (NewCount &gt; 0)<br>
+                2. Tag == State_Dead: bOn ? PushCameraState(Camera_Dead) : PopCameraState(Camera_Dead)<br>
+                3. Tag == State_Sprint: bOn ? PushCameraState(Camera_Sprint) : PopCameraState(Camera_Sprint)<br>
+                4. Tag == State_Traversal: bOn ? PushCameraState(Camera_Traversal) : PopCameraState(Camera_Traversal)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PushCameraState / PopCameraState / ResetCameraState</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">Push</div>checkf로 ProfileDB 검증 &rarr; ProfileDB-&gt;FindByTag(CameraTag)로 설정 검색 &rarr; Requests.FindOrAdd(CameraTag)에 Tag/Priority/BlendIn(최소 0.01f)/BlendOut(최소 0.01f) 설정 &rarr; bActive = true</div>
+              <div class="fn-section"><div class="fn-section-title">Pop</div>Requests.Find(CameraTag) &rarr; 존재하면 Request-&gt;bActive = false (BlendOut 시작)</div>
+              <div class="fn-section"><div class="fn-section-title">Reset</div>UnregisterGameplayTagEvent() 호출 &rarr; Requests.Empty(). 맵 전환 등에서 카메라 상태를 완전 초기화합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateRequests(float DeltaTime)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ToRemove 배열 초기화<br>
+                2. Requests 전체 순회: Speed = bActive ? (1/BlendIn) : (1/BlendOut), Dir = bActive ? 1 : -1<br>
+                3. Weight = Clamp(Weight + Dir * Speed * DeltaTime, 0, 1)<br>
+                4. !bActive &amp;&amp; Weight &lt;= 0이면 ToRemove에 태그 추가<br>
+                5. ToRemove 순회하여 Requests에서 제거
+              </div>
+              <div class="fn-section"><div class="fn-section-title">블렌딩 속도</div>BlendIn/BlendOut은 초 단위. 예: BlendIn=0.25이면 Speed=4/s, 0.25초 만에 0&rarr;1 도달. 최소 0.01f로 클램핑되어 0 나누기 방지.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ChooseTargetProfile() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Best = nullptr, BestPriority = -1, BestWeight = 0<br>
+                2. Requests 순회: Weight &lt;= 0이면 건너뜀<br>
+                3. ProfileDB-&gt;FindByTag(Request.Tag)로 프로필 획득<br>
+                4. Profile-&gt;Priority &gt; BestPriority이거나 (같으면 Weight &gt; BestWeight)이면 Best 갱신<br>
+                5. Best 반환 (nullptr 가능 &mdash; 호출자가 Default 폴백 처리)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyProfileBlended(const FAO_CameraSettings&amp; Target, float DeltaTime)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InterpSpeed = 12.f (하드코딩)<br>
+                2. CurArmLength = FMath::FInterpTo(CurArmLength, Target.TargetArmLength, DeltaTime, 12)<br>
+                3. CurSocketOffset = FMath::VInterpTo(CurSocketOffset, Target.SocketOffset, DeltaTime, 12)<br>
+                4. CurFOV = FMath::FInterpTo(CurFOV, Target.FOV, DeltaTime, 12)<br>
+                5. bCurEnableLag = Target.bEnableCameraLag (즉시 적용)<br>
+                6. CurLagSpeed = Target.CameraLagSpeed (즉시 적용)<br>
+                7. SpringArm에 ArmLength/SocketOffset/EnableLag/LagSpeed 반영<br>
+                8. Camera-&gt;SetFieldOfView(CurFOV)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UnregisterGameplayTagEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ASC 유효 시 TagEventHandles 순회<br>
+                2. 각 핸들에 대해 State_Dead/Sprint/Traversal 3개 태그 이벤트에서 Remove 호출 (핸들 하나당 3번 Remove &mdash; 실제로는 해당 핸들이 등록된 이벤트에서만 제거됨)<br>
+                3. TagEventHandles.Reset()
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>EndPlay(맵 전환/액터 파괴)와 ResetCameraState(명시적 초기화)에서 호출됩니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="cam" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">USpringArmComponent / UCameraComponent</span></td><td>BindCameraComponents로 참조 획득. TargetArmLength, SocketOffset, bEnableCameraLag, CameraLagSpeed, FieldOfView를 매 프레임 설정</td></tr>
+          <tr><td>구독</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>BindToASC에서 RegisterGameplayTagEvent(NewOrRemoved)로 Dead/Sprint/Traversal 3개 태그 이벤트 구독. GetTagCount로 초기 상태 반영</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_CameraProfile</span></td><td>ProfileDB-&gt;FindByTag(FGameplayTag)로 FAO_CameraSettings(ArmLength, SocketOffset, FOV, Lag, Priority, BlendTime) 검색</td></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>캐릭터에 부착. 캐릭터 초기화 과정에서 BindCameraComponents/BindToASC 호출</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_CameraManagerComponent -->
+
+    <!-- ==================== AO_DeathSpectateComponent ==================== -->
+    <div class="class-card" id="spectate">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_DeathSpectateComponent</div>
+        <div class="class-parent">부모: UActorComponent (Replicated)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'spectate','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="spectate" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">캐릭터 사망 시 관전 모드 전환, 사망 연출(몽타주/래그돌), 관전자 카메라 데이터 네트워크 동기화</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent. 생성자에서 SetIsReplicatedByDefault(true), bCanEverTick=false</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버: 사망 판정(OnOwnerDied), 관전자 관리(Add/RemoveSpectator), bStreamEnabled 제어. 소유 클라이언트: 카메라 뷰 전송(33ms 타이머), 사망 UI 표시. 모든 클라이언트: 래그돌/몽타주 Multicast RPC 수신</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">복제 변수</div>
+            <div class="info-value">RepCameraView(FRepCameraView, 무조건 복제) &mdash; Location(FVector_NetQuantize10), Rotation(FRotator), FOV(float). bStreamEnabled(COND_OwnerOnly, ReplicatedUsing=OnRep_StreamEnabled)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">RPC 목록</div>
+            <div class="info-value">MulticastRPC_PlayDeathMontage (NetMulticast, Reliable), MulticastRPC_EnterRagdoll (NetMulticast, Reliable), ServerRPC_NotifyDeathRagdoll (Server, Reliable), ClientRPC_HandleDeathView (Client, Reliable), ServerRPC_UpdateCameraView (Server, Unreliable)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">카메라 동기화 방식</div>
+            <div class="info-value">관전자 등록 시 bStreamEnabled=true &rarr; 소유 클라이언트에서 33ms(~30fps) 타이머로 PlayerCameraManager의 Location/Rotation/FOV를 ServerRPC_UpdateCameraView(Unreliable)로 전송 &rarr; 서버가 RepCameraView에 저장 &rarr; 자동 복제로 관전자에게 전달</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UActorComponent를 상속하며, SetIsReplicatedByDefault(true)로 네트워크 복제를 활성화합니다.
+          BeginPlay에서 Owner를 AAO_PlayerCharacter로 캐스팅하여 캐싱하고, 서버이면 BindDeathDelegate로 AttributeSet.OnPlayerDeath에 OnOwnerDied를 바인딩합니다.
+          OnOwnerDied(서버)가 호출되면: PlayerState.SetIsAlive(false) &rarr; ASC.TryActivateAbilitiesByTag("Ability.State.Death") &rarr; InteractableComponent 활성화(부활 상호작용) &rarr; NotifySpectators_TargetInvalidated &rarr; ClientRPC_HandleDeathView(소유 클라이언트에 사망 UI 표시) 순서로 처리합니다.
+          이미 사망 태그("Status.Death")가 있거나 PS.GetIsAlive()가 false이면 중복 처리를 방지합니다.
+          관전 시스템은 SpectatorSet(TSet&lt;TWeakObjectPtr&lt;APlayerController&gt;&gt;)으로 관전자를 관리하며, 첫 관전자 등록 시 bStreamEnabled=true, 마지막 관전자 해제 시 false로 전환합니다.
+          리슨 서버 환경에서 소유자가 로컬 컨트롤러인 경우 OnRep이 자동 호출되지 않으므로 수동으로 OnRep_StreamEnabled()를 호출합니다.
+          EndPlay에서 서버이면 NotifySpectators_TargetInvalidated로 관전자에게 대상 무효화를 알리고, 모든 타이머를 정리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">bStreamEnabled</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_StreamEnabled</span></td>
+            <td>관전자가 있을 때 true. COND_OwnerOnly 조건으로 소유 클라이언트에만 복제됩니다. OnRep에서 true이면 StartCameraSyncTimer, false이면 StopCameraSyncTimer를 호출합니다. 초기값 false.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">RepCameraView</span></td>
+            <td><span class="var-type">FRepCameraView</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>FRepCameraView 구조체: Location(FVector_NetQuantize10 &mdash; 10분의 1 단위 양자화), Rotation(FRotator), FOV(float, 기본 90). 조건 없이 모든 클라이언트에 복제됩니다. ServerRPC_UpdateCameraView에서 서버에 저장하면 자동 복제됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpectatorSet</span></td>
+            <td><span class="var-type">TSet&lt;TWeakObjectPtr&lt;APlayerController&gt;&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>현재 이 캐릭터를 관전 중인 플레이어 컨트롤러 집합. 서버에서만 관리됩니다. TWeakObjectPtr로 PC 파괴 시 자동 무효화됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TimerHandle_CameraSync</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(Private)</td>
+            <td>카메라 뷰 동기화 타이머 핸들. 0.033f초(~30fps) 간격으로 SendCameraViewToServer를 호출합니다. IsTimerActive로 중복 시작을 방지합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OwnerActor / OwnerCharacter</span></td>
+            <td><span class="var-type">TObjectPtr&lt;AActor&gt; / TObjectPtr&lt;AAO_PlayerCharacter&gt;</span></td>
+            <td>(Private, UPROPERTY)</td>
+            <td>BeginPlay에서 GetOwner()와 Cast&lt;AAO_PlayerCharacter&gt;로 캐싱. checkf로 null 검증합니다. 초기값 nullptr.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. OwnerActor = GetOwner(), checkf 검증<br>
+                2. OwnerCharacter = Cast&lt;AAO_PlayerCharacter&gt;(OwnerActor), checkf 검증<br>
+                3. HasAuthority() &rarr; BindDeathDelegate() (서버에서만 사망 감지)<br>
+                4. bStreamEnabled가 true이면 (복제 데이터가 먼저 도착한 경우) &rarr; 로컬 컨트롤러이고 데디케이트 서버가 아니면 StartCameraSyncTimer()
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndPlay(const EEndPlayReason::Type)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. OwnerActor 유효 &amp;&amp; HasAuthority() &rarr; NotifySpectators_TargetInvalidated() (관전자에게 대상 무효화 알림)<br>
+                2. StopCameraSyncTimer()<br>
+                3. GetWorld()-&gt;GetTimerManager().ClearAllTimersForObject(this) (안전하게 모든 타이머 정리)<br>
+                4. Super::EndPlay
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindDeathDelegate()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. check(OwnerCharacter)<br>
+                2. OwnerCharacter-&gt;GetAttributeSet() &rarr; checkf 검증<br>
+                3. AttributeSet-&gt;OnPlayerDeath.AddUObject(this, &amp;OnOwnerDied) &mdash; Health가 0이 되면 트리거
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnOwnerDied()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. OwnerCharacter null 또는 !HasAuthority() &rarr; return (서버에서만)<br>
+                2. PS = GetPlayerState&lt;AAO_PlayerState&gt;() &mdash; null이면 return (데미지 존에서 PS 미보유 크래시 방지)<br>
+                3. !PS-&gt;GetIsAlive() &rarr; return (이미 사망)<br>
+                4. ASC에 "Status.Death" 태그가 있으면 return (중복 사망 방지)<br>
+                5. PS-&gt;SetIsAlive(false)<br>
+                6. ASC-&gt;TryActivateAbilitiesByTag("Ability.State.Death") &mdash; 사망 어빌리티 활성화<br>
+                7. InteractableComponent-&gt;bInteractionEnabled = true (부활칩 수급 허용)<br>
+                8. NotifySpectators_TargetInvalidated() (관전자 대상 재선택)<br>
+                9. 컨트롤러가 APlayerController이면 ClientRPC_HandleDeathView() 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AddSpectator / RemoveSpectator</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">Add</div>ensure(SpectatorPC) &amp;&amp; HasAuthority() 검증 &rarr; SpectatorSet.Add &rarr; PrevNum==0에서 Num&gt;0으로 변하면 bStreamEnabled=true, ForceNetUpdate, 리슨 서버에서 IsLocallyControlled()이면 수동 OnRep_StreamEnabled() 호출</div>
+              <div class="fn-section"><div class="fn-section-title">Remove</div>ensure(SpectatorPC) &amp;&amp; HasAuthority() 검증 &rarr; SpectatorSet.Remove &rarr; Num==0이면 bStreamEnabled=false, ForceNetUpdate, 리슨 서버 동일 처리</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastRPC_PlayDeathMontage(UAnimMontage*, float PlayRate)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Montage null 검사<br>
+                2. GetOwner() &rarr; Cast&lt;ACharacter&gt;, ensure 검증<br>
+                3. GetMesh() &rarr; ensure 검증<br>
+                4. GetAnimInstance() &rarr; ensure 검증<br>
+                5. AnimInst-&gt;StopAllMontages(0.05f) &mdash; 기존 몽타주 빠르게 정지<br>
+                6. AnimInst-&gt;Montage_Play(Montage, PlayRate) &mdash; 사망 몽타주 재생
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastRPC_EnterRagdoll()</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. OwnerCharacter-&gt;GetMesh(), ensure 검증<br>
+                2. MeshComp-&gt;IsSimulatingPhysics() &rarr; return (이미 래그돌)<br>
+                3. MovementComponent-&gt;StopMovementImmediately() + DisableMovement()<br>
+                4. MeshComp-&gt;SetCollisionProfileName("Ragdoll")<br>
+                5. SetAllBodiesSimulatePhysics(true) + SetSimulatePhysics(true)<br>
+                6. WakeAllRigidBodies() + bBlendPhysics = true
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerRPC_NotifyDeathRagdoll()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ASC null 또는 "Status.Death" 태그 미보유 &rarr; return (사망 상태 검증)<br>
+                2. RagdollTag = "Event.Death.Ragdoll"<br>
+                3. FGameplayEventData 구성: EventTag=RagdollTag, Instigator=OwnerCharacter, Target=OwnerCharacter<br>
+                4. SendGameplayEventToActor(OwnerCharacter, RagdollTag, Payload) &mdash; 사망 어빌리티에서 래그돌 이벤트 처리
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ClientRPC_HandleDeathView()</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>check(OwnerCharacter) &rarr; Cast&lt;AAO_PlayerController_Stage&gt;(GetController()) &rarr; PC-&gt;ShowDeathUI() 호출. 소유 클라이언트에서만 사망 UI를 표시합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerRPC_UpdateCameraView(const FRepCameraView&amp;)</span>
+              <span class="fn-spec server">Server, Unreliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>RepCameraView = NewView; &mdash; 단순 대입. Unreliable로 대역폭 절약 (30fps 전송, 일부 패킷 손실 허용). 서버에서 RepCameraView가 갱신되면 Replicated 속성에 의해 자동으로 모든 클라이언트에 복제됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifySpectators_TargetInvalidated()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !HasAuthority() &rarr; return<br>
+                2. SpectatorSet을 TArray로 스냅샷 (순회 중 Set 변경 방지)<br>
+                3. WeakPtr.IsValid() 필터링<br>
+                4. 스냅샷 순회: Cast&lt;AAO_PlayerController_Stage&gt; &rarr; ForceReselectSpectateTarget(OwnerCharacter)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">안전성 패턴</div>TSet 순회 중에 RemoveSpectator가 호출될 수 있으므로, 먼저 TArray 스냅샷을 생성합니다. Reserve(Num())로 메모리 사전 할당합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendCameraViewToServer()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !IsLocallyControlled() 또는 !bStreamEnabled &rarr; return<br>
+                2. Cast&lt;APlayerController&gt;(GetController())<br>
+                3. PC-&gt;PlayerCameraManager 유효 시:<br>
+                4. FRepCameraView V 구성: Location=GetCameraLocation(), Rotation=GetCameraRotation(), FOV=GetFOVAngle()<br>
+                5. ServerRPC_UpdateCameraView(V) 호출
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>캐릭터에 부착. BeginPlay에서 캐스팅/캐싱. GetAbilitySystemComponent(), GetAttributeSet(), GetInteractableComponent() 등 접근</td></tr>
+          <tr><td>구독</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>OnPlayerDeath 멀티캐스트 델리게이트에 OnOwnerDied 바인딩. PostGameplayEffectExecute에서 Health &lt;= 0일 때 Broadcast</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_PlayerController_Stage</span></td><td>ClientRPC에서 ShowDeathUI(), NotifySpectators에서 ForceReselectSpectateTarget() 호출</td></tr>
+          <tr><td>읽기/쓰기</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>GetIsAlive()로 생존 확인, SetIsAlive(false)로 사망 설정</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>TryActivateAbilitiesByTag("Ability.State.Death"), HasMatchingGameplayTag("Status.Death")</td></tr>
+          <tr><td>설정</td><td><span class="rel-cls">UAO_InteractableComponent</span></td><td>사망 시 bInteractionEnabled = true &mdash; 다른 플레이어가 시체와 상호작용(부활칩 수급) 가능</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAbilitySystemBlueprintLibrary</span></td><td>ServerRPC_NotifyDeathRagdoll에서 SendGameplayEventToActor로 래그돌 이벤트 발송</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_DeathSpectateComponent -->
+
+    <!-- ==================== AO_TraversableComponent ==================== -->
+    <div class="class-card" id="trav">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_TraversableComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'trav','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="trav" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">트래버설(벽 넘기, 장애물 점프) 가능한 액터에 부착되어 스플라인 기반 렛지(Ledge) 정보를 제공하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent (BlueprintSpawnableComponent). bCanEverTick=false &mdash; 이벤트 기반으로만 동작</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 및 모든 클라이언트. OnRegister(컴포넌트 등록 시)에서 스플라인 스캔. 트래버설 판정(GetLedgeTransforms)은 어빌리티 실행 시 쿼리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">소유 액터의 모든 USplineComponent 수집, 2개씩 쌍으로 묶어 반대편 렛지 양방향 매핑, 히트 위치 기반 전면/후면 렛지 트랜스폼 계산(Local/World Space 변환 포함)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">렛지 쌍 규칙</div>
+            <div class="info-value">ScanSplines에서 GetComponents&lt;USplineComponent&gt;로 수집한 배열을 인덱스 0-1, 2-3, ... 순서로 2개씩 쌍을 맺어 OppositeLedges에 양방향 등록. 홀수 개이면 마지막 스플라인은 반대편 없음</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">좌표 공간</div>
+            <div class="info-value">FindLocationClosestToWorldLocation은 Local Space, GetDistanceAlongSplineAtLocation도 Local Space, GetTransformAtDistanceAlongSpline은 World Space. FindTransformClosestToWorldLocation은 World Space. 스플라인 거리 계산은 반드시 Local Space에서 수행해야 정확합니다</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UActorComponent를 상속하며, 벽이나 장애물 액터에 부착됩니다.
+          OnRegister에서 ScanSplines를 호출하여 소유 액터의 모든 USplineComponent를 수집하고, 인접한 2개씩 쌍을 맺어 양방향 OppositeLedges 맵에 등록합니다.
+          트래버설 어빌리티(AO_GameplayAbility_Traversal)가 GetLedgeTransforms를 호출하면:
+          (1) FindLedgeClosestToActor로 가장 가까운 렛지 스플라인을 선택합니다 (UpVector*10을 더한 위치로 비교하여 렛지 윗면 기준 거리 계산).
+          (2) 스플라인 길이가 MinLedgeWidth(60) 미만이면 실패 반환합니다.
+          (3) HitLocation에서 스플라인 상의 가장 가까운 점을 Local Space에서 계산하고, 양쪽 여백(MinLedgeWidth/2)으로 클램핑하여 전면 렛지의 World Transform을 구합니다.
+          (4) OppositeLedges 맵에서 반대편 렛지를 찾아 후면 렛지 Transform을 구합니다.
+          결과는 FTraversalCheckResult에 bHasFrontLedge/bHasBackLedge, Location, Normal(UpVector)로 반환됩니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Ledges</span></td>
+            <td><span class="var-type">TArray&lt;TObjectPtr&lt;USplineComponent&gt;&gt;</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>ScanSplines에서 GetComponents(USplineComponent::StaticClass())로 수집한 소유 액터의 모든 스플라인 컴포넌트 배열. null 필터링 후 추가됩니다. 배열 순서가 쌍 매핑에 영향을 줍니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OppositeLedges</span></td>
+            <td><span class="var-type">TMap&lt;TObjectPtr&lt;USplineComponent&gt;, TObjectPtr&lt;USplineComponent&gt;&gt;</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>렛지 쌍 양방향 매핑. ScanSplines에서 i와 i+1을 서로 반대편으로 등록(A&rarr;B, B&rarr;A). GetLedgeTransforms에서 *OppositeLedges.Find(ClosestLedge)로 반대편 렛지를 검색합니다. Find 실패 시 nullptr &mdash; bHasBackLedge=false.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MinLedgeWidth</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>렛지 최소 폭(기본 60.f). 두 가지 용도: (1) 스플라인 길이가 이 값 미만이면 트래버설 불가, (2) 가장 가까운 점을 클램핑할 때 양쪽 여백(MinLedgeWidth/2 = 30)으로 사용하여 렛지 끝부분에서의 불안정한 트래버설을 방지합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_TraversableComponent() [생성자]</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PrimaryComponentTick.bCanEverTick = false. 이벤트 기반 컴포넌트로 Tick 비활성화입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRegister()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>Super::OnRegister() &rarr; ScanSplines(). 컴포넌트 등록 시점에 스플라인을 스캔합니다. BeginPlay보다 이른 시점에 실행되어 레벨 로드 시 바로 렛지 데이터가 준비됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ScanSplines()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Ledges.Empty(), OppositeLedges.Empty() &mdash; 기존 데이터 초기화<br>
+                2. GetOwner() &rarr; checkf 검증<br>
+                3. Owner-&gt;GetComponents(USplineComponent::StaticClass(), SplineComponents) &mdash; 모든 스플라인 수집<br>
+                4. null이 아닌 스플라인을 Ledges에 추가<br>
+                5. i = 0부터 i+1 &lt; Ledges.Num()까지 i+=2 순회:<br>
+                &nbsp;&nbsp;&nbsp;A = Ledges[i], B = Ledges[i+1]<br>
+                &nbsp;&nbsp;&nbsp;둘 다 유효하면 OppositeLedges.Add(A, B), OppositeLedges.Add(B, A) &mdash; 양방향 등록
+              </div>
+              <div class="fn-section"><div class="fn-section-title">쌍 매핑 규칙</div>GetComponents의 반환 순서에 의존합니다. 레벨 디자이너가 스플라인을 전면/후면 순서로 배치해야 올바르게 쌍이 맺어집니다. 홀수 개이면 마지막 스플라인은 쌍 없이 남습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLedgeTransforms(const FVector&amp; HitLocation, const FVector&amp; ActorLocation, FTraversalCheckResult&amp;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. FindLedgeClosestToActor(ActorLocation) &rarr; null이면 bHasFrontLedge=false 반환<br>
+                2. ClosestLedge-&gt;GetSplineLength() &lt; MinLedgeWidth(60) &rarr; bHasFrontLedge=false 반환<br>
+                3. FindLocationClosestToWorldLocation(HitLocation, <strong>Local</strong>) &mdash; 히트 위치에서 가장 가까운 스플라인 점 (Local Space)<br>
+                4. GetDistanceAlongSplineAtLocation(ClosestLocation, <strong>Local</strong>) &mdash; 스플라인 시작점으로부터의 거리<br>
+                5. FMath::Clamp(ClosestPoint, MinLedgeWidth/2, SplineLength - MinLedgeWidth/2) &mdash; 양쪽 여백 클램핑<br>
+                6. GetTransformAtDistanceAlongSpline(ClampedPoint, <strong>World</strong>) &mdash; 전면 렛지 World Transform<br>
+                7. bHasFrontLedge=true, FrontLedgeLocation = Transform.GetLocation(), FrontLedgeNormal = Transform.GetRotation().GetUpVector()<br>
+                8. *OppositeLedges.Find(ClosestLedge) &mdash; 반대편 렛지 검색. null이면 bHasBackLedge=false 반환<br>
+                9. OppositeLedge-&gt;FindTransformClosestToWorldLocation(FrontLedgeLocation, <strong>World</strong>) &mdash; 전면 렛지 위치에서 가장 가까운 후면 점<br>
+                10. bHasBackLedge=true, BackLedgeLocation/Normal 설정
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindLedgeClosestToActor(const FVector&amp; ActorLocation)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Ledges.Num() == 0 &rarr; nullptr 반환<br>
+                2. ClosestDistance = 0, ClosestIndex = 0<br>
+                3. Ledges 순회: 각 Ledge에서 FindLocationClosestToWorldLocation(ActorLocation, <strong>World</strong>) + FindUpVectorClosestToWorldLocation(ActorLocation, <strong>World</strong>)<br>
+                4. ClosestUpVector *= 10.f &mdash; 렛지 윗면에서 10유닛 위의 접근 위치<br>
+                5. Distance = FVector::Dist(ClosestLocation + ClosestUpVector, ActorLocation)<br>
+                6. 첫 번째(i==0) 또는 Distance &lt; ClosestDistance이면 갱신<br>
+                7. Ledges[ClosestIndex] 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">UpVector * 10의 의미</div>렛지 표면이 아닌 렛지 윗면의 실제 접근 위치를 기준으로 거리를 비교합니다. 캐릭터가 렛지 아래에 있을 때 더 가까운 렛지를 정확히 선택하기 위한 보정입니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">USplineComponent</span></td><td>소유 액터의 스플라인을 수집하여 렛지로 사용. FindLocationClosestToWorldLocation, GetDistanceAlongSplineAtLocation, GetTransformAtDistanceAlongSpline, FindTransformClosestToWorldLocation 등 호출</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">UAO_GameplayAbility_Traversal</span></td><td>트래버설 어빌리티가 벽/장애물 히트 시 GetLedgeTransforms를 호출하여 전면/후면 렛지 정보를 쿼리</td></tr>
+          <tr><td>출력</td><td><span class="rel-cls">FTraversalCheckResult</span></td><td>bHasFrontLedge/bHasBackLedge, FrontLedge/BackLedge Location/Normal을 담는 결과 구조체. AO_TraversalTypes.h에 정의</td></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">트래버설 가능 액터(벽, 장애물)</span></td><td>레벨에 배치된 벽/장애물 블루프린트 액터에 컴포넌트로 부착. 스플라인 배치 순서가 쌍 매핑에 영향</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_TraversableComponent -->
+
+    <!-- ==================== AO_NameplateComponent ==================== -->
+    <div class="class-card" id="nameplate">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NameplateComponent</div>
+        <div class="class-parent">부모: UActorComponent (Replicated)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'nameplate','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'nameplate','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nameplate','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nameplate','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="nameplate" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">다른 플레이어 머리 위에 표시되는 이름표 위젯을 런타임 생성/관리하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent. 생성자에서 bCanEverTick=true, bStartWithTickEnabled=true, SetIsReplicatedByDefault(true)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버: DisplayName 설정/복제. 클라이언트: WidgetComponent 생성, 거리 기반 스케일/가시성 조절, VOIP 발화 상태 표시. 매 프레임 Tick 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">복제</div>
+            <div class="info-value">DisplayName(FText, ReplicatedUsing=OnRep_DisplayName) &mdash; DOREPLIFETIME 무조건 복제. 서버에서 설정하면 OnRep으로 모든 클라이언트 위젯에 반영</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">위젯 생성</div>
+            <div class="info-value">EnsureWidgetComponent에서 NewObject&lt;UWidgetComponent&gt; &rarr; RegisterComponent &rarr; AttachToComponent(Root, KeepRelative) &rarr; Screen Space 모드, DrawAtDesiredSize=true, Pivot(0.5, 0.5). NameplateWidgetClass(EditAnywhere)로 블루프린트 클래스 지정</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">거리 기반 비주얼</div>
+            <div class="info-value">매 프레임 ApplyDistanceVisuals: 자기 자신 숨김(bHideForSelf), HideDistance(1500) 이상 숨김, MinScaleDistance(200)~MaxScaleDistance(1000) 범위에서 MaxScale(1.0)&rarr;MinScale(0.4) 선형 보간, 거리에 따라 ExtraZOffset(10) 추가</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UActorComponent를 상속하며, SetIsReplicatedByDefault(true)로 네트워크 복제를 활성화합니다.
+          BeginPlay에서 EnsureWidgetComponent로 UWidgetComponent를 런타임 생성하고 Screen Space 모드로 캐릭터 RootComponent에 부착합니다.
+          서버에서 HandlePlayerStateChanged가 호출되면 PlayerState.GetPlayerName()을 읽어 DisplayName에 설정하며, 이름이 비어있으면 AAO_PlayerState.OnPlayerNameReady 델리게이트에 바인딩하여 비동기로 수신합니다.
+          DisplayName은 Replicated 속성으로 OnRep_DisplayName &rarr; ApplyDisplayNameToWidget을 통해 모든 클라이언트 위젯에 반영됩니다.
+          매 프레임 TickComponent에서 ApplyDistanceVisuals를 호출하여: (1) 자기 자신 숨김(ShouldHideForSelf: bHideForSelf &amp;&amp; IsLocallyControlled), (2) HideDistance 이상 숨김, (3) 거리 기반 스케일 보간, (4) 거리에 따른 Z 오프셋 조절, (5) UpdateIsTalking으로 VOIP 발화 상태 갱신을 수행합니다.
+          VOIP 발화 상태는 히스테리시스를 적용하여(시작 &gt;0.02, 종료 &lt;=0.01) 깜빡임을 방지합니다.
+          CustomizingComponent의 OnCapsuleChangedDelegate에 바인딩하여 캡슐 크기 변경 시 위젯 높이를 재조정하며, EndPlay에서 델리게이트를 RemoveAll합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="nameplate" data-tab="vars">
+        <div class="section-title">에디터 설정</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">NameplateWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>이름표 위젯 블루프린트 클래스. EnsureWidgetComponent에서 SetWidgetClass &rarr; InitWidget으로 적용됩니다. null이면 위젯이 생성되지 않습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MinScaleDistance / MaxScaleDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>거리 기반 스케일 범위(기본 200~1000). Alpha = Clamp((Distance - Min) / Max(1, Max - Min), 0, 1)로 계산됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MinScale / MaxScale</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>위젯 스케일 범위(기본 0.4~1.0). UIScale = Lerp(MaxScale, MinScale, Alpha) &mdash; 가까울수록 MaxScale, 멀수록 MinScale입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HideDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>이 거리(기본 1500) 이상이면 위젯을 SetVisibility(false, true)로 숨깁니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CapsuleHeight / BaseZOffset / ExtraZOffset</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>위젯 Z 위치 계산. 기본 높이 = CapsuleHeight(176) + BaseZOffset(5). 거리에 따라 Lerp(0, ExtraZOffset=10, Alpha)만큼 추가 상승. HandleCapsuleSizeChanged에서 CapsuleHeight가 동적으로 갱신됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bHideForSelf</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>true(기본)이면 로컬 플레이어(IsLocallyControlled)의 이름표를 숨깁니다.</td>
+          </tr>
+        </table>
+        <div class="section-title">복제 &amp; 런타임</div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DisplayName</span></td>
+            <td><span class="var-type">FText</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_DisplayName</span></td>
+            <td>서버에서 SetDisplayName_Server로 설정. EqualTo 비교로 동일 값 중복 설정을 방지합니다. DOREPLIFETIME(무조건 복제)으로 모든 클라이언트에 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">WidgetComponent</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UWidgetComponent&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>EnsureWidgetComponent에서 런타임 생성. Screen Space 모드, DrawAtDesiredSize=true, Pivot(0.5, 0.5). 이미 존재하면 재생성하지 않습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">WidgetInstance</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_NameTagWidget&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>WidgetComponent-&gt;GetUserWidgetObject()를 Cast&lt;UAO_NameTagWidget&gt;한 인스턴스. SetPlayerName(), SetUIScale(), SetPlayerTalkingVisibility() 등을 호출합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedCustomizingComponent</span></td>
+            <td><span class="var-type">TWeakObjectPtr&lt;UAO_CustomizingComponent&gt;</span></td>
+            <td>(Private)</td>
+            <td>BeginPlay에서 FindComponentByClass로 캐싱. OnCapsuleChangedDelegate 바인딩/해제에 사용. TWeakObjectPtr로 액터 파괴 시 자동 무효화됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedVOIPTalker</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UVOIPTalker&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>SetVOIPTalker()로 설정. 위젯이 생성되기 전에 설정될 수 있으므로 별도 캐싱합니다. UpdateIsTalking에서 GetVoiceLevel()을 읽어 발화 상태를 판정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsTalking</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(Private)</td>
+            <td>현재 발화 중 여부. 히스테리시스 적용: 시작 조건 VoiceLevel &gt; 0.02, 종료 조건 VoiceLevel &lt;= 0.01. 깜빡임 방지 목적입니다. 초기값 false.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="nameplate" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_NameplateComponent() [생성자]</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. PrimaryComponentTick.bCanEverTick = true<br>
+                2. PrimaryComponentTick.bStartWithTickEnabled = true<br>
+                3. SetIsReplicatedByDefault(true) &mdash; 네트워크 복제 활성화
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. EnsureWidgetComponent() &mdash; 위젯 컴포넌트 생성<br>
+                2. ApplyDistanceVisuals() &mdash; 초기 가시성 설정<br>
+                3. Owner = GetOwner(), ensure 검증<br>
+                4. HasAuthority() ? TryInitNameFromOwner() : ApplyDisplayNameToWidget() &mdash; 서버는 이름 설정, 클라이언트는 복제된 이름 적용<br>
+                5. FindComponentByClass&lt;UAO_CustomizingComponent&gt;() &rarr; CachedCustomizingComponent에 캐싱<br>
+                6. OnCapsuleChangedDelegate.AddUObject(HandleCapsuleSizeChanged) 바인딩<br>
+                7. Cast&lt;ACharacter&gt;(Owner) &rarr; GetCapsuleComponent()-&gt;GetScaledCapsuleHalfHeight()로 현재 캡슐 높이 적용
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TickComponent(float DeltaTime, ...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. WidgetComponent null이면 return<br>
+                2. ApplyDistanceVisuals() &mdash; 매 프레임 거리 기반 스케일/가시성/Z오프셋 갱신 + UpdateIsTalking
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandlePlayerStateChanged(APlayerState* NewPlayerState)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !GetOwner() || !HasAuthority() &rarr; return (서버에서만)<br>
+                2. !NewPlayerState &rarr; return<br>
+                3. GetPlayerName()이 비어있지 않으면 SetDisplayName_Server(FText::FromString(PlayerName))<br>
+                4. 비어있으면 Cast&lt;AAO_PlayerState&gt;(NewPlayerState)-&gt;OnPlayerNameReady.AddUObject(SetDisplayName_Server) &mdash; 비동기 이름 수신 대기
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AAO_PlayerCharacter::PossessedBy(서버)와 OnRep_PlayerState(클라이언트, 하지만 HasAuthority 검사로 서버에서만 실행)에서 호출됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetVOIPTalker(UVOIPTalker* InTalker)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. AO_LOG로 InTalker-&gt;GetName() 로깅<br>
+                2. CachedVOIPTalker = InTalker &mdash; 위젯 생성 전에 호출될 수 있으므로 캐싱<br>
+                3. AO_LOG로 완료 로깅
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AAO_PlayerCharacter에서 VOIPTalker 생성 후 NameplateComponent-&gt;SetVOIPTalker로 전달합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EnsureWidgetComponent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. WidgetComponent 이미 존재하면 return (중복 생성 방지)<br>
+                2. Owner = GetOwner(), checkf 검증<br>
+                3. NewObject&lt;UWidgetComponent&gt;(Owner, "NameplateWidgetComponent")<br>
+                4. RegisterComponent()<br>
+                5. AttachToComponent(Root, KeepRelativeTransform)<br>
+                6. SetWidgetSpace(Screen), SetDrawAtDesiredSize(true), SetPivot(0.5, 0.5)<br>
+                7. NameplateWidgetClass 유효 시: SetWidgetClass &rarr; InitWidget<br>
+                8. GetUserWidgetObject() &rarr; Cast&lt;UAO_NameTagWidget&gt; &rarr; WidgetInstance에 캐싱
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDistanceVisuals()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !WidgetComponent &rarr; return<br>
+                2. ShouldHideForSelf() &rarr; SetVisibility(false, true) 후 return<br>
+                3. PlayerController[0]-&gt;PlayerCameraManager 획득. null이면 SetVisibility(true) 후 return<br>
+                4. Distance = FVector::Distance(CameraLocation, OwnerLocation)<br>
+                5. Distance &gt; HideDistance(1500) &rarr; SetVisibility(false, true) 후 return<br>
+                6. SetVisibility(true, true)<br>
+                7. Alpha = Clamp((Distance - MinScaleDistance) / Max(1, MaxScaleDistance - MinScaleDistance), 0, 1)<br>
+                8. UIScale = Lerp(MaxScale, MinScale, Alpha)<br>
+                9. WidgetInstance-&gt;SetUIScale(UIScale)<br>
+                10. ZOffset = CapsuleHeight + BaseZOffset + Lerp(0, ExtraZOffset, Alpha)<br>
+                11. WidgetComponent-&gt;SetRelativeLocation(0, 0, ZOffset)<br>
+                12. UpdateIsTalking()
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateIsTalking()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !CachedVOIPTalker &rarr; AO_LOG Warning 후 return<br>
+                2. WidgetInstance 유효 시:<br>
+                3. bIsTalking==true &amp;&amp; VoiceLevel &lt;= 0.01 &rarr; bIsTalking = false (종료 임계값)<br>
+                4. bIsTalking==false &amp;&amp; VoiceLevel &gt; 0.02 &rarr; bIsTalking = true (시작 임계값)<br>
+                5. WidgetInstance-&gt;SetPlayerTalkingVisibility(bIsTalking)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">히스테리시스 설계</div>시작 임계값(0.02)과 종료 임계값(0.01)을 다르게 설정하여, VoiceLevel이 경계값 근처에서 진동할 때 스피커 아이콘이 빠르게 깜빡이는 것을 방지합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleCapsuleSizeChanged(float NewHalfHeight)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. !WidgetComponent &rarr; return<br>
+                2. CapsuleHeight = NewHalfHeight &mdash; 멤버 변수 갱신<br>
+                3. ZOffset = CapsuleHeight + BaseZOffset<br>
+                4. WidgetComponent-&gt;SetRelativeLocation(0, 0, ZOffset)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">트리거</div>UAO_CustomizingComponent-&gt;OnCapsuleChangedDelegate에서 호출. 캐릭터 외형 변경으로 캡슐 크기가 바뀔 때 위젯 높이를 맞춥니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ShouldHideForSelf() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>!bHideForSelf &rarr; return false. Cast&lt;APawn&gt;(GetOwner()) &rarr; Pawn &amp;&amp; Pawn-&gt;IsLocallyControlled()이면 true. 자기 머리 위의 이름표를 숨기는 데 사용됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_DisplayName() / SetDisplayName_Server(const FText&amp;) / ApplyDisplayNameToWidget() / TryInitNameFromOwner()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">OnRep_DisplayName</div>서버에서 DisplayName이 복제되면 클라이언트에서 자동 호출. ApplyDisplayNameToWidget() 위임.</div>
+              <div class="fn-section"><div class="fn-section-title">SetDisplayName_Server</div>서버 전용. !HasAuthority() &rarr; return. DisplayName.EqualTo(InName) 검사로 동일 값 중복 설정 방지. 변경 시 DisplayName = InName 후 ApplyDisplayNameToWidget() 호출.</div>
+              <div class="fn-section"><div class="fn-section-title">ApplyDisplayNameToWidget</div>EnsureWidgetComponent() 호출(위젯 미생성 방지) &rarr; WidgetInstance-&gt;SetPlayerName(DisplayName).</div>
+              <div class="fn-section"><div class="fn-section-title">TryInitNameFromOwner</div>서버 전용. Cast&lt;APawn&gt;(Owner) &rarr; GetPlayerState() &rarr; 유효하면 HandlePlayerStateChanged(PS) 호출. BeginPlay 시 이름 초기화에 사용.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="nameplate" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>캐릭터에 부착. PossessedBy에서 HandlePlayerStateChanged, OnRep_PlayerState에서도 HandlePlayerStateChanged 호출. VOIPTalker 생성 후 SetVOIPTalker 호출</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">APlayerState / AAO_PlayerState</span></td><td>GetPlayerName()으로 이름 읽기. 비어있으면 AAO_PlayerState.OnPlayerNameReady 델리게이트 구독하여 비동기 수신</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UWidgetComponent</span></td><td>런타임에 NewObject로 Screen Space WidgetComponent를 생성하여 RootComponent에 부착. RegisterComponent로 씬에 등록</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_NameTagWidget</span></td><td>SetPlayerName(FText), SetUIScale(float), SetPlayerTalkingVisibility(bool) 호출하여 이름/스케일/스피커 아이콘 제어</td></tr>
+          <tr><td>구독</td><td><span class="rel-cls">UAO_CustomizingComponent</span></td><td>OnCapsuleChangedDelegate에 HandleCapsuleSizeChanged 바인딩. EndPlay에서 RemoveAll. TWeakObjectPtr로 안전 참조</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UVOIPTalker</span></td><td>SetVOIPTalker로 캐싱. GetVoiceLevel()로 발화 레벨 읽기. 히스테리시스(시작 0.02, 종료 0.01)로 깜빡임 방지</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_NameplateComponent -->
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['anim','sound','cam','spectate','trav','nameplate'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click → immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

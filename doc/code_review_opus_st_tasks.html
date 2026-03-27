@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — StateTree Tasks (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#7c3aed;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;max-height:calc(100vh - 80px);overflow-y:auto;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f5f3ff;color:#7c3aed;border-left-color:#7c3aed;font-weight:600;}
+.toc-group{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin:10px 0 4px 8px;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#7c3aed;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#7c3aed;border-bottom-color:#7c3aed;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #7c3aed;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f5f3ff;border-color:#c4b5fd;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-spec.editor{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.helper{background:#fffbeb;color:#d97706;border:1px solid #fef3c7;}
+.fn-spec.static-fn{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #c4b5fd;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7c3aed;font-weight:600;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+.deep-note{font-size:12px;color:#7c3aed;background:#f5f3ff;border:1px solid #ede9fe;border-radius:8px;padding:10px 12px;margin-top:10px;line-height:1.6;}
+.deep-note strong{color:#5b21b6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">ST Tasks</div>
+  <div class="nav-sub">StateTree Task 클래스 &mdash; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">StateTree Task 클래스</div>
+  <div class="hero-sub">AI 행동을 구현하는 24개 StateTree Task 클래스 &mdash; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">공통 이동</span>
+    <span class="badge">Bull</span>
+    <span class="badge">Crab</span>
+    <span class="badge">Insect</span>
+    <span class="badge">LavaMonster</span>
+    <span class="badge">Stalker</span>
+    <span class="badge">Troll</span>
+    <span class="badge">Werewolf</span>
+    <span class="badge">사운드</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <div class="toc-group">공통</div>
+      <a class="toc-item active" href="#moveto">AIMoveTo</a>
+      <a class="toc-item" href="#movebase">AIMovementBase</a>
+      <a class="toc-item" href="#roam">AIRoam</a>
+      <a class="toc-item" href="#chase">Chase</a>
+      <a class="toc-item" href="#search">Search</a>
+      <div class="toc-group">Bull</div>
+      <a class="toc-item" href="#bull_charge">Bull Charge</a>
+      <div class="toc-group">Crab</div>
+      <a class="toc-item" href="#crab_drop">Crab Drop</a>
+      <a class="toc-item" href="#crab_flee">Crab Flee</a>
+      <a class="toc-item" href="#crab_pickup">Crab Pickup</a>
+      <div class="toc-group">Insect</div>
+      <a class="toc-item" href="#insect_drag">Insect Drag</a>
+      <a class="toc-item" href="#insect_kidnap">Insect Kidnap</a>
+      <div class="toc-group">LavaMonster</div>
+      <a class="toc-item" href="#lava_attack">LavaMonster Attack</a>
+      <div class="toc-group">Stalker</div>
+      <a class="toc-item" href="#stalk_ambush">Stalk Ambush</a>
+      <a class="toc-item" href="#stalk_approach">Stalk Approach</a>
+      <a class="toc-item" href="#stalk_ceiling">Stalk Ceiling</a>
+      <a class="toc-item" href="#stalk_hide">Stalk Hide</a>
+      <a class="toc-item" href="#stalker_roam">Stalker Roam</a>
+      <div class="toc-group">Troll</div>
+      <a class="toc-item" href="#troll_attack">Troll Attack</a>
+      <a class="toc-item" href="#troll_pickweapon">Troll PickWeapon</a>
+      <div class="toc-group">Werewolf</div>
+      <a class="toc-item" href="#wolf_attack">Wolf Attack</a>
+      <a class="toc-item" href="#wolf_howl">Wolf Howl</a>
+      <a class="toc-item" href="#wolf_surround">Wolf Surround</a>
+      <div class="toc-group">사운드</div>
+      <a class="toc-item" href="#sound_interval">PlaySoundInterval</a>
+      <a class="toc-item" href="#sound_once">PlaySoundOnce</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_STTask_AIMoveTo ==================== -->
+    <div class="class-card" id="moveto">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_STTask_AIMoveTo</div>
+        <div class="class-parent">부모: FStateTreeAIActionTaskBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'moveto','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'moveto','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'moveto','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'moveto','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="moveto" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">지정된 위치로 AI를 NavMesh 기반 이동시키는 범용 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO AI Move To</div></div>
+          <div class="info-item"><div class="info-label">인스턴스 데이터</div><div class="info-value">FAO_STTask_AIMoveTo_InstanceData</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버 (AIController 필요)</div></div>
+        </div>
+        <div class="desc-block">
+          TargetLocation과 AcceptanceRadius를 인스턴스 데이터로 받아 AIController::MoveToLocation()을 호출합니다.
+          EnterState에서 이동을 시작하고, Tick에서 PathFollowingComponent의 상태를 확인하여 도착 시 Succeeded를 반환합니다.
+          ExitState에서는 이동 중이었다면 StopMovement()로 정리합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> GetAIController()는 Context.GetOwner()가 Pawn인지 Controller인지 양쪽 모두 대응합니다. AIMovementBase와 동일한 패턴이지만 상속 관계가 아닌 독립 구현입니다. Tick에서 PathComp가 Idle이면 Succeeded를 반환하는데, 경로 계산 실패로 Idle이 되는 경우도 Succeeded로 처리되어 <strong>의도치 않은 성공 반환</strong> 가능성이 있습니다. TargetLocation.IsZero() 체크는 원점이 유효한 목표인 경우를 배제합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="moveto" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">TargetLocation</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>이동 목표 위치. ZeroVector이면 EnterState에서 Failed 반환. 원점이 유효한 목표인 경우 문제 가능</td></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 허용 반경 (기본값 100). MoveToLocation에 직접 전달됨</td></tr>
+          <tr><td><span class="var-name">bIsMoving</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>현재 이동 중 여부. ExitState에서 StopMovement 호출 판단에 사용. EnterState에서만 true로 설정됨</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="moveto" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>GetInstanceData &rarr; GetAIController (ensureMsgf 유효성) &rarr; TargetLocation.IsZero() 체크 &rarr; MoveToLocation(TargetLocation, AcceptanceRadius) &rarr; Failed이면 Failed, AlreadyAtGoal이면 Succeeded, 그 외 bIsMoving=true &rarr; Running</div><div class="fn-section"><div class="fn-section-title">심층</div>ensureMsgf는 개발 빌드에서만 assert하고 Shipping에서는 로그 없이 false 반환. AlreadyAtGoal 즉시 Succeeded는 StateTree 상태 전이를 EnterState 한 프레임에서 완료시킵니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>GetAIController &rarr; GetPathFollowingComponent (null 시 Failed) &rarr; GetStatus() == Idle이면 bIsMoving=false &rarr; Succeeded, 아니면 Running</div><div class="fn-section"><div class="fn-section-title">심층</div>PathComp가 Moving/Paused/Waiting 어느 상태든 Running을 반환합니다. Idle은 "이동 완료" 또는 "요청 없음" 모두 해당하므로, 외부에서 StopMovement()를 호출한 경우에도 Succeeded가 반환됩니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ExitState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>bIsMoving이 true면 AIController::StopMovement()를 호출하고 플래그를 false로 초기화합니다. StateTree가 강제 전이할 때 진행 중인 이동을 정리합니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">GetAIController()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Context.GetOwner() &rarr; Cast&lt;AActor&gt; &rarr; Pawn이면 GetController()로, 아니면 직접 Cast&lt;AAIController&gt;. AIMovementBase, AIRoam 등 여러 Task에 동일 패턴이 중복 구현되어 있습니다.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="moveto" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속</td><td><span class="rel-cls">FStateTreeAIActionTaskBase</span></td><td>UE5 StateTree AI 액션 Task 기반 클래스</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAIController</span></td><td>MoveToLocation, StopMovement 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UPathFollowingComponent</span></td><td>GetStatus()로 이동 완료 판정. Idle == 완료</td></tr>
+          <tr><td>패턴 중복</td><td><span class="rel-cls">FAO_STTask_AIMovementBase</span></td><td>GetAIController, 이동/상태체크 로직이 독립 중복 구현됨</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_STTask_AIMovementBase ==================== -->
+    <div class="class-card" id="movebase">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_STTask_AIMovementBase</div>
+        <div class="class-parent">부모: FStateTreeAIActionTaskBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'movebase','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'movebase','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'movebase','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'movebase','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="movebase" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">이동 관련 공통 헬퍼 함수를 제공하는 추상 기반 Task</div></div>
+          <div class="info-item"><div class="info-label">특징</div><div class="info-value">DisplayName 없음 (USTRUCT만, meta 없음 &mdash; 직접 사용 불가, 상속 전용)</div></div>
+          <div class="info-item"><div class="info-label">인스턴스 데이터</div><div class="info-value">FAO_STTask_AIMovementBase_InstanceData</div></div>
+          <div class="info-item"><div class="info-label">제공 헬퍼</div><div class="info-value">GetAIController, MoveToLocation, CheckMovementStatus, StopMovement</div></div>
+        </div>
+        <div class="desc-block">
+          EnterState/Tick/ExitState를 직접 구현하지 않고, 자식 Task에서 공통으로 사용할 이동 헬퍼 메서드만 제공합니다.
+          4가지 유틸리티를 protected로 노출합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> 현재 코드베이스에서 이 클래스를 상속하는 자식 Task가 <strong>없습니다</strong>. AIMoveTo, AIRoam, Chase, Search 등 모두 FStateTreeAIActionTaskBase를 직접 상속하며 GetAIController를 각자 독립 구현합니다. 이 클래스는 설계 의도대로 사용되지 않는 "죽은 코드"이거나, 리팩토링이 미완성된 상태입니다. GetInstanceDataType() override도 없어 StateTree 에디터에서 인스턴스 데이터를 바인딩할 수 없습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="movebase" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 허용 반경 (기본값 100)</td></tr>
+          <tr><td><span class="var-name">bIsMoving</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>현재 이동 중인지 여부</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="movebase" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">GetAIController()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Context Owner에서 AAIController*를 추출합니다. Pawn/Controller 양쪽 대응. AIMoveTo와 완전히 동일한 구현.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">MoveToLocation(Controller, Location, AcceptRadius)</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller null 체크 &rarr; Location.IsZero() 체크 (false 반환) &rarr; Controller::MoveToLocation() 호출 &rarr; Failed가 아니면 true. <strong>AlreadyAtGoal도 true로 반환</strong>되므로 호출자가 별도 처리해야 합니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CheckMovementStatus(Controller)</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>PathFollowingComponent::GetStatus()가 Idle이면 Succeeded, 아니면 Running. PathComp null이면 Failed.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">StopMovement(Controller)</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller가 유효하면 StopMovement()를 호출합니다. 단순 래퍼.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="movebase" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속</td><td><span class="rel-cls">FStateTreeAIActionTaskBase</span></td><td>UE5 StateTree AI 액션 Task 기반</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAIController</span></td><td>이동 명령 헬퍼로 감싸서 제공</td></tr>
+          <tr><td>미사용</td><td><span class="rel-cls">(자식 Task 없음)</span></td><td>현재 상속하는 클래스가 없어 실질적 죽은 코드</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_STTask_AIRoam ==================== -->
+    <div class="class-card" id="roam">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_STTask_AIRoam</div>
+        <div class="class-parent">부모: FStateTreeAIActionTaskBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'roam','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'roam','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'roam','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'roam','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="roam" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">NavMesh 내 랜덤 위치로 이동 &rarr; 대기 &rarr; 재이동을 반복하는 배회 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO AI Roam</div></div>
+          <div class="info-item"><div class="info-label">종별 분기</div><div class="info-value">Crab이면 주변 아이템 감지 시 Failed 반환, Stalker 분기는 주석 처리됨</div></div>
+          <div class="info-item"><div class="info-label">실행 패턴</div><div class="info-value">EnterState에서 이동 시작 &rarr; Tick에서 이동/대기 상태 전환 &rarr; Running 유지</div></div>
+        </div>
+        <div class="desc-block">
+          GetRandomReachablePointInRadius()로 NavMesh 내 유효 위치를 찾아 이동합니다.
+          목적지 도착 후 WaitTimeAtDestination만큼 대기한 뒤 새로운 배회 위치로 이동합니다.
+          Running을 계속 반환하여 StateTree가 다른 조건으로 전환할 때까지 배회를 유지합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> Crab 분기에서 FindNearbyItem(1500.f) 하드코딩이 있습니다 &mdash; CrabPickup의 SearchRadius(1500)와 일치하지만 연동 없이 매직 넘버입니다. Stalker 분기(else if)에는 주석만 있고 실제 로직이 없어, Stalker가 AIRoam을 사용하면 천장 전환 없이 바닥만 배회합니다 (Stalker_Roam이 별도로 존재하므로 정상). 대기 중 새 위치를 찾지 못해도(IsZero) 이동을 시작하지 않고 대기를 연장하여 무한 대기 가능성이 낮지만, StartMovingToLocation이 false를 반환하면 bIsWaiting이 false, bIsMoving도 false인 교착 상태에 빠집니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="roam" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">RoamRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>배회 반경 (기본값 1000)</td></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 허용 반경 (기본값 100)</td></tr>
+          <tr><td><span class="var-name">WaitTimeAtDestination</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>목적지 도착 후 대기 시간 (기본값 2초)</td></tr>
+          <tr><td><span class="var-name">bIsMoving / bIsWaiting</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>이동/대기 상태 플래그. 상호 배타적이어야 하지만 둘 다 false인 교착 상태 가능</td></tr>
+          <tr><td><span class="var-name">WaitTimer</span></td><td><span class="var-type">float</span></td><td>UPROPERTY</td><td>대기 시간 누적 타이머</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="roam" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>AIController 확인 (ensureMsgf) &rarr; FindRandomRoamLocation &rarr; IsZero 시 Failed &rarr; StartMovingToLocation &rarr; 실패 시 Failed &rarr; 플래그 초기화 (bIsMoving=true, bIsWaiting=false, WaitTimer=0) &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>1) Crab 분기: Cast&lt;AAO_Crab&gt; 성공 시 CarryComp::FindNearbyItem(1500) &rarr; 아이템 있으면 Failed (Pickup 전환). 2) 대기 중: WaitTimer += DeltaTime &rarr; WaitTimeAtDestination 도달 시 새 위치 찾아 이동 시작. 3) 이동 중: PathComp Idle이면 대기 전환. 4) 항상 Running.</div><div class="fn-section"><div class="fn-section-title">심층</div>대기 종료 후 StartMovingToLocation 실패 시 bIsWaiting=false지만 bIsMoving도 false여서 이동/대기 둘 다 아닌 상태가 됩니다. 이 경우 다음 Tick에서 아무 것도 하지 않고 Running만 반환하는 교착이 발생합니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">FindRandomRoamLocation()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>NavigationSystemV1::GetRandomReachablePointInRadius(Pawn위치, Radius)로 NavMesh 위치 반환. 실패 시 ZeroVector. NavSys가 null이면 (맵에 NavMesh 없으면) ZeroVector &rarr; EnterState Failed.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="roam" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Crab / UAO_ItemCarryComponent</span></td><td>Crab일 때 FindNearbyItem(1500.f) 하드코딩 아이템 감지</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UNavigationSystemV1</span></td><td>GetRandomReachablePointInRadius</td></tr>
+          <tr><td>포함</td><td><span class="rel-cls">AAO_Stalker (주석)</span></td><td>Cast&lt;AAO_Stalker&gt; 분기 존재하지만 로직 없음</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_STTask_Chase ==================== -->
+    <div class="class-card" id="chase">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_STTask_Chase</div>
+        <div class="class-parent">부모: FStateTreeAIActionTaskBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'chase','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'chase','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'chase','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'chase','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="chase" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">선공형 AI가 타겟 플레이어를 추격하는 범용 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO AI Chase</div></div>
+          <div class="info-item"><div class="info-label">완료 조건</div><div class="info-value">공격 범위 도달 시 Succeeded, 타겟 없음/기절 시 Failed</div></div>
+          <div class="info-item"><div class="info-label">경로 갱신</div><div class="info-value">PathUpdateInterval(0.3초)마다 FAIMoveRequest로 경로 재계산</div></div>
+        </div>
+        <div class="desc-block">
+          AggressiveAICtrl에서 ChaseTarget을 가져와 FAIMoveRequest로 추격합니다.
+          Tick마다 PathUpdateInterval 간격으로 경로를 갱신하고, 가장 가까운 플레이어로 타겟을 업데이트합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> StartChasing()은 GoalLocation 기반 FAIMoveRequest를 사용합니다 (GoalActor가 아님). 따라서 경로 갱신 시점 사이에 플레이어가 빠르게 이동하면 구 위치를 추격합니다. 0.3초 갱신 간격은 이를 완화하지만 MoveToActor 대비 정확도가 떨어집니다. UpdateChaseTargetToNearest()가 경로 갱신 후에 호출되므로, 새 타겟으로 전환되어도 다음 갱신 주기까지 구 타겟 방향으로 이동합니다. EnterState에서 StartChasing 실패 시에도 Running을 반환하여 이동 없이 Tick이 계속 실행됩니다. ExitState에서 Controller::StopMovement()가 AggressiveAICtrl의 멤버 함수로 호출됩니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="chase" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 허용 반경 (기본값 100). FAIMoveRequest에 전달</td></tr>
+          <tr><td><span class="var-name">PathUpdateInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>경로 재계산 간격 (기본값 0.3초)</td></tr>
+          <tr><td><span class="var-name">PathUpdateTimer</span></td><td><span class="var-type">float</span></td><td>UPROPERTY</td><td>누적 타이머. EnterState에서 0으로 초기화</td></tr>
+          <tr><td><span class="var-name">bIsMoving</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>이동 중 여부. ExitState 정리에 사용</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="chase" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>타이머/bIsMoving 초기화 &rarr; GetAggressiveController &rarr; GetChaseTarget &rarr; StartChasing() &rarr; 성공이면 bIsMoving=true &rarr; Running (StartChasing 실패해도 Running)</div><div class="fn-section"><div class="fn-section-title">심층</div>StartChasing 실패 시에도 Running을 반환하는데, Tick에서 공격 범위 체크나 타겟 갱신이 계속 진행되므로 다음 갱신 주기에 재시도됩니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>기절 체크 (Failed) &rarr; 타겟 유효성 (Failed) &rarr; IsTargetInAttackRange (Succeeded) &rarr; 타이머 += DeltaTime &rarr; Interval 도달 시 StartChasing 재호출 &rarr; UpdateChaseTargetToNearest() &rarr; Running</div><div class="fn-section"><div class="fn-section-title">심층</div>Stalker 관련 천장 전환 로직은 KSJ 주석에 의해 명시적으로 제거됨. Stalker의 천장 전환은 Roam에서만 수행되어야 한다는 설계 원칙.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">StartChasing()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>FAIMoveRequest 구성: GoalLocation=Target::GetActorLocation(), AcceptRadius, UsePathfinding=true. Controller::MoveTo() 호출. GoalActor가 아닌 GoalLocation 사용이므로 이동 중 타겟 추적이 자동으로 되지 않습니다.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="chase" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>ChaseTarget 조회, MoveTo, UpdateChaseTargetToNearest, StopMovement</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAIBase</span></td><td>IsStunned, IsTargetInAttackRange 상태 확인</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">Attack Tasks</span></td><td>공격 범위 도달 시 Succeeded &rarr; Attack 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_STTask_Search ==================== -->
+    <div class="class-card" id="search">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_STTask_Search</div>
+        <div class="class-parent">부모: FStateTreeAIActionTaskBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'search','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'search','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'search','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'search','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="search" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">마지막으로 플레이어를 본 위치 주변을 수색하는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO AI Search</div></div>
+          <div class="info-item"><div class="info-label">종료 조건</div><div class="info-value">플레이어 재발견 시 Succeeded, 수색 시간 만료 시 Failed (배회 전환)</div></div>
+          <div class="info-item"><div class="info-label">수색 시간</div><div class="info-value">FMath::RandRange(5.f, 10.f) &mdash; 5~10초 랜덤</div></div>
+        </div>
+        <div class="desc-block">
+          AggressiveAICtrl::GetLastKnownTargetLocation()을 수색 중심으로 사용합니다.
+          SearchRadius 내 랜덤 NavMesh 위치로 이동하며, 이동 완료 시 다음 수색 위치로 즉시 이동합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> SearchCenterLocation이 NearlyZero이면 현재 Pawn 위치를 사용하는 폴백이 있습니다. MoveToLocation은 FAIMoveRequest + UsePathfinding으로 구현됩니다. <strong>EnterState에서 첫 이동이 실패해도 Running을 반환</strong>하여, Tick에서 시간 감소와 다음 이동 시도가 계속 진행됩니다. Controller::EndSearch()가 시간 만료 시 호출되어 컨트롤러 상태를 정리합니다. ExitState에서 bIsMoving 기반 StopMovement가 있지만, Tick에서 이동 완료 후 새 이동을 시작할 때 bIsMoving을 갱신하지 않아 ExitState에서 StopMovement가 누락될 수 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="search" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">SearchRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>수색 반경 (기본값 500)</td></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 허용 반경 (기본값 100)</td></tr>
+          <tr><td><span class="var-name">SearchDuration</span></td><td><span class="var-type">float</span></td><td>UPROPERTY</td><td>수색 지속 시간 (기본값 7, EnterState에서 5~10 랜덤으로 덮어씀)</td></tr>
+          <tr><td><span class="var-name">RemainingSearchTime</span></td><td><span class="var-type">float</span></td><td>UPROPERTY</td><td>남은 수색 시간</td></tr>
+          <tr><td><span class="var-name">bIsMoving</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>이동 중 여부. Tick에서 갱신이 불완전</td></tr>
+          <tr><td><span class="var-name">SearchCenterLocation</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>수색 중심 (마지막 목격 지점 또는 현재 위치)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="search" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>수색 중심 = GetLastKnownTargetLocation (NearlyZero면 Pawn 위치 폴백) &rarr; RandRange(5,10) &rarr; FindRandomSearchLocation &rarr; MoveToLocation 성공 시 bIsMoving=true &rarr; Running (이동 실패해도 Running)</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>기절 체크 &rarr; HasPlayerInSight 시 Succeeded &rarr; 시간 감소 (DeltaTime) &rarr; 만료 시 EndSearch + Failed &rarr; GetMoveStatus != Moving이면 다음 수색 위치로 MoveToLocation &rarr; Running</div><div class="fn-section"><div class="fn-section-title">심층</div>MoveStatus 체크에서 Moving이 아닌 모든 상태(Idle, Paused, Waiting)에서 다음 이동을 시작합니다. 새 이동 시 bIsMoving을 갱신하지 않습니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">FindRandomSearchLocation()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Context.GetWorld()로 NavSystem 접근 &rarr; GetRandomReachablePointInRadius(Center, Radius) &rarr; 실패 시 ZeroVector</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="search" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>GetLastKnownTargetLocation, HasPlayerInSight, EndSearch, MoveTo</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Chase</span></td><td>Succeeded &rarr; 추격 전환</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_AIRoam</span></td><td>Failed(시간 만료) &rarr; 배회 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Bull Charge ==================== -->
+    <div class="class-card" id="bull_charge">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Bull_Charge</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'bull_charge','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull_charge','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull_charge','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull_charge','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="bull_charge" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Bull의 돌진 공격을 GAS Ability로 실행하고 완료를 대기하는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Bull Charge</div></div>
+          <div class="info-item"><div class="info-label">GAS 태그</div><div class="info-value">Ability.Action.Charge (RequestGameplayTag)</div></div>
+          <div class="info-item"><div class="info-label">이동 방식</div><div class="info-value">돌진 중 AddMovementInput(Z=0 정규화 방향) &mdash; NavMesh 비사용</div></div>
+        </div>
+        <div class="desc-block">
+          EnterState에서 BullController::GetNearestPlayerInSight()로 타겟을 잡고, SetFocus로 회전을 고정한 뒤
+          Charge Ability를 활성화합니다. Tick에서는 IsCharging()이 false가 될 때까지 AddMovementInput을 반복합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> 돌진 중 이동은 CharacterMovement::AddMovementInput으로 수행되며 NavMesh 경로를 사용하지 않습니다. MovementMode가 Walking일 때만 이동 입력이 적용되므로, 공중에 뜨면 돌진이 멈춥니다. SetFocus가 매 Tick 호출되어 SetFocus의 내부 RPC가 반복될 수 있습니다 (이미 같은 Focus면 엔진이 무시). <strong>ToPlayer.Normalize()는 길이가 0인 벡터에서 NaN을 생성할 수 있습니다</strong> (Bull과 플레이어가 같은 위치). ExitState에서 bIsCharging을 false로 설정하지 않아 InstanceData 재사용 시 문제가 될 수 있으나, StateTree가 새 인스턴스를 생성하므로 실제 영향은 없습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="bull_charge" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Controller</span></td><td><span class="var-type">TObjectPtr&lt;AAO_BullController&gt;</span></td><td>UPROPERTY</td><td>캐싱된 Bull 컨트롤러. TObjectPtr로 GC 안전</td></tr>
+          <tr><td><span class="var-name">bIsCharging</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>돌진 중 여부. Task 내부용 (Bull::IsCharging()과 별개)</td></tr>
+          <tr><td><span class="var-name">TargetPlayer</span></td><td><span class="var-type">TObjectPtr&lt;AAO_PlayerCharacter&gt;</span></td><td>UPROPERTY</td><td>돌진 대상. IsValid 체크 후 AddMovementInput 방향 계산에 사용</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="bull_charge" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>GetController &rarr; GetBull &rarr; GetNearestPlayerInSight &rarr; SetFocus(TargetPlayer) &rarr; ASC::TryActivateAbilitiesByTag("Ability.Action.Charge") &rarr; 성공 시 bIsCharging=true, Running / 실패 시 Failed</div><div class="fn-section"><div class="fn-section-title">심층</div>Ability 활성화 실패 시 빈 else 블록이 있어 디버그 로그가 누락됩니다. ASC가 null인 경우에도 빈 else.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller/Bull null 체크 &rarr; !IsCharging() &rarr; ClearFocus + Succeeded / TargetPlayer 유효 &rarr; SetFocus + ToPlayer 계산 (Z=0, Normalize) &rarr; MovementMode==Walking이면 AddMovementInput(ToPlayer, 1.0) / TargetPlayer 무효 &rarr; Failed</div><div class="fn-section"><div class="fn-section-title">심층</div>ToPlayer.Normalize()는 길이 0 벡터에서 NaN 위험. 이는 Bull과 플레이어가 정확히 같은 위치일 때 발생 가능합니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ExitState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller 유효 시 ClearFocus(EAIFocusPriority::Gameplay). Ability 취소나 StopMovement는 호출하지 않음 &mdash; Ability 자체가 종료를 관리.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="bull_charge" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_BullController</span></td><td>GetNearestPlayerInSight, SetFocus, GetBull</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Bull</span></td><td>IsCharging, GetAbilitySystemComponent, AddMovementInput, GetCharacterMovement</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>TryActivateAbilitiesByTag("Ability.Action.Charge")</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Crab Drop ==================== -->
+    <div class="class-card" id="crab_drop">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Crab_Drop</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'crab_drop','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_drop','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_drop','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_drop','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="crab_drop" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Crab이 들고 있는 아이템을 안전한 위치로 이동 후 드롭하는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Crab Drop Item</div></div>
+          <div class="info-item"><div class="info-label">위협 대응</div><div class="info-value">플레이어 근접/시야 감지 시 Failed &rarr; Flee 전환</div></div>
+          <div class="info-item"><div class="info-label">재계산 임계</div><div class="info-value">본체 800 이내 또는 목적지 1200 이내 위협 시 재계산</div></div>
+        </div>
+        <div class="desc-block">
+          아이템 미소지 시 즉시 Succeeded, 플레이어 위협 시 즉시 Failed(Flee 전환)를 반환합니다.
+          CalculateItemDropLocation()으로 안전한 드롭 위치를 계산하고, 이동 완료 시 CarryComp::DropItem()을 호출합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> ExitState에서 <strong>Succeeded 시에만 DropLocation을 ZeroVector로 초기화</strong>합니다. Failed(Flee 전환) 시에는 이전 드롭 위치를 유지하여, 재진입 시 CalculateItemDropLocation(PreviousDropLocation)으로 "이전에 실패한 위치를 제외"하는 영리한 패턴입니다. Tick에서 위협 재계산 시 새 위치가 여전히 위험하면(1200 이내) Failed를 반환하여 Flee로 전환합니다. EnterState에서 드롭 위치를 못 찾으면 현재 위치에 즉시 DropItem하고 Succeeded를 반환하는 폴백이 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_drop" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>드롭 위치 도착 허용 반경 (기본값 100)</td></tr>
+          <tr><td><span class="var-name">DropLocation</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>목표 드롭 위치. Succeeded 시만 초기화, Failed 시 유지하여 재진입 시 제외 위치로 활용</td></tr>
+          <tr><td><span class="var-name">bIsMovingToDropLocation</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>드롭 위치로 이동 중인지. ExitState에서 StopMovement 판단에 사용</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="crab_drop" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Crab null 체크 (ensureMsgf) &rarr; !IsCarryingItem &rarr; Succeeded / HasPlayerInSight &rarr; Failed / GetNearestThreatLocation &lt; 1000 &rarr; Failed / CalculateItemDropLocation(PreviousDropLocation) &rarr; IsZero면 현재위치 DropItem + Succeeded / MoveToLocation &rarr; Failed/AlreadyAtGoal 시 즉시 DropItem + Succeeded / 이동 시작 &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>!IsCarryingItem &rarr; Succeeded / HasPlayerInSight &rarr; Failed / 위협 거리 체크: 본체 800 이내 또는 목적지 1200 이내 &rarr; 새 위치 계산 &rarr; 새 위치도 위험하면 Failed / PathComp Idle &rarr; DropItem + Succeeded / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_drop" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Crab / AAO_CrabController</span></td><td>IsCarryingItem, CalculateItemDropLocation, HasPlayerInSight, GetNearestThreatLocation</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_ItemCarryComponent</span></td><td>DropItem() 호출</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Crab_Flee</span></td><td>Failed 시 Flee로 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Crab Flee ==================== -->
+    <div class="class-card" id="crab_flee">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Crab_Flee</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'crab_flee','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_flee','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_flee','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_flee','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="crab_flee" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Crab이 플레이어로부터 도주하는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Crab Flee</div></div>
+          <div class="info-item"><div class="info-label">종료 조건</div><div class="info-value">시야 내 플레이어 없음 + LastThreat 및 CurrentThreat 모두 SafeDistance 이상</div></div>
+          <div class="info-item"><div class="info-label">경로 갱신</div><div class="info-value">RecalculateInterval(1.5초)마다 CalculateFleeLocation 재호출</div></div>
+        </div>
+        <div class="desc-block">
+          SetFleeMode(true)로 Crab의 도주 상태를 활성화하고, CrabController::CalculateFleeLocation()으로 도주 위치를 계산합니다.
+          이중 안전 거리 체크: LastThreatLocation과 CurrentThreatLocation 모두 SafeDistance 이상이어야 종료합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> 도주 종료 판정에 <strong>이중 위협 체크</strong>가 있습니다. (1) LastThreatLocation 기준 SafeDistance 이상 + 시야 내 플레이어 없음, (2) CurrentThreatLocation도 SafeDistance 이상. 이는 플레이어가 이동한 경우를 고려한 안전 장치입니다. ExitState에서 SetFleeMode(false)와 StopMovement, 모든 인스턴스 데이터 초기화를 수행합니다. EnterState에서 위협 위치가 Zero일 때 GetNearestPlayerInSight()를 폴백으로 사용합니다. IsPlayerNearby() 헬퍼는 선언되어 있지만 Tick에서 직접 인라인 로직을 사용하므로 실제 호출되지 않습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_flee" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">RecalculateInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도주 위치 재계산 간격 (기본값 1.5초)</td></tr>
+          <tr><td><span class="var-name">SafeDistance</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>안전 거리 (기본값 1500). 이중 체크에 사용</td></tr>
+          <tr><td><span class="var-name">FleeLocation</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>현재 도주 목표 위치</td></tr>
+          <tr><td><span class="var-name">LastThreatLocation</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>마지막 위협 위치. 시야 내 플레이어가 있으면 실시간 갱신</td></tr>
+          <tr><td><span class="var-name">bIsFleeing</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>도주 중인지. ExitState 정리에 사용</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="crab_flee" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Crab (ensureMsgf) &rarr; Controller (ensureMsgf) &rarr; SetFleeMode(true) &rarr; GetNearestThreatLocation (Zero면 GetNearestPlayerInSight 폴백) &rarr; CalculateFleeLocation &rarr; MoveToLocation &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>위협 위치 갱신 (시야 내 플레이어 있으면) &rarr; 이중 SafeDistance 체크: LastThreat + CurrentThreat &rarr; 안전하면 SetFleeMode(false) + Succeeded / RecalculateTimer &rarr; Interval 도달 시 CalculateFleeLocation + MoveToLocation &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">IsPlayerNearby()</span><span class="fn-spec helper">Helper</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>HasPlayerInSight 또는 ThreatLocation과의 거리 체크. 선언은 있으나 Tick에서 직접 인라인 처리하므로 사실상 미사용.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_flee" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Crab</span></td><td>SetFleeMode(true/false)</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_CrabController</span></td><td>CalculateFleeLocation, HasPlayerInSight, GetNearestThreatLocation, GetNearestPlayerInSight</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Crab Pickup ==================== -->
+    <div class="class-card" id="crab_pickup">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Crab_Pickup</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'crab_pickup','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_pickup','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_pickup','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab_pickup','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="crab_pickup" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Crab이 주변 아이템을 탐색하여 이동 후 줍는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Crab Pickup Item</div></div>
+          <div class="info-item"><div class="info-label">탐색</div><div class="info-value">SearchRadius(1500) 내 CarryComp::FindNearbyItem</div></div>
+          <div class="info-item"><div class="info-label">이동 방식</div><div class="info-value">CrabController::MoveToActor(TargetItem, PickupDistance)</div></div>
+        </div>
+        <div class="desc-block">
+          이미 아이템을 들고 있으면 즉시 Succeeded. MoveToActor로 아이템 추적 이동하여
+          PathComp Idle 시 TryPickupItem()으로 줍기를 시도합니다. TWeakObjectPtr로 아이템 GC 안전성을 보장합니다.
+        </div>
+        <div class="deep-note">
+          <strong>심층 분석:</strong> MoveToActor를 사용하므로 아이템이 이동해도(물리 시뮬레이션) 추적됩니다. AlreadyAtGoal 시 즉시 TryPickupItem을 시도하는 빠른 경로가 있습니다. Tick에서 아이템이 이미 들려있으면(다른 Crab이 먼저 줍거나 플레이어가 주음) Failed가 아닌 TargetItem.IsValid() false로 Failed를 반환합니다. ExitState에서 TargetItem.Reset()으로 약한 참조를 정리합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_pickup" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">SearchRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>아이템 탐색 반경 (기본값 1500). AIRoam의 하드코딩 1500과 동일</td></tr>
+          <tr><td><span class="var-name">PickupDistance</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>줍기 거리 (기본값 150). MoveToActor의 AcceptanceRadius</td></tr>
+          <tr><td><span class="var-name">TargetItem</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_MasterItem&gt;</span></td><td>UPROPERTY</td><td>현재 타겟 아이템 (약한 참조). GC 시 자동 무효화</td></tr>
+          <tr><td><span class="var-name">bIsMovingToItem</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>이동 중 여부. ExitState StopMovement에 사용</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="crab_pickup" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Crab (ensureMsgf) &rarr; IsCarryingItem &rarr; Succeeded / FindNearbyItem &rarr; 없으면 Failed / MoveToActor(TargetItem, PickupDistance) &rarr; AlreadyAtGoal: 즉시 TryPickupItem / Failed: Reset + Failed / Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div>
+            <div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>TargetItem.IsValid() 체크 &rarr; IsCarryingItem 체크 &rarr; PathComp Idle: TryPickupItem 성공 시 Succeeded, 실패 시 Failed &rarr; Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab_pickup" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Crab / UAO_ItemCarryComponent</span></td><td>FindNearbyItem, TryPickupItem, IsCarryingItem</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_CrabController</span></td><td>MoveToActor (Actor 추적 이동)</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Crab_Drop</span></td><td>줍기 성공 후 Drop 상태로 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Remaining cards follow the same deep-analysis pattern -->
+    <!-- ==================== Insect Drag ==================== -->
+    <div class="class-card" id="insect_drag">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Insect_Drag</div><div class="class-parent">부모: FStateTreeTaskCommonBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'insect_drag','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'insect_drag','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'insect_drag','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'insect_drag','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="insect_drag" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Insect가 납치한 플레이어를 SafeLocation까지 끌고 이동하는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Insect Drag Move</div></div>
+          <div class="info-item"><div class="info-label">입력</div><div class="info-value">SafeLocation (Evaluator에서 주입)</div></div>
+          <div class="info-item"><div class="info-label">완료 시</div><div class="info-value">KidnapComponent::ReleaseKidnap(true) 호출</div></div>
+        </div>
+        <div class="desc-block">FAIMoveRequest(GoalLocation=SafeLocation, CanStrafe=false)로 NavMesh 이동. 도착 시 ReleaseKidnap(true). ExitState에서 ClearFocus + StopMovement.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> FStateTreeTaskCommonBase를 상속하여 FStateTreeAIActionTaskBase가 아닙니다. Context.GetOwner()를 직접 AAIController로 Cast합니다 (Pawn Owner 미대응). EnterState에서 MoveResult.Code가 RequestSuccessful이 아니면 즉시 Failed &mdash; AlreadyAtGoal도 Failed로 처리되는 <strong>잠재적 버그</strong>입니다. Tick에서 MoveStatus가 Idle이면 도착으로 판정하고, Moving/Waiting이면 Running, 그 외(Paused 등)면 Failed. 도착 후 ReleaseKidnap(true)의 true 파라미터는 "안전 해제"를 의미합니다.</div>
+      </div>
+      <div class="tab-panel" data-class="insect_drag" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">SafeLocation</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>목표 지점 (Evaluator 주입). Category "Input"</td></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>도착 판정 거리 (기본값 100). Category "Parameter"</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="insect_drag" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Cast&lt;AAIController&gt;(Context.GetOwner()) &rarr; Cast&lt;AAO_Insect&gt;(AIC::GetPawn()) &rarr; !IsKidnapping &rarr; Failed / FAIMoveRequest(SafeLocation, AcceptanceRadius, CanStrafe=false) &rarr; RequestSuccessful이 아니면 Failed &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Insect/Kidnapping 확인 &rarr; GetCurrentVictim 유효 &rarr; MoveStatus: Idle=ReleaseKidnap(true)+Succeeded, Moving/Waiting=Running, 그 외=Failed</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ExitState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>ClearFocus(Gameplay) + StopMovement. 납치 해제는 Tick에서 처리하므로 ExitState에서는 이동만 정리.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="insect_drag" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Insect</span></td><td>IsKidnapping 상태 확인</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_KidnapComponent</span></td><td>GetCurrentVictim, ReleaseKidnap(true)</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Insect_Kidnap</span></td><td>Kidnap Succeeded 후 Drag 실행</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Insect Kidnap ==================== -->
+    <div class="class-card" id="insect_kidnap">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Insect_Kidnap</div><div class="class-parent">부모: FStateTreeTaskCommonBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'insect_kidnap','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'insect_kidnap','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'insect_kidnap','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'insect_kidnap','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="insect_kidnap" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">GAS Ability로 납치를 실행하고, 성공 확인 후 Succeeded를 반환</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Insect Kidnap Task</div></div>
+          <div class="info-item"><div class="info-label">GAS 태그</div><div class="info-value">Ability.Action.Kidnap (기본) 또는 커스텀. Status./Debuff. 폴백</div></div>
+          <div class="info-item"><div class="info-label">특이 사항</div><div class="info-value">KidnapAbilityTag는 Task 구조체 멤버 (인스턴스 데이터가 아님)</div></div>
+        </div>
+        <div class="desc-block">태그 검증 로직이 EnterState와 Tick에서 중복 구현됩니다. Status./Debuff. 접두사 태그는 Ability 태그가 아니므로 기본 태그로 폴백합니다.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> KidnapAbilityTag가 UPROPERTY(EditDefaultsOnly)로 <strong>Task 구조체의 멤버</strong>이므로, 인스턴스별이 아닌 에셋 전체에서 공유됩니다. 태그 검증/폴백 로직이 EnterState와 Tick에 <strong>완전히 동일하게 중복</strong>되어 있어 유지보수 부담이 있습니다. GetActivatableGameplayAbilitySpecsByAllMatchingTags로 Ability 존재를 먼저 확인한 뒤 TryActivateAbilitiesByTag를 호출하는 방어적 패턴입니다. Tick에서 Ability가 끝났는데 IsKidnapping이 아니면 Failed &mdash; 이는 Ability가 타겟을 찾지 못하거나 막혔을 때를 처리합니다. TargetActor는 인스턴스 데이터에 있지만 cpp에서 직접 참조하지 않습니다 (Ability가 내부적으로 Context에서 타겟을 가져옴).</div>
+      </div>
+      <div class="tab-panel" data-class="insect_kidnap" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">TargetActor</span></td><td><span class="var-type">TObjectPtr&lt;AActor&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>납치 대상. Context에서 주입되지만 cpp에서 직접 사용하지 않음</td></tr>
+          <tr><td><span class="var-name">KidnapAbilityTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>Task 구조체 멤버 (인스턴스별 아님). Status/Debuff 태그 입력 시 기본값으로 폴백</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="insect_kidnap" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Insect 조회 (Owner 또는 AIC::GetPawn) &rarr; IsKidnapping이면 즉시 Succeeded &rarr; ASC 확인 &rarr; 태그 결정 (Status/Debuff 폴백) &rarr; GetActivatableAbilities 존재 확인 &rarr; TryActivateAbilitiesByTag &rarr; Running 또는 Failed</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Insect 조회 &rarr; IsKidnapping &rarr; Succeeded / 태그 중복 결정 &rarr; Spec::IsActive() 순회 &rarr; 활성 Ability 없으면 Failed / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="insect_kidnap" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Insect</span></td><td>IsKidnapping, GetAbilitySystemComponent</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>태그 기반 Ability 활성화/상태 조회</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Insect_Drag</span></td><td>Succeeded 후 Drag Task 실행</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== LavaMonster Attack ==================== -->
+    <div class="class-card" id="lava_attack">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_LavaMonster_Attack</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'lava_attack','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'lava_attack','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'lava_attack','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'lava_attack','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="lava_attack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">LavaMonster의 사거리 기반 공격 타입 선택 및 실행</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO LavaMonster Attack</div></div>
+          <div class="info-item"><div class="info-label">공격 선택</div><div class="info-value">SelectAttackTypeByRange() &rarr; ELavaMonsterAttackType enum</div></div>
+          <div class="info-item"><div class="info-label">완료 조건</div><div class="info-value">IsAttacking() false 시 Succeeded, 기절 시 Failed</div></div>
+        </div>
+        <div class="desc-block">Controller::CanAttack() &rarr; SelectAttackTypeByRange() &rarr; ExecuteAttack(). Troll Attack과 거의 동일한 구조.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> GetLavaMonster()는 Controller를 거쳐 간접 접근합니다 (GetLavaMonsterController &rarr; GetLavaMonster). ExitState에서 bIsAttacking/bWaitingForAttackEnd를 false로 초기화하지만 공격 자체를 취소하지는 않습니다 &mdash; 진행 중인 Ability/Montage는 자체 종료됩니다. bWaitingForAttackEnd가 false인 채로 Running이 계속될 가능성은 없습니다 (EnterState에서 반드시 true로 설정).</div>
+      </div>
+      <div class="tab-panel" data-class="lava_attack" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">bIsAttacking</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>공격 중 플래그</td></tr>
+          <tr><td><span class="var-name">bWaitingForAttackEnd</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>공격 완료 대기 플래그. Tick 분기 조건</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="lava_attack" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>플래그 초기화 &rarr; Controller/LavaMonster 확인 &rarr; CanAttack() &rarr; SelectAttackTypeByRange() &rarr; ExecuteAttack(AttackType) &rarr; 플래그 true &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>LavaMonster 확인 &rarr; IsStunned &rarr; Failed / bWaitingForAttackEnd && !IsAttacking &rarr; Succeeded / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="lava_attack" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_LavaMonsterCtrl</span></td><td>CanAttack, GetLavaMonster</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_LavaMonster</span></td><td>SelectAttackTypeByRange (ELavaMonsterAttackType), ExecuteAttack, IsAttacking, IsStunned</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Stalk Ambush ==================== -->
+    <div class="class-card" id="stalk_ambush">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Stalk_Ambush</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'stalk_ambush','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'stalk_ambush','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'stalk_ambush','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'stalk_ambush','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="stalk_ambush" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker 접근 완료 후 GAS Ability로 기습 공격 실행</div></div>
+          <div class="info-item"><div class="info-label">GAS 태그</div><div class="info-value">Ability.Action.Ambush</div></div>
+          <div class="info-item"><div class="info-label">완료 조건</div><div class="info-value">!IsAttacking() &rarr; Succeeded, IsStunned &rarr; Failed</div></div>
+          <div class="info-item"><div class="info-label">ExitState</div><div class="info-value">없음 (Tick에서 완료 처리)</div></div>
+        </div>
+        <div class="desc-block">LavaMonster/Troll Attack와 동일한 "GAS Ability 실행 &rarr; 완료 대기" 패턴. ExitState가 없어 StateTree 강제 전이 시 Ability가 자체 종료에 의존합니다.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> Controller 캐싱에서 Pawn/Controller 양쪽 Owner를 대응하는 패턴이 Approach, Ceiling과 동일합니다. <strong>ExitState override가 없습니다</strong> &mdash; StateTree가 기절 등으로 강제 전이하면 Ability가 계속 실행될 수 있습니다. Troll/LavaMonster Attack는 ExitState에서 플래그를 초기화하는 반면 이 Task는 하지 않습니다.</div>
+      </div>
+      <div class="tab-panel" data-class="stalk_ambush" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Controller</span></td><td><span class="var-type">TObjectPtr&lt;AAO_StalkerController&gt;</span></td><td>UPROPERTY</td><td>캐싱된 컨트롤러</td></tr>
+          <tr><td><span class="var-name">bIsAttacking / bWaitingForAttackEnd</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>공격/대기 플래그</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="stalk_ambush" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller 캐싱 &rarr; GetStalker &rarr; IsStunned &rarr; Failed / ASC::TryActivateAbilitiesByTag("Ability.Action.Ambush") &rarr; 플래그 true &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller/Stalker 확인 &rarr; IsStunned &rarr; Failed / bWaitingForAttackEnd && !IsAttacking &rarr; Succeeded / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalk_ambush" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_StalkerController / AAO_Stalker</span></td><td>GetStalker, IsStunned, IsAttacking, ASC</td></tr>
+          <tr><td>전환원</td><td><span class="rel-cls">FAO_STTask_Stalk_Approach</span></td><td>Approach Succeeded &rarr; Ambush 진입</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Stalk Approach ==================== -->
+    <div class="class-card" id="stalk_approach">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Stalk_Approach</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'stalk_approach','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'stalk_approach','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'stalk_approach','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'stalk_approach','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="stalk_approach" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker가 플레이어가 안 보고 있을 때 접근</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Stalker Approach</div></div>
+          <div class="info-item"><div class="info-label">시선 체크</div><div class="info-value">LookCheckInterval(0.2초)마다 IsPlayerLookingAtMe(Target, 45도)</div></div>
+          <div class="info-item"><div class="info-label">이동</div><div class="info-value">MoveToActor(Target, AttackRange * 0.5f) &mdash; Actor 추적</div></div>
+        </div>
+        <div class="desc-block">시선 감지 시 즉시 Failed(Hide 전환). 공격 거리 도달 시 Succeeded(Ambush 전환). 이동 완료 후 공격 거리가 아니면 재이동.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> MoveToActor를 사용하므로 플레이어가 이동해도 자동 추적됩니다. AttackRange * 0.5f로 AcceptanceRadius를 설정하여 확실히 공격 범위 안으로 들어갑니다. 이동 완료(Idle) 후에도 거리가 AttackRange 이상이면 재이동을 시도하여 "멍하니 서있는" 문제를 방지합니다. LookCheckInterval 0.2초는 시선 체크 빈도와 성능 사이의 균형점입니다.</div>
+      </div>
+      <div class="tab-panel" data-class="stalk_approach" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">LookCheckInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>시선 체크 간격 (기본값 0.2초)</td></tr>
+          <tr><td><span class="var-name">AttackRange</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>공격 거리 (기본값 200)</td></tr>
+          <tr><td><span class="var-name">LookToleranceDegrees</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>시선 허용 각도 (기본값 45도)</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="stalk_approach" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller 캐싱 &rarr; GetChaseTarget &rarr; IsPlayerLookingAtMe &rarr; Failed / MoveToActor(Target, AttackRange*0.5) &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>LookCheckTimer &rarr; Interval 도달 시 IsPlayerLookingAtMe &rarr; Failed / Dist &le; AttackRange &rarr; Succeeded / Idle && bIsMoving &rarr; 재이동 MoveToActor / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalk_approach" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_StalkerController</span></td><td>IsPlayerLookingAtMe, GetChaseTarget, MoveToActor, GetMoveStatus</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Stalk_Ambush</span></td><td>Succeeded &rarr; Attack</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Stalk_Hide</span></td><td>Failed &rarr; Hide</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Stalk Ceiling ==================== -->
+    <div class="class-card" id="stalk_ceiling">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Stalk_Ceiling</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'stalk_ceiling','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'stalk_ceiling','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'stalk_ceiling','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'stalk_ceiling','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="stalk_ceiling" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker 천장/바닥 모드 전환 1회성 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Stalker Ceiling Mode</div></div>
+          <div class="info-item"><div class="info-label">실행 패턴</div><div class="info-value">EnterState에서 SetCeilingMode 후 즉시 Succeeded</div></div>
+          <div class="info-item"><div class="info-label">ExitState</div><div class="info-value">의도적으로 모드 해제 안 함 (토글 경쟁 방지)</div></div>
+        </div>
+        <div class="desc-block">bEnableCeiling에 따라 SetCeilingMode를 호출하고 즉시 Succeeded. ExitState에서 해제하지 않는 이유가 KSJ 주석으로 명시되어 있습니다.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> ExitState 코드에 KSJ 주석: "ExitState에서 무조건 끄면 Enter/Exit가 토글 경쟁을 일으켜 천장 모드가 깜빡이거나 의도치 않게 해제된다." 이 설계 결정은 StateTree 상태 전이의 Enter/Exit 호출 순서를 고려한 것입니다. 내려오는 동작은 bEnableCeiling=false로 설정된 별도 StateTree 상태에서 수행합니다. Stalker_Roam은 이 Task를 사용하지 않고 PlayCeilingTransitionMontage를 직접 호출합니다.</div>
+      </div>
+      <div class="tab-panel" data-class="stalk_ceiling" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Stalker</span></td><td><span class="var-type">TObjectPtr&lt;AAO_Stalker&gt;</span></td><td>UPROPERTY</td><td>캐싱된 Stalker</td></tr>
+          <tr><td><span class="var-name">bEnableCeiling</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>천장 모드 활성화 여부 (기본값 true)</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="stalk_ceiling" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Owner &rarr; Pawn이면 Cast&lt;AAO_Stalker&gt;, Controller면 GetPawn Cast &rarr; SetCeilingMode(bEnableCeiling) &rarr; 즉시 Succeeded / Stalker null이면 Failed</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalk_ceiling" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Stalker</span></td><td>SetCeilingMode(bool)</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Stalker_Roam</span></td><td>Roam은 PlayCeilingTransitionMontage를 직접 호출 (이 Task 미사용)</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Stalk Hide ==================== -->
+    <div class="class-card" id="stalk_hide">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Stalk_Hide</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'stalk_hide','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'stalk_hide','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'stalk_hide','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'stalk_hide','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="stalk_hide" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker가 다중 플레이어 시야를 고려하여 엄폐물 뒤에 숨는 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Stalker Hide</div></div>
+          <div class="info-item"><div class="info-label">엄폐 방법</div><div class="info-value">EQS 비동기 쿼리 / FindHideLocationFromMultiple 동기 / FindRetreatLocation</div></div>
+          <div class="info-item"><div class="info-label">뒷걸음질</div><div class="info-value">bOrientRotationToMovement=false, Hysteresis LookingPlayer 향해 회전</div></div>
+        </div>
+        <div class="desc-block">EnterState에서 천장 모드 해제 &rarr; 뒷걸음질 설정 &rarr; 후퇴/EQS/동기 3분기로 엄폐 위치 결정. Tick에서 EQS 결과 소비, 뒷걸음질 회전, 플레이어 접근 재계산.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> 가장 복잡한 Task입니다. KSJ 주석에 "StateTree Task의 InstanceData를 비동기 콜백에서 참조 캡처하면 크래시/오동작 위험"이라고 명시되어 있습니다. EQS 결과는 Controller에 저장하고 Task가 Tick에서 ConsumePendingHideLocation으로 가져옵니다. EQS 타임아웃(1초) 시 동기 FindHideLocation으로 폴백합니다. GetAllLookingPlayers()를 사용하여 다중 플레이어 시야를 고려합니다. 뒷걸음질에서 bOrientRotationToMovement=false로 설정하고 ExitState에서 true로 복원합니다. Hysteresis 기반 LookingPlayer 업데이트가 매 Tick 실행됩니다. 후퇴 완료 시 SetRetreatMode(false) 호출.</div>
+      </div>
+      <div class="tab-panel" data-class="stalk_hide" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">HideQuery</span></td><td><span class="var-type">TObjectPtr&lt;UEnvQuery&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>EQS 쿼리 (null이면 동기 계산 사용)</td></tr>
+          <tr><td><span class="var-name">bEnableBackpedal</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>뒷걸음질 모드 (기본값 true)</td></tr>
+          <tr><td><span class="var-name">BackpedalRotationSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>회전 속도 (기본값 360도/초). RInterpTo에서 /90.f로 변환</td></tr>
+          <tr><td><span class="var-name">EQSWaitTimeout</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>EQS 타임아웃 (기본값 1초)</td></tr>
+          <tr><td><span class="var-name">LookingPlayer</span></td><td><span class="var-type">TWeakObjectPtr&lt;AActor&gt;</span></td><td>UPROPERTY</td><td>Hysteresis 적용 LookingPlayer</td></tr>
+          <tr><td><span class="var-name">bAwaitingEQSResult</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>EQS 결과 대기 플래그</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="stalk_hide" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller 캐싱 (GetInstigatorController 사용 &mdash; 다른 Task와 다른 패턴) &rarr; 천장 모드 해제 (PlayCeilingTransitionMontage) &rarr; Hysteresis LookingPlayer &rarr; bOrientRotationToMovement=false &rarr; 후퇴모드: FindRetreatLocation / EQS: RequestHideLocationEQS + bAwaitingEQSResult / 동기: GetAllLookingPlayers &rarr; FindHideLocationFromMultiple &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>EQS 결과 소비 (ConsumePendingHideLocation / 타임아웃 폴백) &rarr; 뒷걸음질 회전 (RInterpTo) &rarr; Hysteresis 업데이트 &rarr; 0.5초마다 다중 플레이어 접근 체크 &rarr; 최소 500 이내 재위치 &rarr; Idle 시 Succeeded (후퇴모드면 SetRetreatMode(false))</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ExitState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>StopMovement + bOrientRotationToMovement=true 복원 + bUseControllerRotationYaw=false</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalk_hide" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_StalkerController</span></td><td>FindHideLocation, FindHideLocationFromMultiple, FindRetreatLocation, RequestHideLocationEQS, ConsumePendingHideLocation, GetAllLookingPlayers, UpdateLookingPlayerWithHysteresis</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_CeilingMoveComponent</span></td><td>IsInCeilingMode 체크 &rarr; 천장 해제</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Stalk_Approach</span></td><td>Failed &rarr; Hide 진입</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Stalker Roam ==================== -->
+    <div class="class-card" id="stalker_roam">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Stalker_Roam</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'stalker_roam','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'stalker_roam','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'stalker_roam','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'stalker_roam','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="stalker_roam" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker 전용 배회 + 천장/바닥 확률적 전환</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Stalker Roam</div></div>
+          <div class="info-item"><div class="info-label">천장 전환</div><div class="info-value">CeilingMoveChance(50%) + CheckCeilingAvailability + PlayCeilingTransitionMontage</div></div>
+          <div class="info-item"><div class="info-label">안전 장치</div><div class="info-value">천장 없는데 천장 모드면 바닥 복귀 몽타주</div></div>
+        </div>
+        <div class="desc-block">AIRoam 기본 패턴(이동 &rarr; 대기 &rarr; 재이동)에 천장 전환 로직을 추가. PlayCeilingTransitionMontage + bWaitingForTransition 패턴.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> EnterState와 대기 종료 시 두 곳에서 천장 전환이 판정됩니다. 전환 몽타주 재생 중에는 bWaitingForTransition=true로 이동을 중지하고, Tick에서 IsTransitioningCeiling() false가 되면 PendingRoamLocation으로 이동을 시작합니다. ExitState에서 <strong>천장 모드를 해제하지 않습니다</strong> &mdash; KSJ 주석: "다음 State(Approach, Hide)의 EnterState에서 필요시 해제". 이는 Stalk_Ceiling의 설계 원칙과 일관됩니다. 천장 안전 장치: 매 Tick에서 CheckCeilingAvailability가 false면 바닥 복귀 몽타주를 재생합니다.</div>
+      </div>
+      <div class="tab-panel" data-class="stalker_roam" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">RoamRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>배회 반경 (기본값 1500, AIRoam의 1000보다 넓음)</td></tr>
+          <tr><td><span class="var-name">CeilingMoveChance</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>천장 전환 확률 (기본값 0.5, ClampMin=0 ClampMax=1)</td></tr>
+          <tr><td><span class="var-name">Stalker / CeilingComp</span></td><td><span class="var-type">TObjectPtr</span></td><td>UPROPERTY</td><td>캐싱된 Stalker 및 CeilingMoveComponent</td></tr>
+          <tr><td><span class="var-name">bWaitingForTransition</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>전환 몽타주 대기 플래그. true면 이동 정지</td></tr>
+          <tr><td><span class="var-name">PendingRoamLocation</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>전환 완료 후 이동할 목적지</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="stalker_roam" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Stalker/CeilingComp 캐싱 &rarr; FindRandomRoamLocation &rarr; 천장 전환 판정 (Chance + Availability) &rarr; PlayCeilingTransitionMontage &rarr; bWaitingForTransition이면 이동 보류 / 아니면 즉시 StartMovingToLocation &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>1) 전환 대기 완료: !IsTransitioningCeiling &rarr; StartMovingToLocation. 2) 천장 안전 장치: IsInCeilingMode && !CheckCeilingAvailability &rarr; 바닥 복귀 몽타주. 3) 대기 중: WaitTimer &rarr; 천장 전환 재판정 &rarr; bWaitingForTransition 또는 StartMovingToLocation. 4) 이동 중: Idle 시 대기 전환 &rarr; Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalker_roam" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Stalker</span></td><td>PlayCeilingTransitionMontage, IsTransitioningCeiling</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_CeilingMoveComponent</span></td><td>IsInCeilingMode, CheckCeilingAvailability</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Troll Attack ==================== -->
+    <div class="class-card" id="troll_attack">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Troll_Attack</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'troll_attack','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'troll_attack','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'troll_attack','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'troll_attack','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="troll_attack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Troll 랜덤 공격 타입 선택 및 실행</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Troll Attack</div></div>
+          <div class="info-item"><div class="info-label">공격 선택</div><div class="info-value">SelectRandomAttackType() &rarr; ETrollAttackType</div></div>
+          <div class="info-item"><div class="info-label">구조</div><div class="info-value">LavaMonster Attack과 거의 동일 (사거리 기반 vs 랜덤)</div></div>
+        </div>
+        <div class="desc-block">LavaMonster Attack과 동일 패턴. 차이는 SelectRandomAttackType vs SelectAttackTypeByRange.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> GetTroll()이 Controller를 거쳐 간접 접근하는 패턴이 LavaMonster와 동일합니다. ExitState에서 플래그만 초기화하고 공격 취소는 하지 않습니다.</div>
+      </div>
+      <div class="tab-panel" data-class="troll_attack" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">bIsAttacking / bWaitingForAttackEnd</span></td><td><span class="var-type">bool</span></td><td>UPROPERTY</td><td>공격/대기 플래그</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="troll_attack" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Controller/Troll 확인 &rarr; CanAttack &rarr; SelectRandomAttackType &rarr; ExecuteAttack &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>IsStunned &rarr; Failed / !IsAttacking &rarr; Succeeded / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="troll_attack" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_TrollController / AAO_Troll</span></td><td>CanAttack, SelectRandomAttackType (ETrollAttackType), ExecuteAttack, IsAttacking, IsStunned</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Troll PickWeapon ==================== -->
+    <div class="class-card" id="troll_pickweapon">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Troll_PickWeapon</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'troll_pickweapon','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'troll_pickweapon','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'troll_pickweapon','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'troll_pickweapon','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="troll_pickweapon" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Troll이 주변 무기를 탐색, 이동, 몽타주 재생 후 줍기</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO Troll Pick Weapon</div></div>
+          <div class="info-item"><div class="info-label">줍기 거리</div><div class="info-value">2D 거리(XY) 기반 PickupRadius(300) 체크</div></div>
+          <div class="info-item"><div class="info-label">탐색 순서</div><div class="info-value">FindNearestWeaponInRadius &rarr; FindNearestWeaponInSight 폴백</div></div>
+        </div>
+        <div class="desc-block">FAIMoveRequest(GoalActor=Weapon, AllowPartialPath=true)로 물리 시뮬레이션 무기를 추적합니다. PickupMontage가 있으면 재생 완료 후 PickupWeapon 호출.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> 2D 거리(DistSquaredXY)를 사용하여 높이 차이를 무시합니다 &mdash; 무기가 다른 층에 있어도 줍기를 시도할 수 있는 잠재적 문제입니다. IsPickedUp()으로 다른 Troll의 선점을 체크합니다. ExitState에서 SetPickingUpWeapon(false), 몽타주 정지(Montage_Stop 0.2초 블렌드), StopMovement, TargetWeapon.Reset()으로 완전 정리합니다. 기절 시에도 SetPickingUpWeapon(false)를 호출하여 상태를 정리합니다. MoveToWeapon은 GoalActor를 사용하므로 무기가 물리로 움직여도 추적됩니다.</div>
+      </div>
+      <div class="tab-panel" data-class="troll_pickweapon" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">AcceptanceRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>이동 도착 반경 (기본값 50)</td></tr>
+          <tr><td><span class="var-name">PickupRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>줍기 거리 (기본값 300, 2D 기반)</td></tr>
+          <tr><td><span class="var-name">SearchRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>무기 탐색 반경 (기본값 5000)</td></tr>
+          <tr><td><span class="var-name">PickupMontage</span></td><td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>줍기 몽타주 (null이면 즉시 줍기)</td></tr>
+          <tr><td><span class="var-name">TargetWeapon</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_TrollWeapon&gt;</span></td><td>UPROPERTY</td><td>목표 무기 (약한 참조)</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="troll_pickweapon" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>HasWeapon &rarr; Succeeded / FindNearestWeaponInRadius(5000) &rarr; null이면 FindNearestWeaponInSight 폴백 &rarr; SetPickingUpWeapon(true) &rarr; MoveToWeapon(GoalActor, AllowPartialPath) &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>기절/HasWeapon/TargetWeapon.IsValid/IsPickedUp 체크 &rarr; 몽타주 재생 중: !IsAnyMontagePlaying 시 PickupWeapon &rarr; DistSquaredXY &le; PickupRadius^2: 몽타주 있으면 Play, 없으면 즉시 PickupWeapon / Idle 시 재이동 &rarr; Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="troll_pickweapon" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Troll / UAO_WeaponHolderComp</span></td><td>HasWeapon, FindNearestWeaponInRadius/InSight, PickupWeapon, SetPickingUpWeapon</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_TrollWeapon</span></td><td>IsPickedUp, 위치 추적 (GoalActor)</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Wolf Attack ==================== -->
+    <div class="class-card" id="wolf_attack">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Wolf_Attack</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'wolf_attack','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'wolf_attack','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'wolf_attack','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'wolf_attack','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="wolf_attack" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf의 추격 + 근접 공격을 한 Task에서 처리</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">Werewolf: Attack</div></div>
+          <div class="info-item"><div class="info-label">GAS 태그</div><div class="info-value">Ability.Combat.Attack (매 Tick 시도)</div></div>
+          <div class="info-item"><div class="info-label">종료</div><div class="info-value">자체 종료 없음 &mdash; Running만 반환, StateTree 상위 조건으로만 종료</div></div>
+        </div>
+        <div class="desc-block">EnterState에서 Controller만 캐싱. Tick에서 공격 범위 판정 + GAS Ability 활성화 또는 MoveToActor 추격. 항상 Running.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> <strong>ExitState override가 없습니다.</strong> 이동 중이던 추격을 정리하지 않으므로, StateTree가 다른 상태로 전이해도 이동이 계속될 수 있습니다. AcceptanceRadius를 AttackRange * 0.5f로 설정하는데, KSJ 주석에 "기존 0.8f는 캡슐 크기 때문에 공격 사거리에 못 미쳐서 멈추는 문제 발생"이라고 수정 이력이 기록되어 있습니다. TryActivateAbilitiesByTag가 매 Tick(공격 범위 내) 호출되어 이미 활성화된 Ability에 대한 중복 시도가 발생합니다 (GAS가 내부적으로 무시). 빈 else 블록이 2개 있어 디버그 로그가 누락됩니다.</div>
+      </div>
+      <div class="tab-panel" data-class="wolf_attack" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Controller</span></td><td><span class="var-type">TObjectPtr&lt;AAO_AggressiveAICtrl&gt;</span></td><td>UPROPERTY</td><td>캐싱된 컨트롤러. typedef 사용 (using이 아님)</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="wolf_attack" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Owner &rarr; Pawn/Controller 양쪽 대응 &rarr; AggressiveAICtrl 캐싱 &rarr; Running (이동/공격 시작은 Tick에서)</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>AI/Target 확인 &rarr; IsStunned &rarr; Failed / IsTargetInAttackRange: StopMovement + TryActivateAbilitiesByTag("Ability.Combat.Attack", true) / 범위 밖: MoveToActor(Target, AttackRange*0.5) &rarr; Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="wolf_attack" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_AggressiveAICtrl / AAO_AggressiveAIBase</span></td><td>ChaseTarget, AttackRange, IsTargetInAttackRange, ASC, MoveToActor, StopMovement</td></tr>
+          <tr><td>전환원</td><td><span class="rel-cls">FAO_STTask_Wolf_Surround</span></td><td>Surround Succeeded &rarr; Attack 진입</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Wolf Howl ==================== -->
+    <div class="class-card" id="wolf_howl">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Wolf_Howl</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'wolf_howl','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'wolf_howl','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'wolf_howl','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'wolf_howl','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="wolf_howl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf 하울링 실행 및 팩 전파</div></div>
+          <div class="info-item"><div class="info-label">GAS 태그</div><div class="info-value">Ability.Action.Howl</div></div>
+          <div class="info-item"><div class="info-label">지속</div><div class="info-value">HowlDuration(2초) 후 Succeeded</div></div>
+          <div class="info-item"><div class="info-label">특이 사항</div><div class="info-value">Timer가 UPROPERTY가 아닌 일반 float 멤버</div></div>
+        </div>
+        <div class="desc-block">MarkHowledOrJoined() + StopMovement + GAS Ability 활성화 + HowlDuration 대기.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> Timer가 InstanceData 구조체의 <strong>일반 float 멤버</strong>(UPROPERTY가 아님)입니다. StateTree 인스턴스 데이터는 GENERATED_BODY로 관리되므로 직렬화에는 포함되지 않지만 런타임 동작에는 영향 없습니다. MarkHowledOrJoined()는 Controller에 하울링 완료를 기록하여 재진입을 방지합니다. TryActivateAbilitiesByTag의 반환값을 체크하지 않아 Ability 활성화 실패 시에도 HowlDuration만큼 대기합니다. <strong>ExitState가 없어</strong> 강제 전이 시 Howl Ability가 자체 종료에 의존합니다.</div>
+      </div>
+      <div class="tab-panel" data-class="wolf_howl" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">PackComp</span></td><td><span class="var-type">TObjectPtr&lt;UAO_PackCoordComp&gt;</span></td><td>UPROPERTY</td><td>팩 조율 컴포넌트</td></tr>
+          <tr><td><span class="var-name">Controller</span></td><td><span class="var-type">TObjectPtr&lt;AAO_WerewolfController&gt;</span></td><td>UPROPERTY</td><td>Werewolf 컨트롤러</td></tr>
+          <tr><td><span class="var-name">HowlDuration</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>하울링 대기 시간 (기본값 2초)</td></tr>
+          <tr><td><span class="var-name">Timer</span></td><td><span class="var-type">float</span></td><td>(비 UPROPERTY)</td><td>경과 시간. UPROPERTY가 아닌 일반 멤버</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="wolf_howl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Wolf/WolfCtrl/PackComp 캐싱 &rarr; MarkHowledOrJoined &rarr; StopMovement &rarr; ASC::TryActivateAbilitiesByTag("Ability.Action.Howl") (반환값 미체크) &rarr; Timer=0 &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Timer += DeltaTime &rarr; &ge; HowlDuration &rarr; Succeeded / Running</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="wolf_howl" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_Werewolf / UAO_PackCoordComp</span></td><td>GetPackCoordComp, ASC</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_WerewolfController</span></td><td>MarkHowledOrJoined, StopMovement</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Wolf_Surround</span></td><td>Howl 후 Surround로 전환</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== Wolf Surround ==================== -->
+    <div class="class-card" id="wolf_surround">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_Wolf_Surround</div><div class="class-parent">부모: FStateTreeAIActionTaskBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'wolf_surround','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'wolf_surround','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'wolf_surround','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'wolf_surround','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="wolf_surround" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf 팩이 EQS/직접 계산으로 포위/도주로 차단</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">Werewolf: Surround &amp; Block</div></div>
+          <div class="info-item"><div class="info-label">완료 조건</div><div class="info-value">IsCoordinatedAttackStarted 또는 !IsSurrounding &rarr; Succeeded</div></div>
+          <div class="info-item"><div class="info-label">EQS</div><div class="info-value">CreateWeakLambda 비동기 콜백 사용</div></div>
+        </div>
+        <div class="desc-block">가장 복잡한 Wolf Task. QueryInterval마다 도주로 할당(AssignEscapeRouteToWolf) + EQS/직접 계산 + TryReserveSurroundPosition + MoveToLocation.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> EQS 비동기 콜백에서 <strong>CreateWeakLambda</strong>를 사용하여 Controller 파괴 시 콜백이 무효화됩니다. 하지만 캡처된 Wolf, Target, PackComp는 TObjectPtr가 아닌 raw 포인터로 캡처되어 <strong>GC에 의해 파괴되면 댕글링 포인터</strong>가 됩니다 (WeakLambda는 Controller의 생존만 보장). 도주로 할당 우선순위: AssignEscapeRouteToWolf &rarr; GetAssignedEscapeRouteBlockPosition. EQS 결과보다 도주로 차단 위치가 우선됩니다. TryReserveSurroundPosition 실패 시 FindAvailableSurroundPosition으로 폴백합니다. QueryTimer를 EnterState에서 Interval로 설정하여 첫 Tick에서 즉시 쿼리가 실행됩니다. CheckSurroundPositionReached(150.f)로 포위 위치 도달 여부를 PackComp에 보고합니다.</div>
+      </div>
+      <div class="tab-panel" data-class="wolf_surround" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">SurroundQuery</span></td><td><span class="var-type">TObjectPtr&lt;UEnvQuery&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>포위 위치 EQS 쿼리 (null이면 직접 계산)</td></tr>
+          <tr><td><span class="var-name">QueryInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>EQS 쿼리 실행 간격 (기본값 1초)</td></tr>
+          <tr><td><span class="var-name">PackComp</span></td><td><span class="var-type">TObjectPtr&lt;UAO_PackCoordComp&gt;</span></td><td>UPROPERTY</td><td>팩 조율 컴포넌트</td></tr>
+          <tr><td><span class="var-name">QueryRequestID</span></td><td><span class="var-type">int32</span></td><td>(비 UPROPERTY)</td><td>EQS 요청 ID (INDEX_NONE 초기값)</td></tr>
+          <tr><td><span class="var-name">CurrentTargetPosition</span></td><td><span class="var-type">FVector</span></td><td>UPROPERTY</td><td>현재 포위 목표 위치</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="wolf_surround" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Wolf/Controller/PackComp 캐싱 &rarr; QueryTimer = QueryInterval (즉시 쿼리 트리거) &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>IsCoordinatedAttackStarted &rarr; Succeeded / !IsSurrounding &rarr; Succeeded / CheckSurroundPositionReached(150) / QueryTimer &rarr; Interval: AssignEscapeRouteToWolf + GetAssignedEscapeRouteBlockPosition &rarr; EQS: CreateWeakLambda 비동기 (도주로 우선, EQS 폴백, Reserve 실패 시 FindAvailable) / 직접 계산: TryReserve &rarr; MoveToLocation &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ExitState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller::StopMovement(). 포위 위치 예약 해제는 하지 않음.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="wolf_surround" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_PackCoordComp</span></td><td>IsSurrounding, IsCoordinatedAttackStarted, AssignEscapeRouteToWolf, TryReserveSurroundPosition, FindAvailableSurroundPosition, CheckSurroundPositionReached, SetTargetSurroundPosition</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UEnvQuery / FEnvQueryRequest</span></td><td>비동기 EQS 실행 (CreateWeakLambda 콜백)</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">FAO_STTask_Wolf_Attack</span></td><td>Succeeded &rarr; Attack 전환</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== PlaySoundInterval ==================== -->
+    <div class="class-card" id="sound_interval">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_PlaySoundInterval</div><div class="class-parent">부모: FStateTreeTaskCommonBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'sound_interval','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'sound_interval','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'sound_interval','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'sound_interval','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="sound_interval" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">랜덤 간격으로 사운드를 반복 재생하는 공용 Task</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO: Play Sound Interval</div></div>
+          <div class="info-item"><div class="info-label">타이머</div><div class="info-value">카운트다운 방식 (Timer -= DeltaTime). 0 이하 시 재생 + 다음 간격 설정</div></div>
+          <div class="info-item"><div class="info-label">겹침 방지</div><div class="info-value">bPreventOverlap: 전용 UAudioComponent 재사용 vs SpawnSound AutoDestroy</div></div>
+        </div>
+        <div class="desc-block">EnterState에서 AudioComponent 생성(겹침 방지 모드) + bPlayOnEnter이면 Timer=0. Tick에서 Timer 감소 &rarr; 0 이하 시 재생.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> bPreventOverlap=true 모드에서 EnterState에서 NewObject&lt;UAudioComponent&gt;를 생성하고 RegisterComponent합니다. ExitState에서 bStopOnExit에 따라 Stop+DestroyComponent 또는 DestroyComponent만 수행합니다. bStopOnExit=false여도 컴포넌트는 파괴하여 댕글링을 방지합니다. ComputeNextInterval에서 ClampMin 0.1초를 보장합니다. SpawnSoundAttached/SpawnSoundAtLocation의 UE 5.6 시그니처가 KSJ 주석으로 확인되어 있습니다. 타이머가 카운트다운 방식이므로 bPlayOnEnter=true 시 Timer=0으로 설정하면 첫 Tick에서 즉시 재생됩니다.</div>
+      </div>
+      <div class="tab-panel" data-class="sound_interval" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Sound</span></td><td><span class="var-type">TObjectPtr&lt;USoundBase&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>재생할 사운드</td></tr>
+          <tr><td><span class="var-name">AttenuationSettings</span></td><td><span class="var-type">TObjectPtr&lt;USoundAttenuation&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>거리 감쇠 설정</td></tr>
+          <tr><td><span class="var-name">VolumeMultiplier / PitchMultiplier</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>볼륨(0~5)/피치(0.1~3) 배수</td></tr>
+          <tr><td><span class="var-name">MinInterval / MaxInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>반복 간격 범위 (기본 2~6초, ClampMin 0.1)</td></tr>
+          <tr><td><span class="var-name">bPreventOverlap</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>겹침 방지 (기본 true). true: AudioComponent 재사용, false: SpawnSound</td></tr>
+          <tr><td><span class="var-name">bPlayOnEnter / bStopOnExit</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>진입 즉시 재생 / 종료 시 정지</td></tr>
+          <tr><td><span class="var-name">AudioComponent</span></td><td><span class="var-type">TObjectPtr&lt;UAudioComponent&gt;</span></td><td>UPROPERTY</td><td>겹침 방지용 재사용 컴포넌트. bAutoDestroy=false</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="sound_interval" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>ResolveOwnerActor &rarr; Sound null 체크 &rarr; Timer = ComputeNextInterval &rarr; bPreventOverlap: NewObject&lt;UAudioComponent&gt; + SetupAttachment + RegisterComponent + SetSound/Volume/Pitch/Attenuation / bPlayOnEnter: Timer=0 &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Tick()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>Timer -= DeltaTime &rarr; &gt;0이면 Running / Timer = ComputeNextInterval(다음 간격 선설정) &rarr; bPreventOverlap: IsPlaying이면 스킵, 아니면 Play() / bAttachToOwner: SpawnSoundAttached(AutoDestroy) / SpawnSoundAtLocation(bAutoDestroy=true) &rarr; Running</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ResolveOwnerActor()</span><span class="fn-spec static-fn">Static</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller면 Pawn 우선 반환, 아니면 Actor 직접 반환. PlaySoundOnce와 동일.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">StopAndDestroyAudioComponent()</span><span class="fn-spec static-fn">Static</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>IsPlaying이면 Stop &rarr; DestroyComponent &rarr; nullptr. TObjectPtr& 참조로 받아 원본 포인터를 초기화.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="sound_interval" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAudioComponent</span></td><td>재사용 컴포넌트 (겹침 방지)</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UGameplayStatics</span></td><td>SpawnSoundAttached, SpawnSoundAtLocation (겹침 허용)</td></tr></table>
+      </div>
+    </div>
+
+    <!-- ==================== PlaySoundOnce ==================== -->
+    <div class="class-card" id="sound_once">
+      <div class="class-header"><div class="class-dot"></div><div class="class-name">FAO_STTask_PlaySoundOnce</div><div class="class-parent">부모: FStateTreeTaskCommonBase</div></div>
+      <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'sound_once','overview')">개요</button><button class="tab-btn" onclick="switchTab(this,'sound_once','vars')">멤버 변수</button><button class="tab-btn" onclick="switchTab(this,'sound_once','funcs')">함수</button><button class="tab-btn" onclick="switchTab(this,'sound_once','rel')">호출 관계</button></div>
+      <div class="tab-panel active" data-class="sound_once" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">EnterState에서 1회 사운드 재생 후 즉시 Succeeded</div></div>
+          <div class="info-item"><div class="info-label">DisplayName</div><div class="info-value">AO: Play Sound Once</div></div>
+          <div class="info-item"><div class="info-label">실행 패턴</div><div class="info-value">EnterState에서 SpawnSound + 즉시 Succeeded (Tick 미구현)</div></div>
+          <div class="info-item"><div class="info-label">Sound null 처리</div><div class="info-value">Failed 반환 (디자이너 설정 오류 빠른 발견)</div></div>
+        </div>
+        <div class="desc-block">가장 단순한 Task. Tick override가 없으므로 EnterState에서 즉시 종료됩니다.</div>
+        <div class="deep-note"><strong>심층 분석:</strong> ResolveOwnerActor가 PlaySoundInterval과 동일한 로직으로 <strong>중복 구현</strong>되어 있습니다 (static 함수이므로 공유 불가). bAttachToOwner=true 시 bStopWhenAttachedToDestroyed=true + bAutoDestroy=true로 생성하여 Owner 파괴 시 자동 정리됩니다. RootComponent가 없으면 Failed를 반환하는 방어 코드가 있습니다. Sound null 시 Failed 반환은 KSJ 주석에 "조용히 무시하지 않고 실패로 처리"라고 명시되어 있습니다.</div>
+      </div>
+      <div class="tab-panel" data-class="sound_once" data-tab="vars">
+        <table class="var-table"><tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Sound</span></td><td><span class="var-type">TObjectPtr&lt;USoundBase&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>재생할 사운드</td></tr>
+          <tr><td><span class="var-name">AttenuationSettings</span></td><td><span class="var-type">TObjectPtr&lt;USoundAttenuation&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>거리 감쇠 설정</td></tr>
+          <tr><td><span class="var-name">VolumeMultiplier / PitchMultiplier</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>볼륨(0~5)/피치(0.1~3) 배수</td></tr>
+          <tr><td><span class="var-name">bAttachToOwner</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Owner에 부착할지 (기본값 true)</td></tr>
+          <tr><td><span class="var-name">AttachPointName</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>부착 소켓 이름 (기본값 NAME_None)</td></tr></table>
+      </div>
+      <div class="tab-panel" data-class="sound_once" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">EnterState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">흐름</div>ResolveOwnerActor &rarr; Sound null &rarr; Failed / bAttachToOwner: RootComp 확인 &rarr; SpawnSoundAttached(Sound, RootComp, AttachPointName, AutoDestroy=true) / SpawnSoundAtLocation(ActorLocation, AutoDestroy=true) &rarr; 즉시 Succeeded</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ResolveOwnerActor()</span><span class="fn-spec static-fn">Static</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Controller면 Pawn 우선 반환. PlaySoundInterval과 동일한 중복 구현.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="sound_once" data-tab="rel">
+        <table class="rel-table"><tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UGameplayStatics</span></td><td>SpawnSoundAttached, SpawnSoundAtLocation</td></tr>
+          <tr><td>중복</td><td><span class="rel-cls">FAO_STTask_PlaySoundInterval</span></td><td>ResolveOwnerActor 로직 동일 중복</td></tr></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['moveto','movebase','roam','chase','search','bull_charge','crab_drop','crab_flee','crab_pickup','insect_drag','insect_kidnap','lava_attack','stalk_ambush','stalk_approach','stalk_ceiling','stalk_hide','stalker_roam','troll_attack','troll_pickweapon','wolf_attack','wolf_howl','wolf_surround','sound_interval','sound_once'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click -> immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

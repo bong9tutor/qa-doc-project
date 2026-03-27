@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 데이터 & 유틸리티</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#6b7280;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#f9fafb;border:1px solid #e5e7eb;color:#6b7280;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;max-height:calc(100vh - 80px);overflow-y:auto;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-group{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin:12px 0 4px 4px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f3f4f6;color:#374151;border-left-color:#6b7280;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#6b7280;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#6b7280;border-bottom-color:#6b7280;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #6b7280;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f9fafb;border:1px solid #e5e7eb;color:#6b7280;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.config{background:#fdf4ff;border-color:#f0abfc;color:#a21caf;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f3f4f6;border-color:#d1d5db;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-spec.static-fn{background:#fefce8;color:#a16207;border:1px solid #fef08a;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #d1d5db;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#6b7280;font-weight:600;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">&larr; &ucf54;&ub4dc; &ub9ac;&ubdf0;</a>
+  <div class="nav-logo">Data &amp; Utilities</div>
+  <div class="nav-sub">&ub370;&uc774;&ud130; &amp; &uc720;&ud2f8;&ub9ac;&ud2f0; &ud074;&ub798;&uc2a4;</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">&ub370;&uc774;&ud130; &amp; &uc720;&ud2f8;&ub9ac;&ud2f0; &ud074;&ub798;&uc2a4;</div>
+  <div class="hero-sub">&uc124;&uc815;&middot;&ub370;&uc774;&ud130; &uc5d0;&uc14b;&middot;&ub9e4;&ub2c8;&uc800;&middot;&ud0c0;&uc785; &uc815;&uc758;&middot;&ubcf4;&uc870; &uc561;&ud130; 23&uac1c; &ud074;&ub798;&uc2a4;</div>
+  <div class="badges">
+    <span class="badge">AO_GameSettingsManager</span>
+    <span class="badge">AO_GameUserSettings</span>
+    <span class="badge">AO_FuelData</span>
+    <span class="badge">AO_Sample_Fuel</span>
+    <span class="badge">AO_TrollWeapon</span>
+    <span class="badge">AO_CollisionChannels</span>
+    <span class="badge">AO_AITypes</span>
+    <span class="badge">AO_Log</span>
+    <span class="badge">AO_MapRoutes</span>
+    <span class="badge">AO_struct_FItemBase</span>
+    <span class="badge">AO_TraversalTypes</span>
+    <span class="badge">AO_CameraProfile</span>
+    <span class="badge">AO_RevivealChipContainer</span>
+    <span class="badge">AO_newTrain</span>
+    <span class="badge">AO_DelegateManager</span>
+    <span class="badge">AO_ShopManager</span>
+    <span class="badge">AO_ItemManager</span>
+    <span class="badge">AO_InventoryListener</span>
+    <span class="badge">AO_InventorySaveZone</span>
+    <span class="badge">AO_TrainDoor</span>
+    <span class="badge">AO_TrainFuelListener</span>
+    <span class="badge">AO_TraversalTransform</span>
+    <span class="badge">AO_VendingMachine</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">&ubaa9;&ucc28;</div>
+      <div class="toc-group">&uc124;&uc815;</div>
+      <a class="toc-item active" href="#gsm">AO_GameSettingsManager</a>
+      <a class="toc-item" href="#gus">AO_GameUserSettings</a>
+      <div class="toc-group">&ub370;&uc774;&ud130; &uc5d0;&uc14b;</div>
+      <a class="toc-item" href="#fueldata">AO_FuelData</a>
+      <a class="toc-item" href="#camprofile">AO_CameraProfile</a>
+      <a class="toc-item" href="#itembase">AO_struct_FItemBase</a>
+      <div class="toc-group">&ud0c0;&uc785; &uc815;&uc758;</div>
+      <a class="toc-item" href="#collision">AO_CollisionChannels</a>
+      <a class="toc-item" href="#aitypes">AO_AITypes</a>
+      <a class="toc-item" href="#travtypes">AO_TraversalTypes</a>
+      <a class="toc-item" href="#maproutes">AO_MapRoutes</a>
+      <a class="toc-item" href="#log">AO_Log</a>
+      <div class="toc-group">&ub9e4;&ub2c8;&uc800;</div>
+      <a class="toc-item" href="#delegatemgr">AO_DelegateManager</a>
+      <a class="toc-item" href="#itemmgr">AO_ItemManager</a>
+      <a class="toc-item" href="#shopmgr">AO_ShopManager</a>
+      <div class="toc-group">&uc778;&ud130;&ud398;&uc774;&uc2a4;</div>
+      <a class="toc-item" href="#invlistener">AO_InventoryListener</a>
+      <a class="toc-item" href="#fuellistener">AO_TrainFuelListener</a>
+      <a class="toc-item" href="#travtransform">AO_TraversalTransform</a>
+      <div class="toc-group">&ubcf4;&uc870; &uc561;&ud130;</div>
+      <a class="toc-item" href="#newtrain">AO_newTrain</a>
+      <a class="toc-item" href="#samplefuel">AO_Sample_Fuel</a>
+      <a class="toc-item" href="#trollweapon">AO_TrollWeapon</a>
+      <a class="toc-item" href="#revivechip">AO_RevivealChipContainer</a>
+      <a class="toc-item" href="#traindoor">AO_TrainDoor</a>
+      <a class="toc-item" href="#invsavezone">AO_InventorySaveZone</a>
+      <a class="toc-item" href="#vending">AO_VendingMachine</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_GameSettingsManager ==================== -->
+    <div class="class-card" id="gsm">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameSettingsManager</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UGameInstanceSubsystem</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gsm','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gsm','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gsm','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gsm','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="gsm" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uadf8;&ub798;&ud53d;&middot;&ud574;&uc0c1;&ub3c4;&middot;&uc624;&ub514;&uc624; &ub4f1; &ubaa8;&ub4e0; &uac8c;&uc784; &uc124;&uc815;&uc744; &uc911;&uc559;&uc5d0;&uc11c; &uad00;&ub9ac;</div></div>
+          <div class="info-item"><div class="info-label">&uc0dd;&uc874; &ubc94;&uc704;</div><div class="info-value">GameInstance &uc218;&uba85;&uacfc; &ub3d9;&uc77c; (GameInstanceSubsystem)</div></div>
+          <div class="info-item"><div class="info-label">&uc124;&uc815; &uc801;&uc6a9; &ubc29;&uc2dd;</div><div class="info-value">UAO_GameUserSettings&uc744; &uac00;&uc838;&uc640; &uc124;&uc815;&uac12; &ubcc0;&uacbd; &ud6c4; ApplyAndSave</div></div>
+          <div class="info-item"><div class="info-label">&uc774;&ubca4;&ud2b8;</div><div class="info-value">OnSettingsApplied &ub378;&ub9ac;&uac8c;&uc774;&ud2b8;&ub85c; UI&uc5d0; &uc801;&uc6a9; &uc644;&ub8cc; &uc54c;&ub9bc;</div></div>
+        </div>
+        <div class="desc-block">
+          UGameInstanceSubsystem&uc744; &uc0c1;&uc18d;&ud558;&uc5ec; &uac8c;&uc784; &uc2e4;&ud589; &ub3d9;&uc548; &uc0b4;&uc544;&uc788;&ub294; &uc804;&uc5ed; &uc124;&uc815; &ub9e4;&ub2c8;&uc800;&uc785;&ub2c8;&ub2e4;.
+          &ub0b4;&ubd80;&uc801;&uc73c;&ub85c; UAO_GameUserSettings&uc758; &uc815;&uc801; &ud568;&uc218;&ub85c; &uc778;&uc2a4;&ud134;&uc2a4;&ub97c; &uac00;&uc838;&uc624;&uba70;,
+          &uadf8;&ub798;&ud53d; Scalability(&uc548;&ud2f0;&uc568;&ub9ac;&uc5b4;&uc2f1;, &uadf8;&ub9bc;&uc790;, &ud14d;&uc2a4;&ucc98; &ub4f1; 11&uac1c; &ud56d;&ubaa9;)&ub97c; &uac1c;&ubcc4;&uc801;&uc73c;&ub85c; &uc124;&uc815;&ud560; &uc218; &uc788;&uc2b5;&ub2c8;&ub2e4;.
+          &ud574;&uc0c1;&ub3c4; &uc124;&uc815;&uc740; &uc815;&uc801; &ubc30;&uc5f4;(16:9, 21:9, 32:9 &ub4f1;)&uc5d0;&uc11c; &uc778;&ub371;&uc2a4;&ub85c; &uc120;&ud0dd;&ud558;&uba70;,
+          &uc624;&ub514;&uc624;&ub294; EAudioType &uc5f4;&uac70;&ud615;&uc73c;&ub85c; Master/Music/SFX/UI/Voice/Ambient&ub97c; &uad6c;&ubd84;&ud569;&ub2c8;&ub2e4;.
+          SetToDefaults()&ub294; UAO_DelegateManager&uc758; OnResetAllSettings&ub97c; &ube0c;&ub85c;&ub4dc;&uce90;&uc2a4;&ud2b8;&ud558;&uc5ec; UI &ub9ac;&uc14b;&ub3c4; &uc5f0;&ub3d9;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="gsm" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr>
+            <td><span class="var-name">bIsSettingsInitialized</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>&uc124;&uc815; &ucd08;&uae30;&ud654; &uc644;&ub8cc; &uc5ec;&ubd80; &ud50c;&ub798;&uadf8;. Initialize()&uc5d0;&uc11c; InitUserSettings() &ud638;&ucd9c; &ud6c4; &uc0ac;&uc6a9;&ud569;&ub2c8;&ub2e4;.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnSettingsApplied</span></td>
+            <td><span class="var-type">FOnSettingsApplied</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>&uc124;&uc815;&uc774; &uc801;&uc6a9;&ub418;&uace0; &uc800;&uc7a5;&ub420; &ub54c;&ub9c8;&ub2e4; &ube0c;&ub85c;&ub4dc;&uce90;&uc2a4;&ud2b8;. UI &uc704;&uc82f;&uc774; &ubc14;&uc778;&ub529;&ud558;&uc5ec; &uac31;&uc2e0;&ud569;&ub2c8;&ub2e4;.</td>
+          </tr>
+        </table>
+        <div class="section-title">&uad00;&ub828; &uad6c;&uc870;&uccb4; / &uc5f4;&uac70;&ud615;</div>
+        <div class="struct-box">
+          <div class="struct-title">FResolutionInfo</div>
+          <div class="struct-field"><span class="sf-name">Resolution</span><span class="sf-desc">FIntPoint &mdash; &ud574;&uc0c1;&ub3c4; &uac12; (e.g. 1920x1080)</span></div>
+          <div class="struct-field"><span class="sf-name">DisplayName</span><span class="sf-desc">FString &mdash; UI &ud45c;&uc2dc;&uc6a9; &ubb38;&uc790;&uc5f4; (e.g. "1920 x 1080 (FHD)")</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">EAudioType</div>
+          <div class="struct-field"><span class="sf-name">Master / Music / SFX / UI / Voice / Ambient</span><span class="sf-desc">&uc624;&ub514;&uc624; &ucc44;&ub110; &uad6c;&ubd84;&uc6a9; &uc5f4;&uac70;&ud615;</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="gsm" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize() / Deinitialize()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>GameInstance &uc0dd;&uc131; &uc2dc; &ucd08;&uae30;&ud654;. InitUserSettings()&ub97c; &ud638;&ucd9c;&ud558;&uc5ec; &uae30;&uc874; &uc124;&uc815; &ud30c;&uc77c;&uc744; &ub85c;&ub4dc;&ud558;&uace0; &uc801;&uc6a9;&ud569;&ub2c8;&ub2e4;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetGameUserSettings()</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-spec static-fn">Static</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>UAO_GameUserSettings &uc2f1;&uae00;&ud134;(&uc5d4;&uc9c4; &uae30;&ubcf8; &uc81c;&uacf5;)&uc744; &ubc18;&ud658;. &uce90;&uc2f1;&ud558;&uc9c0; &uc54a;&uace0; &ub9e4;&ubc88; &uac00;&uc838;&uc640; StalePointer &ubc29;&uc9c0;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyAndSaveAllSettings()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>&uac8c;&uc784; &uc124;&uc815;(&uadf8;&ub798;&ud53d;+&ud574;&uc0c1;&ub3c4;) &uc801;&uc6a9; &rarr; &ucee4;&uc2a4;&ud140; &uc124;&uc815;(&ubcfc;&ub968; &ub4f1;) &uc801;&uc6a9; &rarr; OnSettingsApplied &ube0c;&ub85c;&ub4dc;&uce90;&uc2a4;&ud2b8;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyResolutionSettings() / ApplyNonResolutionSettings()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&ud574;&uc0c1;&ub3c4;&ub9cc; &uc801;&uc6a9;(&ubb34;&uac70;&uc6c0;) &ub610;&ub294; &ud574;&uc0c1;&ub3c4; &uc678; &uc124;&uc815;&ub9cc; &uc801;&uc6a9;(&uac00;&ubcbc;&uc6c0;)&uc73c;&ub85c; &ubd84;&ub9ac;&ud558;&uc5ec; &uc131;&ub2a5;&uc744; &ucd5c;&uc801;&ud654;&ud569;&ub2c8;&ub2e4;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetOverallScalability(EScalabilityLevel) &amp; &uac1c;&ubcc4; &ud488;&uc9c8; &ud568;&uc218; 10&uac1c;</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>AntiAliasing, ViewDistance, Shadow, GI, Reflection, Texture, VisualEffect, PostProcessing, Foliage, Shading &uac01;&uac01;&uc758; Scalability&ub97c; Low~Cinematic(0~4)&uc73c;&ub85c; &uc124;&uc815;. &ub0b4;&ubd80;&uc801;&uc73c;&ub85c; UGameUserSettings&uc758; Set*Quality()&ub97c; &ud638;&ucd9c;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetToDefaults()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>Settings-&gt;SetToDefaults() &rarr; UAO_DelegateManager-&gt;OnResetAllSettings.Broadcast() &rarr; UI &uc704;&uc82f;&ub4e4;&uc774; &uae30;&ubcf8;&uac12;&uc73c;&ub85c; &ucd08;&uae30;&ud654;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetAudioVolume(EAudioType) / SetAudioVolume(EAudioType, float)</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>EAudioType&uc5d0; &ub530;&ub77c; UAO_GameUserSettings&uc758; &ud574;&ub2f9; &ubcfc;&ub968; &uac12;&uc744; &uc77d;&uac70;&ub098; Clamp(0~2)&ud558;&uc5ec; &uae30;&ub85d;&ud569;&ub2c8;&ub2e4;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetResolutionInfoList()</span>
+              <span class="fn-spec static-fn">Static / Private</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc815;&uc801; TArray&uc5d0; 16:9(4K/QHD/FHD/HD), 21:9, 32:9, &uae30;&ud0c0; &ucd1d; 11&uac1c; &ud574;&uc0c1;&ub3c4;&ub97c; &ucd08;&uae30;&ud654;&ud558;&uc5ec; &ubc18;&ud658;&ud569;&ub2c8;&ub2e4;. &ucd5c;&ucd08; &ud638;&ucd9c; &uc2dc;&ub9cc; &ubc30;&uc5f4;&uc744; &ucc44;&uc6c0;.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="gsm" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1; &ud074;&ub798;&uc2a4;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc758;&uc874;</td><td><span class="rel-cls">UAO_GameUserSettings</span></td><td>GetGameUserSettings()&ub85c; &uc778;&uc2a4;&ud134;&uc2a4;&ub97c; &uac00;&uc838;&uc640; &ubaa8;&ub4e0; &uc124;&uc815;&uac12; &uc870;&uc791;</td></tr>
+          <tr><td>&uc0ac;&uc6a9;</td><td><span class="rel-cls">UAO_DelegateManager</span></td><td>SetToDefaults()&uc5d0;&uc11c; OnResetAllSettings &ube0c;&ub85c;&ub4dc;&uce90;&uc2a4;&ud2b8;</td></tr>
+          <tr><td>&uc54c;&ub9bc;</td><td><span class="rel-cls">UI &uc704;&uc82f;</span></td><td>OnSettingsApplied &ub378;&ub9ac;&uac8c;&uc774;&ud2b8; &uad6c;&ub3c5;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameUserSettings ==================== -->
+    <div class="class-card" id="gus">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameUserSettings</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UGameUserSettings</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gus','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gus','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gus','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'gus','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="gus" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc5d4;&uc9c4; UGameUserSettings &ud655;&uc7a5; &mdash; &uc624;&ub514;&uc624;&middot;&uc5c5;&uc2a4;&ucf00;&uc77c;&ub9c1;&middot;&uc74c;&uc131; &ub4f1; &ucee4;&uc2a4;&ud140; &uc124;&uc815; &uc800;&uc7a5;</div></div>
+          <div class="info-item"><div class="info-label">&uc800;&uc7a5; &ubc29;&uc2dd;</div><div class="info-value">UPROPERTY(Config)&ub85c; GameUserSettings.ini&uc5d0; &uc790;&ub3d9; &uc9c1;&ub82c;&ud654;</div></div>
+          <div class="info-item"><div class="info-label">&uc2f1;&uae00;&ud134;</div><div class="info-value">&uc5d4;&uc9c4;&uc774; &uad00;&ub9ac;&ud558;&ub294; &ub2e8;&uc77c; &uc778;&uc2a4;&ud134;&uc2a4;. GetGameUserSettings()&ub85c; &uc811;&uadfc;</div></div>
+          <div class="info-item"><div class="info-label">&ud655;&uc7a5; &ud3ec;&uc778;&ud2b8;</div><div class="info-value">ApplyCustomSettings()&ub97c; &uc624;&ubc84;&ub77c;&uc774;&ub4dc;&ud558;&uc5ec; &ubcfc;&ub968;&middot;&uac10;&ub3c4; &uc2e4;&uc81c; &uc801;&uc6a9; &ub85c;&uc9c1; &ucd94;&uac00; &uac00;&ub2a5;</div></div>
+        </div>
+        <div class="desc-block">
+          UCLASS(config=GameUserSettings)&ub85c; &uc120;&uc5b8;&ub418;&uc5b4; &ubaa8;&ub4e0; Config UPROPERTY&uac00; GameUserSettings.ini&uc5d0; &uc790;&ub3d9; &uc800;&uc7a5;&middot;&ub85c;&ub4dc;&ub429;&ub2c8;&ub2e4;.
+          &uc5d4;&uc9c4; &uae30;&ubcf8; UGameUserSettings&uc5d0; &uc5c6;&ub294; &uc624;&ub514;&uc624; &ubcfc;&ub968; 6&ucc44;&ub110;, &uc5c5;&uc2a4;&ucf00;&uc77c;&ub9c1;(DLSS/FSR/Built-in), &uc74c;&uc131;&ucc44;&ud305;, &uc5b8;&uc5b4; &uc635;&uc158; &ub4f1;&uc744; &ud655;&uc7a5;&ud569;&ub2c8;&ub2e4;.
+          ApplyCustomSettings()&ub294; &ud604;&uc7ac; &ube48; &uad6c;&ud604;&uc774;&uba70;, &ud5a5;&ud6c4; SoundMix &uc801;&uc6a9; &ub4f1; &ub85c;&uc9c1;&uc744; &ucd94;&uac00;&ud560; &ud655;&uc7a5; &uc9c0;&uc810;&uc785;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="gus" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">MasterVolume / MusicVolume / SFXVolume / UIVolume / VoiceVolume / AmbientVolume</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag config">Config</span><span class="prop-tag bp">BPReadWrite</span></td><td>&uc624;&ub514;&uc624; &ubcfc;&ub968; 6&ucc44;&ub110;. &uae30;&ubcf8;&uac12; 1.0f. .ini&uc5d0; &uc790;&ub3d9; &uc800;&uc7a5;&ub429;&ub2c8;&ub2e4;.</td></tr>
+          <tr><td><span class="var-name">UpscalingOption</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag config">Config</span><span class="prop-tag bp">BPReadWrite</span></td><td>&uc5c5;&uc2a4;&ucf00;&uc77c;&ub9c1; &ubc29;&uc2dd; &uc120;&ud0dd; (0=Built-in)</td></tr>
+          <tr><td><span class="var-name">DlssOption / DlssSharpness / bEnableRayReconstruction</span></td><td><span class="var-type">int32 / float / bool</span></td><td><span class="prop-tag config">Config</span></td><td>NVIDIA DLSS &uad00;&ub828; &uc124;&uc815;</td></tr>
+          <tr><td><span class="var-name">FsrOption / bEnableFsrFrameGeneration</span></td><td><span class="var-type">int32 / bool</span></td><td><span class="prop-tag config">Config</span></td><td>AMD FSR &uad00;&ub828; &uc124;&uc815;</td></tr>
+          <tr><td><span class="var-name">bIsEnableVoiceChat</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag config">Config</span></td><td>&uc74c;&uc131;&ucc44;&ud305; &ud65c;&uc131;&ud654; &uc5ec;&ubd80;</td></tr>
+          <tr><td><span class="var-name">Language</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag config">Config</span></td><td>&uc5b8;&uc5b4; &uc124;&uc815; (0=&uae30;&ubcf8;)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="gus" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetGameUserSettings()</span>
+              <span class="fn-spec static-fn">Static</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc5d4;&uc9c4; UGameUserSettings::GetGameUserSettings()&ub97c; UAO_GameUserSettings*&ub85c; Cast&ud558;&uc5ec; &ubc18;&ud658;. DefaultEngine.ini&uc5d0;&uc11c; &uc774; &ud074;&ub798;&uc2a4;&uac00; &ub4f1;&ub85d;&ub418;&uc5b4; &uc788;&uc5b4;&uc57c; &uc815;&uc0c1; &uc791;&ub3d9;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyCustomSettings()</span>
+              <span class="fn-spec override">Virtual</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&ud604;&uc7ac; &ube48; &uad6c;&ud604;. &ubcfc;&ub968;&uac12;&uc744; SoundMix&uc5d0; &uc801;&uc6a9;&ud558;&uac70;&ub098; &uc785;&ub825; &uac10;&ub3c4;&ub97c; &uc124;&uc815;&ud558;&ub294; &ub85c;&uc9c1;&uc744; &ucd94;&uac00;&ud560; &uc218; &uc788;&ub294; &ud655;&uc7a5; &uc9c0;&uc810;.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="gus" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1; &ud074;&ub798;&uc2a4;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc870;&uc791;&ub428;</td><td><span class="rel-cls">UAO_GameSettingsManager</span></td><td>&ubaa8;&ub4e0; Set*/Apply* &ud638;&ucd9c;&#51012; &uc218;&uc2e0;</td></tr>
+          <tr><td>&uc0c1;&uc18d;</td><td><span class="rel-cls">UGameUserSettings</span></td><td>&uc5d4;&uc9c4; &uae30;&ubcf8; &uadf8;&ub798;&ud53d;&middot;VSync&middot;&ud574;&uc0c1;&ub3c4; &uae30;&ub2a5; &uc0c1;&uc18d;</td></tr>
+          <tr><td>&uc800;&uc7a5;</td><td><span class="rel-cls">GameUserSettings.ini</span></td><td>Config UPROPERTY &uc790;&ub3d9; &uc9c1;&ub82c;&ud654;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_FuelData ==================== -->
+    <div class="class-card" id="fueldata">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_FuelData</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UDataAsset</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'fueldata','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fueldata','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fueldata','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fueldata','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="fueldata" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uae30;&ucc28; &uc5f0;&ub8cc; &uc2dc;&uc2a4;&ud15c;&uc758; &ucd08;&uae30;&uac12;&middot;&ucd5c;&ub300;&uac12;&middot;&ub2e4;&uc74c;&uc2a4;&ud14c;&uc774;&uc9c0; &ud544;&uc694;&ub7c9;&uc744; &uc815;&uc758;&ud558;&ub294; &ub370;&uc774;&ud130; &uc5d0;&uc14b;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9; &ubc29;&uc2dd;</div><div class="info-value">&uc5d0;&ub514;&ud130;&uc5d0;&uc11c; DataAsset&uc73c;&ub85c; &uc0dd;&uc131; &ud6c4; GameInstance&uc5d0;&uc11c; &ucc38;&uc870;</div></div>
+        </div>
+        <div class="desc-block">
+          &uc21c;&uc218; &ub370;&uc774;&ud130; &ucee8;&ud14c;&uc774;&ub108; &ud074;&ub798;&uc2a4;&ub85c;, &ub85c;&uc9c1; &uc5c6;&uc774; 3&uac1c; float &uac12;&ub9cc; &ubcf4;&uad00;&ud569;&ub2c8;&ub2e4;.
+          AAO_newTrain&uc758; BeginPlay&uc5d0;&uc11c; UAO_Fuel_AttributeSet::InitFromGameInstance()&ub97c; &ud1b5;&ud574; &uc774; &ub370;&uc774;&ud130;&ub97c; &uc77d;&uc5b4; &uc5f0;&ub8cc; &ucd08;&uae30;&uac12;&uc744; &uc124;&uc815;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="fueldata" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">InitialFuel</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&uac8c;&uc784; &uc2dc;&uc791; &uc2dc; &uae30;&ucc28;&uc758; &ucd08;&uae30; &uc5f0;&ub8cc;&ub7c9;</td></tr>
+          <tr><td><span class="var-name">MaximumFuel</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&uc5f0;&ub8cc; &ucd5c;&ub300;&uac12;</td></tr>
+          <tr><td><span class="var-name">RequireNextStage</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&ub2e4;&uc74c; &uc2a4;&ud14c;&uc774;&uc9c0;&ub85c; &uc774;&ub3d9;&ud558;&uae30; &uc704;&ud574; &ud544;&uc694;&ud55c; &uc5f0;&ub8cc;&ub7c9;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="fueldata" data-tab="funcs">
+        <div class="desc-block">&ud568;&uc218; &uc5c6;&uc74c; &mdash; &uc21c;&uc218; &ub370;&uc774;&ud130; &ucee8;&ud14c;&uc774;&ub108;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="fueldata" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1; &ud074;&ub798;&uc2a4;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc77d;&ud798;</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>FuelData &uc5d0;&uc14b; &ucc38;&uc870;&ub97c; &ubcf4;&uad00;</td></tr>
+          <tr><td>&uc77d;&ud798;</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>InitFromGameInstance()&uc5d0;&uc11c; &ucd08;&uae30;&uac12; &uc124;&uc815;&#51004;&#47196; &#49324;&#50857;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_CameraProfile ==================== -->
+    <div class="class-card" id="camprofile">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_CameraProfile</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UDataAsset</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'camprofile','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'camprofile','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'camprofile','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'camprofile','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="camprofile" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">GameplayTag&ub85c; &uce74;&uba54;&ub77c; &uc124;&uc815;(FOV&middot;&uc554;&uae38;&uc774;&middot;&uc624;&ud504;&uc14b;&middot;&ub798;&uadf8;)&uc744; &uad00;&ub9ac;&ud558;&ub294; &ub370;&uc774;&ud130; &uc5d0;&uc14b;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9; &ubc29;&uc2dd;</div><div class="info-value">CameraManagerComponent&uac00; Tag&ub85c; FindByTag() &ud638;&ucd9c;&ud558;&uc5ec; &uc804;&ud658;</div></div>
+        </div>
+        <div class="desc-block">
+          FAO_CameraSettings &uad6c;&uc870;&uccb4;&uc758; &ubc30;&uc5f4;&uc744; &ubcf4;&uad00;&ud558;&uba70;, &uac01; &uc124;&uc815;&uc5d0; GameplayTag&middot;Priority&middot;Spring Arm &uc124;&uc815;&middot;FOV&middot;BlendIn/Out &uc2dc;&uac04;&uc744; &ub2f4;&uc2b5;&ub2c8;&ub2e4;.
+          FindByTag()&ub85c; &ud0dc;&uadf8;&uc5d0; &ub9e4;&uce6d;&ub418;&ub294; &uc124;&uc815;&uc744; O(n) &uc120;&ud615; &uac80;&uc0c9;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="camprofile" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">Profiles</span></td><td><span class="var-type">TArray&lt;FAO_CameraSettings&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&uce74;&uba54;&ub77c; &uc124;&uc815; &ubc30;&uc5f4;</td></tr>
+        </table>
+        <div class="section-title">FAO_CameraSettings &uad6c;&uc870;&uccb4;</div>
+        <div class="struct-box">
+          <div class="struct-title">FAO_CameraSettings</div>
+          <div class="struct-field"><span class="sf-name">Tag</span><span class="sf-desc">FGameplayTag &mdash; &uce74;&uba54;&ub77c; &ubaa8;&ub4dc; &uc2dd;&ubcc4; &ud0dc;&uadf8;</span></div>
+          <div class="struct-field"><span class="sf-name">Priority</span><span class="sf-desc">int32 &mdash; &uc6b0;&uc120;&uc21c;&uc704; (&ub192;&uc744;&uc218;&ub85d; &uc6b0;&uc120;)</span></div>
+          <div class="struct-field"><span class="sf-name">TargetArmLength</span><span class="sf-desc">float &mdash; Spring Arm &uae38;&uc774; (&uae30;&ubcf8; 150)</span></div>
+          <div class="struct-field"><span class="sf-name">SocketOffset</span><span class="sf-desc">FVector &mdash; &uce74;&uba54;&ub77c; &uc624;&ud504;&uc14b;</span></div>
+          <div class="struct-field"><span class="sf-name">bEnableCameraLag / CameraLagSpeed</span><span class="sf-desc">&uce74;&uba54;&ub77c; &ub798;&uadf8; &uc124;&uc815;</span></div>
+          <div class="struct-field"><span class="sf-name">FOV</span><span class="sf-desc">float &mdash; &uc2dc;&uc57c;&uac01; (&uae30;&ubcf8; 90)</span></div>
+          <div class="struct-field"><span class="sf-name">BlendInTime / BlendOutTime</span><span class="sf-desc">float &mdash; &uc804;&ud658; &ube14;&ub80c;&ub4dc; &uc2dc;&uac04; (&uae30;&ubcf8; 0.25s)</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="camprofile" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindByTag(const FGameplayTag&amp; Tag) const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Profiles &ubc30;&uc5f4;&uc744; &uc21c;&ud68c;&ud558;&uc5ec; Tag&uac00; &uc77c;&uce58;&ud558;&ub294; FAO_CameraSettings*&ub97c; &ubc18;&ud658;. &ubabb; &ucc3e;&uc73c;&uba74; nullptr.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="camprofile" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1; &ud074;&ub798;&uc2a4;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc77d;&ud798;</td><td><span class="rel-cls">UAO_CameraManagerComponent</span></td><td>FindByTag()&ub85c; &uce74;&uba54;&ub77c; &uc124;&uc815; &uc870;&ud68c;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_struct_FItemBase ==================== -->
+    <div class="class-card" id="itembase">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FAO_struct_FItemBase</div>
+        <div class="class-parent">&ubd80;&ubaa8;: FTableRowBase</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'itembase','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itembase','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itembase','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itembase','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="itembase" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">DataTable &ud589; &uad6c;&uc870;&uccb4; &mdash; &ubaa8;&ub4e0; &uc544;&uc774;&ud15c;&uc758; &uae30;&ubcf8; &ub370;&uc774;&ud130;&ub97c; &uc815;&uc758;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9; &ubc29;&uc2dd;</div><div class="info-value">ItemDataTable.csv &rarr; UDataTable&ub85c; &uc784;&ud3ec;&ud2b8; &rarr; FindRow&lt;FAO_struct_FItemBase&gt;</div></div>
+        </div>
+        <div class="desc-block">
+          FTableRowBase&ub97c; &uc0c1;&uc18d;&ud558;&uc5ec; CSV/JSON DataTable&uc758; &ud589;&uc73c;&ub85c; &uc0ac;&uc6a9;&ub429;&ub2c8;&ub2e4;.
+          EItemType &uc5f4;&uac70;&ud615;(None/Fuel/Consumable/Weapon/Passive/RevivalChip)&uc73c;&ub85c; &uc544;&uc774;&ud15c; &uc885;&ub958;&ub97c; &ubd84;&ub958;&ud558;&uace0;,
+          GetHighlightStencilValue()&ub85c; &uc544;&uc774;&ud15c; &ud0c0;&uc785;&ubcc4; &uc2a4;&ud150;&uc2e4; &uac12;&uc744; &ubc18;&ud658;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="itembase" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">ItemType</span></td><td><span class="var-type">EItemType</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td><td>&uc544;&uc774;&ud15c; &ubd84;&ub958; (None/Fuel/Consumable/Weapon/Passive/RevivalChip)</td></tr>
+          <tr><td><span class="var-name">ItemID</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>DataTable &ud589; &ud0a4;&uc640; &ub3d9;&uc77c;&ud55c; &uace0;&uc720; &uc2dd;&ubcc4;&uc790;</td></tr>
+          <tr><td><span class="var-name">ItemName / ItemExplain</span></td><td><span class="var-type">FString</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc544;&uc774;&ud15c; &uc774;&ub984;&uacfc; &uc124;&uba85; &ubb38;&uc790;&uc5f4;</td></tr>
+          <tr><td><span class="var-name">FuelAmount</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc5f0;&ub8cc; &uc544;&uc774;&ud15c;&uc778; &uacbd;&uc6b0; &uae30;&ucc28;&uc5d0; &ucd94;&uac00;&ud560; &uc5f0;&ub8cc;&ub7c9;</td></tr>
+          <tr><td><span class="var-name">ItemIcon</span></td><td><span class="var-type">TSoftObjectPtr&lt;UTexture2D&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>UI &uc544;&uc774;&ucf58; &ud14d;&uc2a4;&ucc98; (&uc18c;&ud504;&ud2b8; &ucc38;&uc870;)</td></tr>
+          <tr><td><span class="var-name">WorldMesh</span></td><td><span class="var-type">TSoftObjectPtr&lt;UStaticMesh&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc6d4;&ub4dc;&uc5d0; &ubc30;&uce58;&ub420; &ub54c;&#51032; &uba54;&uc2dc;</td></tr>
+          <tr><td><span class="var-name">ItemPrice</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc0c1;&uc810; &uad6c;&ub9e4; &uac00;&uaca9;</td></tr>
+          <tr><td><span class="var-name">PassiveAmount</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&ud328;&uc2dc;&ube0c; &ud6a8;&uacfc;&ub7c9;</td></tr>
+          <tr><td><span class="var-name">ItemTags</span></td><td><span class="var-type">FGameplayTagContainer</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc544;&uc774;&ud15c; &ubd84;&ub958;&middot;&ud544;&ud130;&ub9c1;&uc6a9; &ud0dc;&uadf8;</td></tr>
+          <tr><td><span class="var-name">HighlightStencilValue</span></td><td><span class="var-type">uint8</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc2a4;&ud150;&uc2e4; &uac12; (0&uc774;&uba74; &ud0c0;&uc785;&ubcc4; &uae30;&ubcf8;&uac12; 250~255)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="itembase" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetHighlightStencilValue() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>HighlightStencilValue&uac00; 0&ubcf4;&ub2e4; &ud06c;&uba74; &uadf8; &uac12;&uc744; &ubc18;&ud658;, &uc544;&ub2c8;&uba74; ItemType&uc5d0; &ub530;&ub77c; Fuel=251, Consumable=252, Weapon=253, Passive=254, RevivalChip=255, &uae30;&ubcf8;=250&uc744; &ubc18;&ud658;.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="itembase" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1; &ud074;&ub798;&uc2a4;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">UAO_ItemManager</span></td><td>GetItemData()&uc5d0;&uc11c; FindRow&ub85c; &uc870;&ud68c;</td></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">AAO_VendingMachine</span></td><td>ApplyItemData()&uc5d0;&uc11c; &uba54;&uc2dc;&middot;&uac00;&uaca9;&middot;&uc124;&uba85; &uc77d;&uae30;</td></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>&uc778;&ubca4;&ud1a0;&ub9ac; &uc2ac;&ub86f; &ub370;&uc774;&ud130; &ucc38;&uc870;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_CollisionChannels ==================== -->
+    <div class="class-card" id="collision">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AO_CollisionChannels</div>
+        <div class="class-parent">&ud5e4;&ub354; &uc804;&uc6a9; (&#53364;&#47000;&#49828; &#50500;&#45784;)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'collision','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'collision','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'collision','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'collision','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="collision" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ud504;&ub85c;&uc81d;&ud2b8; &uc804;&uccb4;&#50640;&#49436; &#49324;&#50857;&#54616;&#45716; &#52964;&#49828;&#53568; &#52649;&#46028; &#52292;&#45328; &ub9e4;&ud06c;&ub85c; &uc815;&uc758;</div></div>
+          <div class="info-item"><div class="info-label">&ub0b4;&uc6a9;</div><div class="info-value">#define AO_TraceChannel_Interaction = ECC_GameTraceChannel1</div></div>
+        </div>
+        <div class="desc-block">
+          &ub2e8;&uc77c; #define &ub9e4;&ud06c;&ub85c;&ub85c; &uad6c;&uc131;&ub41c; &ud5e4;&ub354; &ud30c;&uc77c;&uc785;&ub2c8;&ub2e4;.
+          &ud504;&ub85c;&uc81d;&ud2b8; &uc124;&uc815;(DefaultEngine.ini)&uc5d0;&uc11c; GameTraceChannel1&uc744; "Interaction"&uc73c;&ub85c; &ub4f1;&ub85d;&ud558;&uba74;,
+          C++ &ucf54;&ub4dc;&uc5d0;&uc11c; AO_TraceChannel_Interaction&uc73c;&ub85c; &ucc38;&uc870;&ud560; &uc218; &uc788;&uc2b5;&ub2c8;&ub2e4;.
+          &uc0c1;&ud638;&uc791;&uc6a9; &ud2b8;&ub808;&uc774;&uc2a4;(AO_GameplayAbility_Interact_Trace &ub4f1;)&uc5d0;&uc11c; &uc0ac;&uc6a9;&ub429;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="collision" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ub9e4;&ud06c;&ub85c;</th><th>&uac12;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">AO_TraceChannel_Interaction</span></td><td><span class="var-type">ECC_GameTraceChannel1</span></td><td>&uc0c1;&ud638;&uc791;&uc6a9; &uc2dc;&uc2a4;&ud15c;&uc5d0;&uc11c; &uc0ac;&uc6a9;&ud558;&ub294; &uc804;&uc6a9; &ud2b8;&ub808;&uc774;&uc2a4; &ucc44;&ub110;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="collision" data-tab="funcs">
+        <div class="desc-block">&ud568;&uc218; &uc5c6;&uc74c; &mdash; &ub9e4;&ud06c;&ub85c; &uc815;&uc758; &uc804;&uc6a9;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="collision" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ucc38;&uc870;</td><td><span class="rel-cls">AO_GameplayAbility_Interact_Trace</span></td><td>&uc0c1;&ud638;&uc791;&uc6a9; &ud2b8;&ub808;&uc774;&uc2a4; &ucc44;&ub110;&ub85c; &uc0ac;&uc6a9;</td></tr>
+          <tr><td>&ucc38;&uc870;</td><td><span class="rel-cls">AAO_BaseInteractable &ud30c;&uc0dd;</span></td><td>&ucf5c;&ub9ac;&uc804; &uc751;&ub2f5; &uc124;&uc815;&uc5d0; &uc0ac;&uc6a9;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_AITypes ==================== -->
+    <div class="class-card" id="aitypes">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">FEnemyAttackConfig (AO_AITypes.h)</div>
+        <div class="class-parent">USTRUCT(BlueprintType)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'aitypes','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'aitypes','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'aitypes','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'aitypes','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="aitypes" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ubaa8;&ub4e0; AI &uc801; &uce90;&ub9ad;&ud130;&uc758; &uacf5;&uaca9; &ub370;&uc774;&ud130;&ub97c; &ud45c;&uc900;&ud654;&ud55c; &uad6c;&uc870;&uccb4;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9; &ubc29;&uc2dd;</div><div class="info-value">AI &uce90;&ub9ad;&ud130;&uc5d0; TArray&lt;FEnemyAttackConfig&gt;&ub85c; &ubcf4;&uad00;</div></div>
+        </div>
+        <div class="desc-block">
+          &ubaa8;&ub4e0; &uc801; AI&uc758; &uacf5;&uaca9; &uc124;&uc815;&uc744; &ud558;&ub098;&uc758; &uad6c;&uc870;&uccb4;&ub85c; &ud1b5;&uc77c;&ud558;&uc5ec; &ub370;&uc774;&ud130; &uc8fc;&ub3c4; &uc124;&uacc4;&ub97c; &uc9c0;&uc6d0;&ud569;&ub2c8;&ub2e4;.
+          AttackMontage, Damage, KnockbackStrength, AttackRadius, AttackDistance, bRequiresWeapon, DamageEffectClass, AttackTag &ub4f1;&uc744; &ud3ec;&ud568;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="aitypes" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">AttackMontage</span></td><td><span class="var-type">UAnimMontage*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>&uacf5;&uaca9; &uc560;&ub2c8;&uba54;&uc774;&uc158; &ubab0;&ud0c0;&uc8fc;</td></tr>
+          <tr><td><span class="var-name">Damage</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&ub370;&ubbf8;&uc9c0; (&uae30;&ubcf8; 30)</td></tr>
+          <tr><td><span class="var-name">KnockbackStrength</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&ub11b;&ubc31; &uac15;&ub3c4; (&uae30;&ubcf8; 500)</td></tr>
+          <tr><td><span class="var-name">AttackRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>SphereTrace &ubc18;&uacbd; (&uae30;&ubcf8; 150)</td></tr>
+          <tr><td><span class="var-name">AttackDistance</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uc2dc;&uc804; &uac00;&ub2a5; &uac70;&ub9ac; (&uae30;&ubcf8; 200)</td></tr>
+          <tr><td><span class="var-name">bRequiresWeapon</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&ubb34;&uae30; &ud544;&uc694; &uc5ec;&ubd80; (Troll &ub4f1;)</td></tr>
+          <tr><td><span class="var-name">DamageEffectClass</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&ub370;&ubbf8;&uc9c0; GE &ud074;&ub798;&uc2a4; (&uc120;&ud0dd;)</td></tr>
+          <tr><td><span class="var-name">AttackTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uacf5;&uaca9; &uc2dd;&ubcc4;&uc6a9; &ud0dc;&uadf8;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="aitypes" data-tab="funcs">
+        <div class="desc-block">&ud568;&uc218; &uc5c6;&uc74c; &mdash; &ub370;&uc774;&ud130; &uc804;&uc6a9; &uad6c;&uc870;&uccb4;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="aitypes" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">AAO_AggressiveAIBase / AI &uce90;&ub9ad;&ud130;</span></td><td>TArray&lt;FEnemyAttackConfig&gt;&ub85c; &uacf5;&uaca9; &ub370;&uc774;&ud130; &ubcf4;&uad00;</td></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">AO_GA_AIAttackBase</span></td><td>&uacf5;&uaca9; &uc5b4;&ube4c;&ub9ac;&ud2f0;&uc5d0;&uc11c; &uac12;&uc744; &uc77d;&uc5b4; &ub370;&ubbf8;&uc9c0;&middot;&ub11b;&ubc31; &uc801;&uc6a9;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TraversalTypes ==================== -->
+    <div class="class-card" id="travtypes">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AO_TraversalTypes</div>
+        <div class="class-parent">&uc5f4;&uac70;&ud615; &amp; &uad6c;&uc870;&uccb4; &ubaa8;&uc74c;</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'travtypes','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtypes','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtypes','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtypes','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="travtypes" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ud30c;&ucfe0;&ub974;/&ud2b8;&ub798;&ubc84;&uc2e4; &uc2dc;&uc2a4;&ud15c;&uc5d0;&uc11c; &uc0ac;&uc6a9;&ud558;&ub294; &ubaa8;&ub4e0; &ud0c0;&uc785;&middot;&uc785;&ub825;&middot;&uacb0;&uacfc; &uad6c;&uc870;&uccb4;&ub97c; &uc815;&uc758;</div></div>
+          <div class="info-item"><div class="info-label">&ud3ec;&ud568; &ud0c0;&uc785;</div><div class="info-value">ETraversalActionType, FTraversalCheckResult, FTraversalChooserInput/Output, FTraversalCheckInput</div></div>
+        </div>
+        <div class="desc-block">
+          &ud30c;&ucfe0;&ub974; &uc2dc;&uc2a4;&ud15c;&uc758; &ub370;&uc774;&ud130; &uc5f4;&uc804;&uc744; &ub2f4;&ub2f9;&ud569;&ub2c8;&ub2e4;.
+          ETraversalActionType(None/Hurdle/Vault/Mantle)&ub85c; &uc7a5;&uc560;&ubb3c; &ub118;&uae30; &uc720;&ud615;&uc744; &uad6c;&ubd84;&ud558;&uace0;,
+          FTraversalCheckResult&uc5d0; &uc55e;&middot;&ub4a4; &ub808;&uc9c0;&middot;&ubc14;&ub2e5; &uc815;&ubcf4;&middot;&ubab4;&ud0c0;&uc8fc; &uc120;&ud0dd; &uacb0;&uacfc;&ub97c; &ub2f4;&uc2b5;&ub2c8;&ub2e4;.
+          FTraversalChooserInput/Output&uc740; Chooser Table &ud3c9;&uac00;&uc6a9; &uc785;&ucd9c;&ub825; &uad6c;&uc870;&uccb4;,
+          FTraversalCheckInput&uc740; &ud2b8;&ub808;&uc774;&uc2a4; &ud30c;&ub77c;&ubbf8;&ud130;&uc785;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="travtypes" data-tab="vars">
+        <div class="struct-box">
+          <div class="struct-title">ETraversalActionType</div>
+          <div class="struct-field"><span class="sf-name">None / Hurdle / Vault / Mantle</span><span class="sf-desc">Hurdle=&uc790;&uac01;&ud55c; &uc7a5;&uc560;&ubb3c; &ub118;&uae30;, Vault=&ub192;&uc740; &uc7a5;&uc560;&ubb3c;+&ub099;&ud558;, Mantle=&uc704;&ub85c; &uc62c;&ub77c;&uac00;&uae30;</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">FTraversalCheckResult</div>
+          <div class="struct-field"><span class="sf-name">FrontLedge / BackLedge / BackFloor</span><span class="sf-desc">&uc7a5;&uc560;&ubb3c; &uc55e;&middot;&ub4a4; &ub808;&uc9c0;&uc640; &ubc14;&ub2e5; &uc704;&uce58;&middot;&ub178;&uba40;</span></div>
+          <div class="struct-field"><span class="sf-name">ObstacleHeight / ObstacleDepth / BackLedgeHeight</span><span class="sf-desc">&uc7a5;&uc560;&ubb3c; &uce58;&uc218;</span></div>
+          <div class="struct-field"><span class="sf-name">ChosenMontage / StartTime / PlayRate</span><span class="sf-desc">&uc120;&ud0dd;&ub41c; &ubab4;&ud0c0;&uc8fc; &uc815;&ubcf4;</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">FTraversalChooserInput</div>
+          <div class="struct-field"><span class="sf-name">ActionType / bHasFront/BackLedge / Obstacle*</span><span class="sf-desc">Chooser Table &uc785;&ub825;</span></div>
+          <div class="struct-field"><span class="sf-name">MovementMode / Gait / Speed2D</span><span class="sf-desc">&uce90;&ub9ad;&ud130; &uc774;&ub3d9; &uc0c1;&ud0dc;</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">FTraversalCheckInput</div>
+          <div class="struct-field"><span class="sf-name">TraceForwardDirection / Distance / Radius / HalfHeight</span><span class="sf-desc">&uc7a5;&uc560;&ubb3c; &uac10;&uc9c0; &ud2b8;&ub808;&uc774;&uc2a4; &ud30c;&ub77c;&ubbf8;&ud130;</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="travtypes" data-tab="funcs">
+        <div class="desc-block">&ud568;&uc218; &uc5c6;&uc74c; &mdash; &ub370;&uc774;&ud130; &uc804;&uc6a9; &ud5e4;&ub354;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="travtypes" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">AO_GameplayAbility_Traversal</span></td><td>&ud2b8;&ub798;&ubc84;&uc2e4; &uc5b4;&ube4c;&ub9ac;&ud2f0;&uc758; &uae30;&ubcf8; &ub370;&uc774;&ud130; &ud0c0;&uc785;</td></tr>
+          <tr><td>&uc0ac;&uc6a9;&ub428;</td><td><span class="rel-cls">AO_TraversableComponent</span></td><td>&uc7a5;&uc560;&ubb3c; &ucef4;&ud3ec;&ub10c;&ud2b8;&uc758; &ud2b8;&ub808;&uc774;&uc2a4; &uc785;&ub825;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_MapRoutes ==================== -->
+    <div class="class-card" id="maproutes">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AO_MapRoutes</div>
+        <div class="class-parent">namespace (&ud5e4;&ub354; &uc804;&uc6a9;)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'maproutes','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'maproutes','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'maproutes','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'maproutes','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="maproutes" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc2a4;&ud14c;&uc774;&uc9c0;&middot;&ub85c;&ube44;&middot;&ud734;&uac8c;&uc2e4; &ub9f5; &uacbd;&ub85c;&ub97c; &uc911;&uc559;&uc5d0;&uc11c; &uc815;&uc758;&ud558;&ub294; &uc720;&ud2f8;&ub9ac;&ud2f0; &ub124;&uc784;&uc2a4;&ud398;&uc774;&uc2a4;</div></div>
+          <div class="info-item"><div class="info-label">&uc2a4;&ud14c;&uc774;&uc9c0;</div><div class="info-value">Meadow / Lava / SnowField &mdash; 3&uac1c; &uc2a4;&ud14c;&uc774;&uc9c0; &ub9f5;</div></div>
+        </div>
+        <div class="desc-block">
+          constexpr &uc0c1;&uc218;&uc640; static &ud568;&uc218;&ub85c; &uad6c;&uc131;&ub41c; &ud5e4;&ub354; &uc804;&uc6a9; &ub124;&uc784;&uc2a4;&ud398;&uc774;&uc2a4;&uc785;&ub2c8;&ub2e4;.
+          &uc2a4;&ud14c;&uc774;&uc9c0; &ub9f5; &uacbd;&ub85c; &ubc30;&uc5f4;(STAGE_MAPS[3]), &ub85c;&ube44; &ub9f5;(LOBBY_MAP), &ud734;&uac8c;&uc2e4; &ub9f5;(REST_MAP) &uacbd;&ub85c;&ub97c; &ubcf4;&uad00;&ud558;&uace0;,
+          &uc778;&ub371;&uc2a4;&ub85c; &uc2a4;&ud14c;&uc774;&uc9c0; &ub9f5;&uc744; &uc870;&ud68c;&ud558;&ub294; &ud5ec;&ud37c; &ud568;&uc218;&ub97c; &uc81c;&uacf5;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="maproutes" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&uc0c1;&uc218;</th><th>&ud0c0;&uc785;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">STAGE_MAPS[3]</span></td><td><span class="var-type">const TCHAR*</span></td><td>Meadow/Lava/SnowField &ub9f5; &uacbd;&ub85c;</td></tr>
+          <tr><td><span class="var-name">STAGE_MAP_COUNT</span></td><td><span class="var-type">int32</span></td><td>3</td></tr>
+          <tr><td><span class="var-name">LOBBY_MAP</span></td><td><span class="var-type">const TCHAR*</span></td><td>/Game/AVaOut/Maps/LV_Lobby</td></tr>
+          <tr><td><span class="var-name">REST_MAP</span></td><td><span class="var-type">const TCHAR*</span></td><td>/Game/AVaOut/Maps/LV_RestRoom</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="maproutes" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetStageMapName(int32 StageIndex)</span>
+              <span class="fn-spec static-fn">Static</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc778;&ub371;&uc2a4; &ubc94;&uc704; &uac80;&uc0ac; &ud6c4; STAGE_MAPS[StageIndex]&uc744; FName&uc73c;&ub85c; &ubc18;&ud658;. &ubc94;&uc704; &ucd08;&uacfc; &uc2dc; NAME_None.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetStageCount() / GetLobbyMapName() / GetRestMapName()</span>
+              <span class="fn-spec static-fn">Static</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc2a4;&ud14c;&uc774;&uc9c0; &uc218; / &ub85c;&ube44; &ub9f5 &uc774;&ub984; / &ud734;&uac8c;&uc2e4; &ub9f5 &uc774;&ub984;&uc744; &ubc18;&ud658;&ud558;&ub294; &ub2e8;&uc21c; &uc720;&ud2f8;&ub9ac;&ud2f0;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="maproutes" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ucc38;&uc870;</td><td><span class="rel-cls">AO_GameInstance / AO_GameMode_Stage</span></td><td>&ub9f5 &uc804;&ud658; &uc2dc; &uacbd;&ub85c; &uc870;&ud68c;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_Log ==================== -->
+    <div class="class-card" id="log">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AO_Log</div>
+        <div class="class-parent">&ub9e4;&ud06c;&ub85c; &amp; &ub85c;&uadf8; &uce74;&ud14c;&uace0;&ub9ac; &uc815;&uc758;</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'log','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'log','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'log','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'log','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="log" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ud504;&ub85c;&uc81d;&ud2b8; &uc804;&uccb4; &ub85c;&uadf8; &uce74;&ud14c;&uace0;&ub9ac;(&uac1c;&ubc1c;&uc790;&ubcc4;) &ubc0f; &ub85c;&uadf8; &ub9e4;&ud06c;&ub85c; &uc815;&uc758;</div></div>
+          <div class="info-item"><div class="info-label">&uce74;&ud14c;&uace0;&ub9ac;</div><div class="info-value">LogKH, LogJM, LogHSJ, LogJSH, LogKSJ, LogKSH &mdash; 6&uba85; &uac1c;&ubc1c;&uc790;&ubcc4;</div></div>
+        </div>
+        <div class="desc-block">
+          UE_LOG &ub798;&ud37c; &ub9e4;&ud06c;&ub85c;(AO_LOG, AO_LOG_NET, AO_LOG_ROLE, AO_LOG_SUBOBJECT_ROLE)&ub97c; &uc81c;&uacf5;&ud558;&uc5ec;
+          &ud568;&uc218;&uba85;, &ub124;&ud2b8;&ubaa8;&ub4dc;, &ub85c;&ucee8;/&ub9ac;&ubaa8;&ud2b8; &uc5ed;&ud560;&uc744; &uc790;&ub3d9;&uc73c;&ub85c; &ub85c;&uadf8;&uc5d0; &ud3ec;&ud568;&ud569;&ub2c8;&ub2e4;.
+          AO_ENSURE / AO_CHECK / AO_VERIFY &ub9e4;&ud06c;&ub85c;&ub85c; &uc870;&uac74; &uac80;&uc0ac;&ub3c4; &ud568;&uc218;&uba85;&uc744; &ud3ec;&ud568;&ud558;&uc5ec; &ub514;&ubc84;&uae45;&uc744; &uc6a9;&uc774;&ud558;&uac8c; &ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="log" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ub9e4;&ud06c;&ub85c;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">AO_LOG(Cat, Verb, Fmt, ...)</span></td><td>[&ud568;&uc218;&uba85;] &ud3ec;&ub9f7; &ub85c;&uadf8;</td></tr>
+          <tr><td><span class="var-name">AO_LOG_NET(Cat, Verb, Fmt, ...)</span></td><td>[Server/Client] [&ud568;&uc218;&uba85;] &ud3ec;&ub9f7;</td></tr>
+          <tr><td><span class="var-name">AO_LOG_ROLE(Cat, Verb, Fmt, ...)</span></td><td>[NetMode] [LocalRole/RemoteRole] [&ud568;&uc218;&uba85;] &ud3ec;&ub9f7;</td></tr>
+          <tr><td><span class="var-name">AO_ENSURE(Cond, Fmt, ...)</span></td><td>ensureMsgf &ub798;&ud37c; &mdash; &uc870;&uac74; &uc2e4;&ud328; &uc2dc; &ub85c;&uadf8; + &ucf5c;&uc2a4;&ud0dd;</td></tr>
+          <tr><td><span class="var-name">AO_CHECK(Cond, Fmt, ...)</span></td><td>checkf &ub798;&ud37c; &mdash; &uc870;&uac74; &uc2e4;&ud328; &uc2dc; &ud06c;&ub798;&uc2dc;</td></tr>
+          <tr><td><span class="var-name">AO_VERIFY(Cond, Fmt, ...)</span></td><td>verifyf &ub798;&ud37c; &mdash; &ub9b4;&ub9ac;&uc2a4;&uc5d0;&uc11c;&ub3c4; &uc2dd; &ud3c9;&uac00;</td></tr>
+        </table>
+        <div class="section-title">&ub85c;&uadf8; &uce74;&ud14c;&uace0;&ub9ac;</div>
+        <table class="var-table">
+          <tr><th>&uce74;&ud14c;&uace0;&ub9ac;</th><th>&ub2f4;&ub2f9;&uc790;</th></tr>
+          <tr><td><span class="var-name">LogKH</span></td><td>KH</td></tr>
+          <tr><td><span class="var-name">LogJM</span></td><td>JM</td></tr>
+          <tr><td><span class="var-name">LogHSJ</span></td><td>HSJ</td></tr>
+          <tr><td><span class="var-name">LogJSH</span></td><td>JSH</td></tr>
+          <tr><td><span class="var-name">LogKSJ</span></td><td>KSJ</td></tr>
+          <tr><td><span class="var-name">LogKSH</span></td><td>KSH</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="log" data-tab="funcs">
+        <div class="desc-block">&ud568;&uc218; &uc5c6;&uc74c; &mdash; &ub9e4;&ud06c;&ub85c; &uc815;&uc758; &uc804;&uc6a9;&uc785;&ub2c8;&ub2e4;. .cpp&uc5d0;&uc11c; DEFINE_LOG_CATEGORY&ub85c; 6&uac1c; &uce74;&ud14c;&uace0;&ub9ac;&ub97c; &ub4f1;&ub85d;&ud569;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="log" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ucc38;&uc870;</td><td><span class="rel-cls">&ud504;&ub85c;&uc81d;&ud2b8; &uc804;&uccb4; .cpp</span></td><td>&ubaa8;&ub4e0; C++ &ud30c;&uc77c;&uc5d0;&uc11c; #include "AO_Log.h"&ub85c; &uc0ac;&uc6a9;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_DelegateManager ==================== -->
+    <div class="class-card" id="delegatemgr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_DelegateManager</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UGameInstanceSubsystem</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'delegatemgr','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'delegatemgr','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'delegatemgr','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'delegatemgr','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="delegatemgr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc804;&uc5ed; &ub378;&ub9ac;&uac8c;&uc774;&ud2b8; &ud5c8;&ube0c; &mdash; &uc124;&uc815; UI &uac04; &uc774;&ubca4;&ud2b8; &uc911;&uacc4;</div></div>
+          <div class="info-item"><div class="info-label">&uc0dd;&uc874; &ubc94;&uc704;</div><div class="info-value">GameInstance &uc218;&uba85; (GameInstanceSubsystem)</div></div>
+        </div>
+        <div class="desc-block">
+          &uc124;&uc815; UI &uc5f4;&uae30;/&ub2eb;&uae30;, &ud0a4;&ubc14;&uc778;&ub4dc; &uac31;&uc2e0;, &ud1b5;&uacc4; &uac31;&uc2e0;, &uc804;&uccb4; &uc124;&uc815; &ucd08;&uae30;&ud654; &ub4f1;&uc758; &uc774;&ubca4;&ud2b8;&ub97c;
+          &uc911;&uc559;&uc5d0;&uc11c; &ube0c;&ub85c;&ub4dc;&uce90;&uc2a4;&ud2b8;&ud569;&ub2c8;&ub2e4;. Blueprint&uc5d0;&uc11c; Broadcast_* &ud568;&uc218;&ub85c; &uc774;&ubca4;&ud2b8;&ub97c; &ubc1c;&uc1a1;&ud560; &uc218; &uc788;&uc2b5;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="delegatemgr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">OnSettingsOpen / OnSettingsClose</span></td><td><span class="var-type">FOnSettings*Delegate</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>&uc124;&uc815; UI &uc5f4;&ub9bc;/&ub2eb;&ud798; &uc774;&ubca4;&ud2b8;</td></tr>
+          <tr><td><span class="var-name">OnResetAllSettings</span></td><td><span class="var-type">FOnResetAllSettings</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>&ubaa8;&ub4e0; &uc124;&uc815; &ucd08;&uae30;&ud654; &uc774;&ubca4;&ud2b8;</td></tr>
+          <tr><td><span class="var-name">OnKeybindUpdated</span></td><td><span class="var-type">FOnKeybindUpdated</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>&ud0a4;&ubc14;&uc778;&ub4dc; &ubcc0;&uacbd; &uc774;&ubca4;&ud2b8;</td></tr>
+          <tr><td><span class="var-name">OnStatisticsUpdated</span></td><td><span class="var-type">FOnStatisticsUpdated</span></td><td><span class="prop-tag bp">BlueprintAssignable</span></td><td>&ud1b5;&uacc4; &uac31;&uc2e0; &uc774;&ubca4;&ud2b8;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="delegatemgr" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Broadcast_OnSettingsOpen() / Broadcast_OnSettingsClose() / Broadcast_OnKeybindUpdated()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Blueprint&uc5d0;&uc11c; &ud638;&ucd9c; &uac00;&ub2a5;&ud55c; &ub378;&ub9ac;&uac8c;&uc774;&ud2b8; &ubc1c;&uc1a1; &ud5ec;&ud37c;. &ub0b4;&ubd80;&uc801;&uc73c;&ub85c; &ud574;&ub2f9; &ub378;&ub9ac;&uac8c;&uc774;&ud2b8;.Broadcast()&ub97c; &ud638;&ucd9c;&ud569;&ub2c8;&ub2e4;.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="delegatemgr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ud638;&ucd9c;</td><td><span class="rel-cls">UAO_GameSettingsManager</span></td><td>SetToDefaults()&uc5d0;&uc11c; OnResetAllSettings &ubc1c;&uc1a1;</td></tr>
+          <tr><td>&uad6c;&ub3c5;</td><td><span class="rel-cls">&uc124;&uc815; UI &uc704;&uc82f;</span></td><td>&uac01; &ub378;&ub9ac;&uac8c;&uc774;&ud2b8;&uc5d0; &ubc14;&uc778;&ub529;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_ItemManager ==================== -->
+    <div class="class-card" id="itemmgr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_ItemManager</div>
+        <div class="class-parent">&ubd80;&ubaa8;: UObject</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'itemmgr','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemmgr','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemmgr','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemmgr','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="itemmgr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc544;&uc774;&ud15c; DataTable &ub85c;&ub4dc; &ubc0f; &uc870;&ud68c; &uc2f1;&uae00;&ud134; &ub9e4;&ub2c8;&uc800;</div></div>
+          <div class="info-item"><div class="info-label">&uc8fc;&uc758;</div><div class="info-value">NewObject&ub85c; &uc0dd;&uc131;&ub418;&ub294; raw &uc2f1;&uae00;&ud134; &mdash; GC &ub8e8;&ud2b8; &uc5c6;&uc74c;</div></div>
+        </div>
+        <div class="desc-block">
+          &uc804;&uc5ed &uc2f1;&uae00;&ud134; &ud328;&ud134;&uc73c;&ub85c; &uc544;&uc774;&ud15c; DataTable&uc744; &ub85c;&ub4dc;&ud558;&uace0;,
+          ItemID&#47196; &ud589; &ub370;&uc774;&ud130;(FAO_struct_FItemBase)&ub97c; &uc870;&ud68c;&ud569;&ub2c8;&ub2e4;.
+          NewObject&lt;UAO_ItemManager&gt;()&ub85c; &uc0dd;&uc131;&ub418;&ubbc0;&ub85c; GC &ub8e8;&ud2b8;&uac00; &uc5c6;&uc73c;&uba70;,
+          &ub2e4;&ub978; UPROPERTY&uc5d0;&uc11c; &ucc38;&uc870;&ud558;&uc9c0; &uc54a;&uc73c;&uba74; GC&uc5d0; &uc758;&ud574; &uc218;&uac70;&ub420; &uc218; &uc788;&uc2b5;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="itemmgr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">Database</span></td><td><span class="var-type">UAO_ItemDataAsset*</span></td><td>(private)</td><td>Initialize()&ub85c; &uc124;&uc815;&ub418;&ub294; &ub370;&uc774;&ud130; &uc5d0;&uc14b; &ucc38;&uc870;</td></tr>
+          <tr><td><span class="var-name">LoadedTable</span></td><td><span class="var-type">UDataTable*</span></td><td>(private)</td><td>&ub85c;&ub4dc;&ub41c; &uc544;&uc774;&ud15c; DataTable (&ub3d9;&uae30; &ub85c;&ub4dc;)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="itemmgr" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Get()</span>
+              <span class="fn-spec static-fn">Static</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc804;&uc5ed &uc2f1;&uae00;&ud134; &uc811;&uadfc;. &uc5c6;&uc73c;&uba74; NewObject&lt;UAO_ItemManager&gt;()&ub85c; &uc0dd;&uc131;. UPROPERTY &uc5c6;&ub294; raw &ud3ec;&uc778;&ud130;&ub85c; GC &ubb38;&uc81c; &uac00;&ub2a5;&uc131; &uc788;&uc74c;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize(UAO_ItemDataAsset* InDatabase)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Database &uc800;&uc7a5; &ud6c4; ItemDataTable&uc744; LoadSynchronous()&ub85c; &ub3d9;&uae30; &ub85c;&ub4dc;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetItemData(FName ItemID, FAO_struct_FItemBase&amp; OutData)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>LoadedTable&uc5d0;&uc11c; FindRow&lt;FAO_struct_FItemBase&gt;(ItemID)&ub85c; &ub370;&uc774;&ud130; &uc870;&ud68c;. &uc131;&uacf5;&uc2dc; true&uc640; OutData, &uc2e4;&ud328;&uc2dc; false.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="itemmgr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc77d;&uc74c;</td><td><span class="rel-cls">UAO_ItemDataAsset</span></td><td>&ub370;&uc774;&ud130 &uc5d0;&uc14b; &ucc38;&uc870;&ub85c; DataTable &ub85c;&ub4dc;</td></tr>
+          <tr><td>&ubc18;&ud658;</td><td><span class="rel-cls">FAO_struct_FItemBase</span></td><td>GetItemData()&ub85c; &ud589; &ub370;&uc774;&ud130; &ubc18;&ud658;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_ShopManager ==================== -->
+    <div class="class-card" id="shopmgr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_ShopManager</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AActor</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'shopmgr','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'shopmgr','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'shopmgr','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'shopmgr','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="shopmgr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uacf5;&uc720; &uc0c1;&uc810; &uc790;&uae08;(&uc5f0;&ub8cc; &uae30;&ubc18;) &uad00;&ub9ac; &ubc0f; &uad6c;&ub9e4; &ucc98;&ub9ac;</div></div>
+          <div class="info-item"><div class="info-label">&ub124;&ud2b8;&uc6cc;&ud06c;</div><div class="info-value">SharedShopMoney&uac00; Replicated, Server_BuyItem&uc740; Server RPC</div></div>
+          <div class="info-item"><div class="info-label">&uc790;&uae08; &ucd08;&uae30;&ud654;</div><div class="info-value">GameInstance.SharedTrainFuel&uc5d0;&uc11c; &ucd08;&uae30; &uae08;&uc561; &ub85c;&ub4dc;</div></div>
+          <div class="info-item"><div class="info-label">UI</div><div class="info-value">TextRenderComponent&ub85c; &uc794;&uc561; &uc6d4;&ub4dc; &ud45c;&uc2dc;</div></div>
+        </div>
+        <div class="desc-block">
+          &ud734;&uac8c;&uc2e4; &ub808;&ubca8;&uc5d0; &ubc30;&uce58;&ub418;&uc5b4; &uacf5;&uc720; &uc0c1;&uc810; &uc790;&uae08;&uc744; &uad00;&ub9ac;&ud569;&ub2c8;&ub2e4;.
+          GameInstance&uc758; SharedTrainFuel(float)&uc744; int32&ub85c; &ubcc0;&ud658;&ud558;&uc5ec; &uc0ac;&uc6a9;&ud558;&uba70;,
+          &uad6c;&ub9e4; &uc2dc; &uc794;&uc561; &ucc28;&uac10; &ud6c4; VendingMachine&uc5d0; &uc544;&uc774;&ud15c; &uc2a4;&ud3f0;&#51012; &#50836;&#52397;&#54633;&#45765;&#45796;.
+          bAlwaysRelevant=true&ub85c; &ubaa8;&ub4e0; &ud074;&ub77c;&uc774;&uc5b8;&ud2b8;&uc5d0; &ud56d;&uc0c1; &ubcf5;&uc81c;&ub429;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="shopmgr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">SharedShopMoney</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_TotalMoney</span></td><td>&uacf5;&uc720; &uc0c1;&uc810; &uc794;&uc561;. &ubcc0;&uacbd; &uc2dc; OnRep&ub85c; UI &uac31;&uc2e0;</td></tr>
+          <tr><td><span class="var-name">MoneyDisplayText</span></td><td><span class="var-type">UTextRenderComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>&uc794;&uc561; &ud45c;&uc2dc;&uc6a9; &ud14d;&uc2a4;&ud2b8; &ub80c;&ub354;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="shopmgr" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_BuyItem(int32 Cost, AAO_VendingMachine* Vendor)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>&uc794;&uc561; &uac80;&uc0ac; &rarr; SharedShopMoney -= Cost &rarr; GameInstance.SharedTrainFuel &ub3d9;&uae30; &rarr; UpdateMoneyDisplay() &rarr; Vendor-&gt;SpawnVendingItem()</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_TotalMoney()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&ud074;&ub77c;&uc774;&uc5b8;&ud2b8;&uc5d0;&uc11c; SharedShopMoney &ubcf5;&uc81c; &uc2dc; UpdateMoneyDisplay() &ud638;&ucd9c;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="shopmgr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc77d;&uc74c;</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>SharedTrainFuel&uc5d0;&uc11c; &ucd08;&uae30; &uae08;&uc561; &ub85c;&ub4dc;</td></tr>
+          <tr><td>&uc81c;&uc5b4;</td><td><span class="rel-cls">AAO_VendingMachine</span></td><td>SpawnVendingItem()&uc73c;&ub85c; &uc544;&uc774;&ud15c; &uc2a4;&ud3f0; &uc694;&uccad;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_InventoryListener ==================== -->
+    <div class="class-card" id="invlistener">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">IAO_InventoryListener</div>
+        <div class="class-parent">UINTERFACE (Blueprintable)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'invlistener','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invlistener','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invlistener','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invlistener','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="invlistener" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc778;&ubca4;&ud1a0;&ub9ac; &ubcc0;&uacbd; &uc54c;&ub9bc;&uc744; &uc218;&uc2e0;&ud558;&ub294; &uc778;&ud130;&ud398;&uc774;&uc2a4;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9;</div><div class="info-value">UI &uc704;&uc82f; &ub4f1;&uc774; &uc774; &uc778;&ud130;&ud398;&uc774;&uc2a4;&ub97c; &uad6c;&ud604;&ud558;&uc5ec; &uc2ac;&ub86f; &ubcc0;&uacbd; &uc218;&uc2e0;</div></div>
+        </div>
+        <div class="desc-block">
+          BlueprintNativeEvent 2&uac1c;(OnSlotChanged, OnSelectChanged)&ub97c; &uc81c;&uacf5;&ud558;&uc5ec;
+          InventoryComponent&uac00; &uc2ac;&ub86f; &ub370;&uc774;&ud130;&ub098; &uc120;&ud0dd; &uc778;&ub371;&uc2a4; &ubcc0;&uacbd; &uc2dc; &uad6c;&ub3c5;&uc790;&uc5d0;&uac8c; &uc54c;&ub9bc;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="invlistener" data-tab="vars">
+        <div class="desc-block">&uba64;&ubc84; &ubcc0;&uc218; &uc5c6;&uc74c; &mdash; &uc21c;&uc218; &uc778;&ud130;&ud398;&uc774;&uc2a4;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="invlistener" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnSlotChanged(const TArray&lt;FInventorySlot&gt;&amp; NewSlots)</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc778;&ubca4;&ud1a0;&ub9ac; &uc2ac;&ub86f; &ubcc0;&uacbd; &uc2dc; &uc0c8 &uc2ac;&ub86f; &ubc30;&uc5f4;&#51012; &#51204;&#45804;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnSelectChanged(int32 NewIndex)</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc120;&ud0dd;&ub41c; &uc2ac;&ub86f; &uc778;&ub371;&uc2a4; &ubcc0;&uacbd; &uc2dc; &uc0c8; &uc778;&ub371;&uc2a4; &uc804;&ub2ec;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="invlistener" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ud638;&ucd9c;&ub428;</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>&uc2ac;&ub86f;/&uc120;&ud0dd; &ubcc0;&uacbd; &uc2dc; &uc778;&ud130;&ud398;&uc774;&uc2a4; &ud568;&uc218; &ud638;&ucd9c;</td></tr>
+          <tr><td>&uad6c;&ud604;</td><td><span class="rel-cls">&uc778;&ubca4;&ud1a0;&ub9ac; UI &uc704;&uc82f;</span></td><td>Blueprint&uc5d0;&uc11c; &uad6c;&ud604;&ud558;&uc5ec; UI &uac31;&uc2e0;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TrainFuelListener ==================== -->
+    <div class="class-card" id="fuellistener">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">IAO_TrainFuelListener</div>
+        <div class="class-parent">UINTERFACE (BlueprintType)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'fuellistener','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuellistener','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuellistener','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuellistener','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="fuellistener" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uae30;&ucc28; &uc5f0;&ub8cc; &ubcc0;&uacbd; &uc54c;&ub9bc;&uc744; &uc218;&uc2e0;&ud558;&ub294; &uc778;&ud130;&ud398;&uc774;&uc2a4;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9;</div><div class="info-value">AAO_newTrain::BindFuel()&ub85c; &ub9ac;&uc2a4;&ub108; &ub4f1;&ub85d;, &uc5f0;&ub8cc; &ubcc0;&uacbd; &uc2dc; OnFuelChanged &ud638;&ucd9c;</div></div>
+        </div>
+        <div class="desc-block">
+          &ub2e8;&uc77c BlueprintNativeEvent(OnFuelChanged)&ub9cc; &uc815;&uc758;&ud558;&ub294; &uacbd;&ub7c9; &uc778;&ud130;&ud398;&uc774;&uc2a4;.
+          AAO_newTrain&uc774; HandleFuelAttributeChanged&uc5d0;&uc11c; &ub4f1;&ub85d;&ub41c; &ub9ac;&uc2a4;&ub108;&ub4e4;&uc5d0;&uac8c;
+          Execute_OnFuelChanged()&ub85c; &uc0c8; &uc5f0;&ub8cc;&uac12;&uc744; &uc804;&ub2ec;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="fuellistener" data-tab="vars">
+        <div class="desc-block">&uba64;&ubc84; &ubcc0;&uc218; &uc5c6;&uc74c; &mdash; &uc21c;&uc218; &uc778;&ud130;&ud398;&uc774;&uc2a4;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="fuellistener" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnFuelChanged(float NewFuel)</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&uc5f0;&ub8cc;&uac00; &ubcc0;&uacbd;&ub420; &ub54c;&ub9c8;&ub2e4; &uc0c8; &uc5f0;&ub8cc;&uac12;(NewFuel)&uc744; &uc804;&ub2ec;&ubc1b;&ub294; &ucf5c;&ubc31;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="fuellistener" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ud638;&ucd9c;&ub428;</td><td><span class="rel-cls">AAO_newTrain</span></td><td>HandleFuelAttributeChanged&uc5d0;&uc11c; Execute_OnFuelChanged &ud638;&ucd9c;</td></tr>
+          <tr><td>&uad6c;&ud604;</td><td><span class="rel-cls">&uc5f0;&ub8cc; UI &uc704;&uc82f;</span></td><td>Blueprint&uc5d0;&uc11c; &uad6c;&ud604;&ud558;&uc5ec; &uc5f0;&ub8cc; &uac8c;&uc774;&uc9c0; &uac31;&uc2e0;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TraversalTransform ==================== -->
+    <div class="class-card" id="travtransform">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">IAO_TraversalTransform</div>
+        <div class="class-parent">UINTERFACE (BlueprintType)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'travtransform','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtransform','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtransform','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'travtransform','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="travtransform" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ud2b8;&ub798;&ubc84;&uc2e4; &ud2b8;&ub79c;&uc2a4;&ud3fc;&uc744; Get/Set&ud560; &uc218; &uc788;&ub294; &uc778;&ud130;&ud398;&uc774;&uc2a4;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6a9;</div><div class="info-value">AnimInstance&uac00 &uc774; &uc778;&ud130;&ud398;&uc774;&uc2a4;&ub97c; &uad6c;&ud604;&ud558;&uc5ec; &ubab4;&ud0c0;&uc8fc; &uc6cc;&ud551; &ud0c0;&uac9f; &uc81c;&uacf5;</div></div>
+        </div>
+        <div class="desc-block">
+          SetTraversalTransform&uacfc; GetTraversalTransform &ub450; &uac1c;&uc758; BlueprintNativeEvent&ub97c; &uc815;&uc758;.
+          &uad6c;&ud604;&uccb4;(&uc608;: AnimInstance)&ub294; &ub0b4;&ubd80; FTransform &ubcc0;&uc218;&uc5d0; &uc800;&uc7a5;&ud558;&uc5ec;
+          MotionWarping&uc758; &ud0c0;&uac9f; &uc815;&ubcf4;&ub97c; &uc81c;&uacf5;&ud569;&ub2c8;&ub2e4;.
+          &uc21c;&uc218; &uac00;&uc0c1; &ud568;&uc218;(=0)&ub85c; &uc120;&uc5b8;&ub418;&uc5b4; &uad6c;&ud604; &ud544;&uc218;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="travtransform" data-tab="vars">
+        <div class="desc-block">&uba64;&ubc84; &ubcc0;&uc218; &uc5c6;&uc74c; &mdash; &uc21c;&uc218; &uc778;&ud130;&ud398;&uc774;&uc2a4;&uc785;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="travtransform" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetTraversalTransform(const FTransform&amp;) / GetTraversalTransform()</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&ud2b8;&ub798;&ubc84;&uc2e4; &ubaa9;&ud45c; &ud2b8;&ub79c;&uc2a4;&ud3fc;&uc744; &uc124;&uc815;/&uc870;&ud68c;. &uad6c;&ud604;&uccb4;&uac00; &ub0b4;&ubd80; FTransform &uba64;&ubc84;&ub85c; &uc800;&uc7a5;. GetTraversalTransform&uc740; BlueprintThreadSafe.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="travtransform" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uad6c;&ud604;</td><td><span class="rel-cls">AO_PlayerCharacter_AnimInstance</span></td><td>AnimInstance&uac00 &uad6c;&ud604;&ud558;&uc5ec; &ubab4;&uc158;&uc6cc;&ud551; &ud0c0;&uac9f; &uc81c;&uacf5;</td></tr>
+          <tr><td>&ud638;&ucd9c;</td><td><span class="rel-cls">AO_GameplayAbility_Traversal</span></td><td>&ud2b8;&ub798;&ubc84;&uc2e4; &uc5b4;&ube4c;&ub9ac;&ud2f0;&uac00 Set/Get &ud638;&ucd9c;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_newTrain ==================== -->
+    <div class="class-card" id="newtrain">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_newTrain</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AAO_BaseInteractable</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'newtrain','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'newtrain','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'newtrain','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'newtrain','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="newtrain" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc0c1;&ud638;&uc791;&uc6a9; &uae30;&ubc18; &uae30;&ucc28; &uc561;&ud130; &mdash; GAS&ub85c; &uc5f0;&ub8cc; &uad00;&ub9ac;, &uc774;&ubca4;&ud2b8; &uae30;&ubc18; &ucda9;&uc804;</div></div>
+          <div class="info-item"><div class="info-label">&ub124;&ud2b8;&uc6cc;&ud06c;</div><div class="info-value">ASC Minimal &ubcf5;&uc81c; &ubaa8;&ub4dc;. &uc5b4;&ube4c;&ub9ac;&ud2f0;&ub294; &uc11c;&ubc84;&uc5d0;&uc11c;&ub9cc; &uc2e4;&ud589;</div></div>
+          <div class="info-item"><div class="info-label">&uc5f0;&ub8cc; &ucda9;&uc804;</div><div class="info-value">GameplayEvent "Event.Interaction.AddFuel"&ub85c; &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud65c;&uc131;&ud654;</div></div>
+          <div class="info-item"><div class="info-label">&uc5f0;&ub8cc; &uc2e4;&ud328;</div><div class="info-value">&uc5f0;&ub8cc; 0 &ubbf8;&ub9cc; &ub3c4;&ub2ec; &uc2dc; TriggerStageFailByTrainFuel() &ud638;&ucd9c;</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_BaseInteractable&ub97c; &uc0c1;&uc18d;&ud558;&uc5ec; &uc0c1;&ud638;&uc791;&uc6a9; &uc2dc;&uc2a4;&ud15c;&uc744; &uadf8;&ub300;&ub85c; &ud65c;&uc6a9;&ud569;&ub2c8;&ub2e4;.
+          ASC(AbilitySystemComponent)&ub97c; &uc9c1;&uc811; &ubcf4;&uc720;&ud558;&uba70;, UAO_Fuel_AttributeSet&uc73c;&ub85c; &uc5f0;&ub8cc; &uc218;&uce58;&ub97c; &uad00;&ub9ac;&ud569;&ub2c8;&ub2e4;.
+          OnInteractionSuccess&uc5d0;&uc11c; &ud50c;&ub808;&uc774;&uc5b4; &uc778;&ubca4;&ud1a0;&ub9ac;&uc758; FuelAmount&uc744; &uc77d;&uc5b4;
+          GameplayEvent&ub85c; AddEnergy &uc5b4;&ube4c;&ub9ac;&ud2f0;&ub97c; &ud65c;&uc131;&ud654;&ud569;&ub2c8;&ub2e4;.
+          FuelListeners &ubc30;&uc5f4;&ub85c; IAO_TrainFuelListener &uad6c;&ub3c5;&uc790;&uc5d0;&uac8c; &uc5f0;&ub8cc; &ubcc0;&uacbd;&uc744; &uc54c;&ub9bd;&ub2c8;&ub2e4;.
+          FuelLeakSkillOut()&uc5d0;&uc11c; Spec &ub110; &uac80;&uc0ac; &uc5c6;&uc774; CancelAbility/ClearAbility&ub97c; &ud638;&ucd9c;&ud558;&ub294; &uc810;&uc774; &uc798;&uc7ac;&uc801; &ud06c;&ub798;&uc2dc; &uc704;&ud5d8;&uc785;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="newtrain" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">ASC</span></td><td><span class="var-type">UAbilitySystemComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&uae30;&ucc28; &uc804;&uc6a9; GAS &ucef4;&ud3ec;&ub10c;&ud2b8;</td></tr>
+          <tr><td><span class="var-name">FuelAttributeSet</span></td><td><span class="var-type">const UAO_Fuel_AttributeSet*</span></td><td>(UPROPERTY)</td><td>&uc5f0;&ub8cc; &uc5b4;&ud2b8;&ub9ac;&ubdf0;&ud2b8; &uc138;&ud2b8;</td></tr>
+          <tr><td><span class="var-name">AddEnergyAbilityClass</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayAbility&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uc5f0;&ub8cc; &ucda9;&uc804; &uc5b4;&ube4c;&ub9ac;&ud2f0;</td></tr>
+          <tr><td><span class="var-name">LeakEnergyAbilityClass</span></td><td><span class="var-type">TSubclassOf&lt;UGameplayAbility&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uc5f0;&ub8cc; &ub204;&uc218; &uc5b4;&ube4c;&ub9ac;&ud2f0;</td></tr>
+          <tr><td><span class="var-name">FuelListeners</span></td><td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;UObject&gt;&gt;</span></td><td>(UPROPERTY)</td><td>&uc5f0;&ub8cc; &ubcc0;&uacbd; &ub9ac;&uc2a4;&ub108; &ubaa9;&ub85d;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="newtrain" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &mdash; GAS &ucd08;&uae30;&ud654; &amp; &uc11c;&ube0c;&uc2dc;&uc2a4;&ud15c; &ub4f1;&ub85d;</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>
+                &#9312; ASC-&gt;InitAbilityActorInfo &rarr; &#9313; FuelAttributeSet &ucc38;&uc870; &ud68d;&ub4dd; &rarr; &#9314; &uc5f0;&ub8cc; &ubcc0;&uacbd; &ub378;&ub9ac;&uac8c;&uc774;&ud2b8; &ubc14;&uc778;&ub529; &rarr;
+                &#9315; (Authority) InitFromGameInstance &rarr; &uc5b4;&ube4c;&ub9ac;&ud2f0; Grant &rarr; FuelLeakSkillOn() &rarr;
+                &#9316; UAO_TrainWorldSubsystem&uc5d0; RegisterTrain(this)
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>
+                &#9312; &uc778;&ubca4;&ud1a0;&ub9ac;&uc5d0;&uc11c; &uc120;&ud0dd; &uc2ac;&ub86f;&uc758; FuelAmount &ud655;&uc778; &rarr;
+                &#9313; &rarr; GameplayEvent("Event.Interaction.AddFuel") &ubc1c;&uc1a1; &rarr;
+                &#9314; ASC&uac00; AddEnergy &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud65c;&uc131;&ud654; &rarr;
+                &#9315; Inventory-&gt;ClearSlot()
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FuelLeakSkillOn() / FuelLeakSkillOut()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>LeakEnergy &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud65c;&uc131;&ud654;/&ucde8;&uc18c;. FuelLeakSkillOut()&uc5d0;&uc11c; Spec &ub110; &uac80;&uc0ac; &uc5c6;&uc774; CancelAbility/ClearAbility&ub97c; &ud638;&ucd9c;&ud558;&uc5ec; nullptr &uc5ed;&ucc38;&uc870; &ud06c;&ub798;&uc2dc; &uc704;&ud5d8;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleFuelAttributeChanged(Data)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>
+                &#9312; (Authority) Old&ge;0 &amp;&amp; New&lt;0 &uc77c;&ub54c; StageGM-&gt;TriggerStageFailByTrainFuel() &rarr;
+                &#9313; FuelListeners &uc21c;&ud68c; &rarr; IAO_TrainFuelListener::Execute_OnFuelChanged(NewFuel)
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindFuel(UObject*) / BindFuelListener(UObject*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>IAO_TrainFuelListener &uad6c;&ud604; &uc5ec;&ubd80; &uac80;&uc0ac; &ud6c4; FuelListeners&uc5d0; &ucd94;&uac00;. &ub4f1;&ub85d; &uc9c1;&ud6c4; &ud604;&uc7ac; &uc5f0;&ub8cc;&uac12;&uc744; &uc989;&uc2dc; &uc804;&ub2ec;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="newtrain" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&ubcf4;&uc720;</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>GAS &uc5f0;&ub8cc; &uc5b4;&ube4c;&ub9ac;&ud2f0; &uc2e4;&ud589;</td></tr>
+          <tr><td>&ubcf4;&uc720;</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>&uc5f0;&ub8cc;/&ucd5c;&ub300;&uc5f0;&ub8cc; &uc5b4;&ud2b8;&ub9ac;&ubdf0;&ud2b8;</td></tr>
+          <tr><td>&ub4f1;&ub85d;</td><td><span class="rel-cls">UAO_TrainWorldSubsystem</span></td><td>RegisterTrain(this)</td></tr>
+          <tr><td>&uc54c;&ub9bc;</td><td><span class="rel-cls">IAO_TrainFuelListener</span></td><td>&uc5f0;&ub8cc; &ubcc0;&uacbd; &uc2dc; &ub9ac;&uc2a4;&ub108; &ud638;&ucd9c;</td></tr>
+          <tr><td>&ud638;&ucd9c;</td><td><span class="rel-cls">AAO_GameMode_Stage</span></td><td>&uc5f0;&ub8cc; &uc18c;&uc9c4; &uc2dc; TriggerStageFailByTrainFuel()</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_Sample_Fuel ==================== -->
+    <div class="class-card" id="samplefuel">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_Sample_Fuel</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AActor</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'samplefuel','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'samplefuel','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'samplefuel','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'samplefuel','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="samplefuel" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ud14c;&uc2a4;&ud2b8;&uc6a9; &uc5f0;&ub8cc; &uc544;&uc774;&ud15c; &uc561;&ud130; &mdash; &uc624;&ubc84;&ub7a9;&uc73c;&ub85c; &uae30;&ucc28;&uc5d0; &uc5f0;&ub8cc; &ucda9;&uc804;</div></div>
+          <div class="info-item"><div class="info-label">&uc791;&ub3d9;</div><div class="info-value">StaticMesh &uc624;&ubc84;&ub7a9; &rarr; Authority &uac80;&uc0ac; &rarr; AAO_Train&uc758; ASC&ub85c; &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud65c;&uc131;&ud654; &rarr; Destroy</div></div>
+        </div>
+        <div class="desc-block">
+          &ub808;&ubca8;&uc5d0; &ubc30;&uce58;&ud558;&uba74; StaticMesh &uc624;&ubc84;&ub7a9;&uc73c;&ub85c; &uc5f0;&ub8cc;&ub97c; &ucda9;&uc804;&ud558;&ub294; &ud14c;&uc2a4;&ud2b8;&uc6a9; &uc561;&ud130;&uc785;&ub2c8;&ub2e4;.
+          AAO_Train(&#44396; &#48260;&#51204;)&uc758; AddEnergyAbilityClass&ub97c; &uc0ac;&uc6a9;&ud558;&uba70;,
+          bConsumed &ud50c;&ub798;&uadf8;&ub85c; &uc911;&ubcf5; &uc18c;&ubaa8;&ub97c; &ubc29;&uc9c0;&ud569;&ub2c8;&ub2e4;.
+          Tick&uc774; &ud65c;&uc131;&ud654;&ub41c &ucc44; &ube48; &uad6c;&ud604;&uc778; &uc810;&#51008; &#48520;&#54596;&#50836;&#54620; &#50724;&#48260;&#54756;&#46300;&#51077;&#45765;&#45796;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="samplefuel" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">AddFuelAmount</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&ucda9;&uc804;&ud560; &uc5f0;&ub8cc;&ub7c9; (&uae30;&ubcf8; 50)</td></tr>
+          <tr><td><span class="var-name">AddEnergyAbilityClass</span></td><td><span class="var-type">TSoftClassPtr&lt;UAO_AddFuel_GameplayAbility&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc5f0;&ub8cc; &ucda9;&uc804; &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud074;&ub798;&uc2a4; (&uc18c;&ud504;&ud2b8; &ucc38;&uc870;)</td></tr>
+          <tr><td><span class="var-name">FuelMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc5f0;&ub8cc; &uc544;&uc774;&ud15c; &uba54;&uc2dc; (&ub8e8;&ud2b8;&ucef4;&ud3ec;&ub10c;&ud2b8;)</td></tr>
+          <tr><td><span class="var-name">TargetTrain</span></td><td><span class="var-type">AAO_Train*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&ub300;&uc0c1; &uae30;&ucc28; (&ubbf8;&uc124;&uc815; &uc2dc; TActorIterator&ub85c; &uac80;&uc0c9;)</td></tr>
+          <tr><td><span class="var-name">bConsumed</span></td><td><span class="var-type">bool</span></td><td>(private UPROPERTY)</td><td>&uc911;&ubcf5; &uc18c;&ubaa8; &ubc29;&uc9c0; &ud50c;&ub798;&uadf8;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="samplefuel" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnOverlap(...)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>
+                &#9312; HasAuthority &amp; !bConsumed &uac80;&uc0ac; &rarr;
+                &#9313; TargetTrain &ub610;&ub294; TActorIterator&ub85c; AAO_Train &ucc3e;&uae30; &rarr;
+                &#9314; Train&uc758; ASC&uc5d0;&uc11c; AddEnergyAbilityClass Spec &ucc3e;&uae30; &rarr;
+                &#9315; PendingAmount = AddFuelAmount &uc124;&uc815; &rarr;
+                &#9316; TryActivateAbility &rarr; Destroy()
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="samplefuel" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc811;&uadfc;</td><td><span class="rel-cls">AAO_Train</span></td><td>ASC&ub97c; &ud1b5;&ud574; &uc5f0;&ub8cc; &uc5b4;&ube4c;&ub9ac;&ud2f0; &ud65c;&uc131;&ud654;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TrollWeapon ==================== -->
+    <div class="class-card" id="trollweapon">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_TrollWeapon</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AActor</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'trollweapon','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'trollweapon','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'trollweapon','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'trollweapon','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="trollweapon" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">Troll AI &uc804;&uc6a9; &ubb34;&uae30; &uc561;&ud130; &mdash; &uc904;&uae30;/&ub4dc;&ub86d;&middot;&ubb3c;&ub9ac;&middot;&uc18c;&ucf13; &ubd80;&ucc29;</div></div>
+          <div class="info-item"><div class="info-label">&ub124;&ud2b8;&uc6cc;&ud06c;</div><div class="info-value">OwningTroll&#51060; ReplicatedUsing=OnRep, OnRep&#50640;&#49436; &#48512;&#52265;/&#48516;&#47532; &#46041;&#44592;</div></div>
+          <div class="info-item"><div class="info-label">&ubb3c;&ub9ac;</div><div class="info-value">&ub4dc;&ub86d; &uc2dc; WeaponMesh&uc5d0; SimulatePhysics &ud65c;&uc131;&ud654;</div></div>
+          <div class="info-item"><div class="info-label">&uac10;&uc9c0;</div><div class="info-value">DetectionSphere(100cm)&ub85c; Troll StateTree&uac00 &ubb34;&uae30; &uac10;&uc9c0;</div></div>
+        </div>
+        <div class="desc-block">
+          Troll&ub9cc; &uc904;&uae30;/&ub4dc;&ub86d;&ud560; &uc218; &uc788;&ub294; &uc804;&uc6a9; &ubb34;&uae30; &uc561;&ud130;&uc785;&ub2c8;&ub2e4;.
+          WeaponMesh&uac00 RootComponent&ub85c; &ubb3c;&ub9ac; &uc2dc;&ubbac;&ub808;&uc774;&uc158; &uc2dc; Actor &uc704;&uce58;&uac00 &uc815;&uc0c1;&uc801;&uc73c;&ub85c; &uac31;&uc2e0;&ub429;&ub2c8;&ub2e4;.
+          PickupByTroll()&uc740; &uc774;&ubbf8; &ub2e4;&ub978; Troll&uc774; &uc18c;&uc9c0; &uc911;&uc774;&uba74; false&ub97c; &ubc18;&ud658;&ud558;&uba70;,
+          OnRep_OwningTroll()&uc5d0;&uc11c; &ud074;&ub77c;&uc774;&uc5b8;&ud2b8; &ucee1;&uc744; &ucc98;&ub9ac;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="trollweapon" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">WeaponMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&ubb34;&uae30; &uba54;&uc2dc; (RootComponent)</td></tr>
+          <tr><td><span class="var-name">DetectionSphere</span></td><td><span class="var-type">USphereComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>&uac10;&uc9c0;&uc6a9; &uc2a4;&ud53c;&uc5b4; (100cm)</td></tr>
+          <tr><td><span class="var-name">OwningTroll</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_Troll&gt;</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_OwningTroll</span></td><td>&ud604;&uc7ac; &uc18c;&uc9c0;&uc790;</td></tr>
+          <tr><td><span class="var-name">WeaponSocketName</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&ubd80;&ucc29;&ud560; &uc18c;&ucf13; (&uae30;&ubcf8; "WeaponSocket")</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="trollweapon" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PickupByTroll(AAO_Troll* Troll)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>&#9312; &ub110;/&uc774;&ubbf8; &ub2e4;&ub978; Troll &uc18c;&uc9c0; &uac80;&uc0ac; &rarr; &#9313; OwningTroll &uc124;&uc815; &rarr; &#9314; &ubb3c;&ub9ac; &ube44;&ud65c;&uc131;&ud654; &rarr; &#9315; &ucda9;&ub3cc; &ube44;&ud65c;&uc131;&ud654; &rarr; &#9316; SkeletalMesh&uc758; WeaponSocket&uc5d0; Snap &ubd80;&ucc29;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Drop()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>OwningTroll &ub9ac;&uc14b; &rarr; DetachFromActor &rarr; &ucda9;&ub3cc; &ud65c;&uc131;&ud654; &rarr; &ubb3c;&ub9ac; &uc2dc;&ubbac;&ub808;&uc774;&uc158; &ud65c;&uc131;&ud654;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_OwningTroll()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>&ud074;&ub77c;&uc774;&uc5b8;&ud2b8;&uc5d0;&uc11c; OwningTroll &ubcf5;&uc81c; &uc2dc; &ubd80;&ucc29;/&ubd84;&ub9ac; &ub3d9;&uae30;. Valid&uba74; Snap &ubd80;&ucc29;, nullptr&uba74; Detach + &ubb3c;&ub9ac;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="trollweapon" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc18c;&uc720;</td><td><span class="rel-cls">AAO_Troll</span></td><td>PickupByTroll/Drop&uc73c;&ub85c; &uc0c1;&ud638;&uc791;&uc6a9;</td></tr>
+          <tr><td>&uac10;&uc9c0;</td><td><span class="rel-cls">AO_STCond_TrollWeaponNearby</span></td><td>StateTree&uc5d0;&uc11c; DetectionSphere &uc624;&ubc84;&ub7a9; &ud655;&uc778;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_RevivealChipContainer ==================== -->
+    <div class="class-card" id="revivechip">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_RevivealChipContainer</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AAO_BaseInteractable</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'revivechip','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'revivechip','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'revivechip','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'revivechip','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="revivechip" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&ubd80;&ud65c; &uce69; &ub4f1;&ub85d; &ucee8;&ud14c;&uc774;&ub108; &mdash; RevivalChip &uc544;&uc774;&ud15c;&uc744; &uacf5;&uc720; &ubd80;&ud65c; &uce74;&uc6b4;&ud2b8;&ub85c; &ubcc0;&ud658;</div></div>
+          <div class="info-item"><div class="info-label">&uc791;&ub3d9;</div><div class="info-value">&uc120;&ud0dd; &uc2ac;&ub86f;&uc774; RevivalChip&uc774;&uba74; GameState.SharedReviveCount += 1 &ud6c4; &uc2ac;&ub86f; &uc81c;&uac70;</div></div>
+        </div>
+        <div class="desc-block">
+          BaseInteractable&uc758; OnInteractionSuccess&ub97c; &uc624;&ubc84;&ub77c;&uc774;&ub4dc;&ud558;&uc5ec;,
+          &ud50c;&ub808;&uc774;&uc5b4; &uc778;&ubca4;&ud1a0;&ub9ac;&uc758; &uc120;&ud0dd; &uc2ac;&ub86f;&uc774; RevivalChip &ud0c0;&uc785;&uc778;&uc9c0; &uac80;&uc0ac; &ud6c4;
+          GameState&uc758; &uacf5;&uc720; &ubd80;&ud65c; &uce74;&uc6b4;&ud2b8;&ub97c; 1 &uc99d;&uac00;&uc2dc;&ud0a4;&uace0; &uc2ac;&ub86f;&uc744; &ube44;&uc6c1;&ub2c8;&ub2e4;.
+          Authority &uac80;&uc0ac; &ud6c4; &uc11c;&ubc84;&uc5d0;&uc11c;&ub9cc; &uc2e4;&ud589;&ub429;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="revivechip" data-tab="vars">
+        <div class="desc-block">&ucd94;&uac00; &uba64;&ubc84; &ubcc0;&uc218; &uc5c6;&uc74c; &mdash; &ubd80;&ubaa8; &ud074;&ub798;&uc2a4;&uc758; &ubcc0;&uc218;&ub97c; &uc0ac;&uc6a9;&ud569;&ub2c8;&ub2e4;.</div>
+      </div>
+      <div class="tab-panel" data-class="revivechip" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>
+                &#9312; HasAuthority() &uac80;&uc0ac; &rarr;
+                &#9313; Interactor&uc758; InventoryComponent &ud68d;&ub4dd; &rarr;
+                &#9314; &uc120;&ud0dd; &uc2ac;&ub86f;&#51032; ItemType == RevivalChip &uac80;&uc0ac; &rarr;
+                &#9315; GameState-&gt;AddSharedReviveCount(1) &rarr;
+                &#9316; Inventory-&gt;ClearSlot()
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="revivechip" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc77d;&uc74c;</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>&uc120;&ud0dd; &uc2ac;&ub86f; &ub370;&uc774;&ud130; &ud655;&uc778;</td></tr>
+          <tr><td>&uc218;&uc815;</td><td><span class="rel-cls">AAO_GameState</span></td><td>AddSharedReviveCount(&uc555;)&ub85c; &uacf5;&uc720; &ubd80;&ud65c; &uce74;&uc6b4;&ud2b8; &uc99d;&uac00;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TrainDoor ==================== -->
+    <div class="class-card" id="traindoor">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_TrainDoor</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AAO_BaseInteractable</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'traindoor','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'traindoor','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'traindoor','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'traindoor','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="traindoor" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uae30;&ucc28; &uc2ac;&ub77c;&uc774;&ub4dc; &ubb38; &mdash; &uc0c1;&ud638;&uc791;&uc6a9;&uc73c;&ub85c; &uc5f4;&ub9bc;/&ub2eb;&ud798; &ud1a0;&uae00;</div></div>
+          <div class="info-item"><div class="info-label">&ub124;&ud2b8;&uc6cc;&ud06c;</div><div class="info-value">bDoorOpen&#51060; ReplicatedUsing=OnRep_DoorState, Tick&#50640;&#49436; &ubcf4;&uac04;</div></div>
+          <div class="info-item"><div class="info-label">&uc560;&ub2c8;&uba54;&uc774;&uc158;</div><div class="info-value">Tick&uc5d0;&uc11c; VInterpTo&ub85c; &uc5f4;&ub9bc;/&ub2eb;&ud798; &uc704;&uce58;&ub85c; &ubd80;&ub4dc;&ub7fd;&uac8c; &uc774;&ub3d9;</div></div>
+          <div class="info-item"><div class="info-label">&uc0ac;&uc6b4;&ub4dc;</div><div class="info-value">&uc5f4;&ub9bc;/&ub2eb;&ud798; &uc2dc; &uc11c;&ubc84;+&ud074;&ub77c;&uc774;&uc5b8;&ud2b8; &ubaa8;&ub450;&uc5d0;&uc11c; &uc0ac;&uc6b4;&ub4dc; &uc7ac;&uc0dd;</div></div>
+        </div>
+        <div class="desc-block">
+          BaseInteractable&uc758; bIsToggleable=true &ubaa8;&ub4dc;&ub97c; &ud65c;&uc6a9;&ud569;&ub2c8;&ub2e4;.
+          &uc0c1;&ud638;&uc791;&uc6a9; &uc131;&uacf5; &uc2dc; bDoorOpen&uc744; &ubc18;&uc804;&ud558;&uace0;,
+          Tick&uc5d0;&uc11c; VInterpTo&ub85c; ClosedLocation&harr;OpenedLocation &uc0ac;&uc774;&ub97c; &ube0c;&ub974;&ub974;&uac8c; &uc774;&ub3d9;&ud569;&ub2c8;&ub2e4;.
+          SlideOffset&uc740; &uc561;&ud130; &ub85c;&ucef8; &ud68c;&uc804;&uc744; &ubc18;&uc601;&ud558;&uc5ec; RotateVector&ub85c; &ubcc0;&ud658;&ub429;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="traindoor" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">DoorMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>&ubb38; &uba54;&uc2dc; (RootComponent)</td></tr>
+          <tr><td><span class="var-name">SlideOffset</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc5f4;&ub9bc; &uc2dc; &uc774;&ub3d9;&ub7c9; (&uae30;&ubcf8; -100,0,0)</td></tr>
+          <tr><td><span class="var-name">SlideSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&ubcf4;&uac04; &uc18d;&ub3c4; (&uae30;&ubcf8; 4.0)</td></tr>
+          <tr><td><span class="var-name">bDoorOpen</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_DoorState</span></td><td>&ud604;&uc7ac; &ubb38; &uc0c1;&ud0dc;</td></tr>
+          <tr><td><span class="var-name">DoorOpenSound / DoorCloseSound</span></td><td><span class="var-type">USoundBase*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>&uc5f4;&ub9bc;/&ub2eb;&ud798; &uc0ac;&uc6b4;&ub4dc;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="traindoor" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess_BP_Implementation(Interactor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Authority &uac80;&uc0ac; &rarr; bDoorOpen = !bDoorOpen &rarr; &uc11c;&ubc84;&uc5d0;&uc11c; PlayDoorSound(). &ud074;&ub77c;&uc774;&uc5b8;&ud2b8;&ub294; OnRep_DoorState&uc5d0;&uc11c; &uc0ac;&uc6b4;&ub4dc; &uc7ac;&uc0dd;.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Tick(float DeltaTime)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>bDoorOpen&uc5d0; &ub530;&ub77c; TargetLoc &uacb0;&uc815; &rarr; VInterpTo&ub85c; &ubd80;&ub4dc;&ub7fd;&uac8c; SetActorLocation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="traindoor" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc0c1;&uc18d;</td><td><span class="rel-cls">AAO_BaseInteractable</span></td><td>&uc0c1;&ud638;&uc791;&uc6a9; &uc2dc;&uc2a4;&ud15c; &ud65c;&uc6a9;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_InventorySaveZone ==================== -->
+    <div class="class-card" id="invsavezone">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_InventorySaveZone</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AActor</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'invsavezone','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsavezone','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsavezone','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsavezone','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="invsavezone" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc778;&ubca4;&ud1a0;&ub9ac; &ubcf4;&uc874; &uc548;&uc804; &uc9c0;&ub300; &mdash; &uc9c4;&uc785; &uc2dc; &uc778;&ubca4;&ud1a0;&ub9ac; &ubcf4;&uc874; &uc0c1;&ud0dc;&ub85c; &uc804;&ud658;</div></div>
+          <div class="info-item"><div class="info-label">&uc791;&ub3d9;</div><div class="info-value">BoxComponent &uc624;&ubc84;&ub7a9;&uc73c;&ub85c; Enter/Exit &uac10;&uc9c0;, PlayerState&uc758; SafeZone &uc0c1;&ud0dc; &ubcc0;&uacbd;</div></div>
+        </div>
+        <div class="desc-block">
+          BoxComponent&ub85c; &uc601;&uc5ed;&uc744; &uc815;&uc758;&ud558;&uace0;, &ud50c;&ub808;&uc774;&uc5b4;&uac00 &uc9c4;&uc785;&ud558;&uba74;
+          PlayerState-&gt;SetSafeZoneState(true)&ub97c; &ud638;&ucd9c;&ud558;&uc5ec; &uc778;&ubca4;&ud1a0;&ub9ac; &ubcf4;&uc874; &uc0c1;&ud0dc;&ub85c; &uc804;&ud658;&ud569;&ub2c8;&ub2e4;.
+          &ud1b4;&uac74; &uc2dc; bIsTraveling&uc774;&uba74; SafeZone &ud574;&uc81c;&ub97c; &uac74;&ub108;&ub6f0;&uc5b4;
+          &ub9f5; &uc804;&ud658; &uc911; &uc778;&ubca4;&ud1a0;&ub9ac;&uac00 &uc190;&uc2e4;&ub418;&uc9c0; &uc54a;&ub3c4;&ub85d; &ud569;&ub2c8;&ub2e4;.
+          Authority&uc5d0;&uc11c;&ub9cc; &uc0c1;&ud0dc; &ubcc0;&uacbd;&uc744; &ucc98;&ub9ac;&ud569;&ub2c8;&ub2e4;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="invsavezone" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">Zone</span></td><td><span class="var-type">UBoxComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>&uc548;&uc804; &uc9c0;&ub300; &ucf5c;&ub9ac;&uc804; &ubc15;&uc2a4; (RootComponent)</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="invsavezone" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnEnterSafeZone(...) / OnExitSafeZone(...)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>
+                Enter: Authority &uac80;&uc0ac; &rarr; PlayerState-&gt;SetSafeZoneState(true)<br>
+                Exit: Authority &uac80;&uc0ac; &rarr; bIsTraveling&uc774;&uba74; &uac74;&ub108;&ub6f4; &rarr; PlayerState-&gt;SetSafeZoneState(false)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="invsavezone" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc218;&uc815;</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>SetSafeZoneState()&ub85c; &ubcf4;&uc874; &uc0c1;&ud0dc; &ubcc0;&uacbd;</td></tr>
+          <tr><td>&uac10;&uc9c0;</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>&uc624;&ubc84;&ub7a9;&uc73c;&ub85c; &uc9c4;&uc785;/&ud1b4;&uac74; &uac10;&uc9c0;</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_VendingMachine ==================== -->
+    <div class="class-card" id="vending">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_VendingMachine</div>
+        <div class="class-parent">&ubd80;&ubaa8;: AAO_BaseInteractable</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'vending','overview')">&uac1c;&uc694;</button>
+        <button class="tab-btn" onclick="switchTab(this,'vending','vars')">&uba64;&ubc84; &ubcc0;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'vending','funcs')">&ud568;&uc218;</button>
+        <button class="tab-btn" onclick="switchTab(this,'vending','rel')">&ud638;&ucd9c; &uad00;&uacc4;</button>
+      </div>
+      <div class="tab-panel active" data-class="vending" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">&uc5ed;&ud560;</div><div class="info-value">&uc790;&ud310;&uae30; &uc561;&ud130; &mdash; DataTable &uae30;&ubc18; &uc544;&uc774;&ud15c; &ud45c;&uc2dc;&middot;&uad6c;&ub9e4;&middot;&uc2a4;&ud3f0;</div></div>
+          <div class="info-item"><div class="info-label">&ub124;&ud2b8;&uc6cc;&ud06c;</div><div class="info-value">Server_RequestBuy Server RPC, MechineItemID ReplicatedUsing=OnRep_ItemID</div></div>
+          <div class="info-item"><div class="info-label">&uc544;&uc774;&ud15c; &ub370;&uc774;&ud130;</div><div class="info-value">MechineItemID&ub85c; ItemDataTable&uc5d0;&uc11c; &uba54;&uc2dc;&middot;&uac00;&uaca9;&middot;&uc124;&uba85; &ub85c;&ub4dc;</div></div>
+          <div class="info-item"><div class="info-label">&uc2a4;&ud3f0;</div><div class="info-value">SpawnVendingItem()&ub85c; &uc561;&ud130; &uc55e &ubc29;&ud5a5;&#50640; MasterItem &uc2a4;&ud3f0;</div></div>
+        </div>
+        <div class="desc-block">
+          BaseInteractable&ub97c; &uc0c1;&uc18d;&ud558;&uc5ec; &uc0c1;&ud638;&uc791;&uc6a9; &uc2dc; &uad6c;&ub9e4;&ub97c; &ucc98;&ub9ac;&ud569;&ub2c8;&ub2e4;.
+          BeginPlay&uc5d0;&uc11c; ShopManager&ub97c; TActorIterator&ub85c; &ucc3e;&uace0;,
+          ApplyItemData()&ub85c; ItemDataTable&uc5d0;&uc11c; &uba54;&uc2dc;&middot;&uac00;&uaca9;&middot;&uc124;&uba85;&uc744; &ub85c;&ub4dc;&ud569;&ub2c8;&ub2e4;.
+          &uc0c1;&ud638;&uc791;&uc6a9; &uc131;&uacf5; &uc2dc; ShopManager-&gt;Server_BuyItem()&uc744; &ud638;&ucd9c;&ud558;&uace0;,
+          SpawnVendingItem()&uc73c;&ub85c; MasterItem&uc744; &uc2a4;&ud3f0;&ud569;&ub2c8;&ub2e4;.
+          GetLifetimeReplicatedProps()&uac00 &ube44;&uc5b4;&uc788;&uc5b4; ItemDataTable&uacfc; MechineItemID&uc758; DOREPLIFETIME&uc774; &ub204;&ub77d;&ub41c; &uc810;&#51060; &#51452;&#47785;&#54624; &#48260;&#44536; &#54980;&#48372;&#51077;&#45765;&#45796;.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="vending" data-tab="vars">
+        <table class="var-table">
+          <tr><th>&ubcc0;&uc218;&uba85;</th><th>&ud0c0;&uc785;</th><th>&uc9c0;&uc815;&uc790;</th><th>&uc124;&uba85;</th></tr>
+          <tr><td><span class="var-name">ShopManager</span></td><td><span class="var-type">AAO_ShopManager*</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>&ub808;&ubca8;&uc5d0;&uc11c; &ud560;&ub2f9;&ud558;&uac70;&ub098; TActorIterator&ub85c; &ucc3e;&uc74c;</td></tr>
+          <tr><td><span class="var-name">StaticMesh / ItemMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uc790;&ud310;&uae30; &uc678;&ud615; &ubc0f; &uc544;&uc774;&ud15c; &ud45c;&uc2dc; &uba54;&uc2dc;</td></tr>
+          <tr><td><span class="var-name">MechineItemID</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_ItemID</span><span class="prop-tag edit">EditAnywhere</span></td><td>&ud310;&ub9e4; &uc544;&uc774;&ud15c; ID</td></tr>
+          <tr><td><span class="var-name">ItemDataTable</span></td><td><span class="var-type">UDataTable*</span></td><td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span></td><td>&uc544;&uc774;&ud15c; &uc870;&ud68c;&uc6a9; DataTable</td></tr>
+          <tr><td><span class="var-name">DroppableItemClass</span></td><td><span class="var-type">TSubclassOf&lt;AAO_MasterItem&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>&uc2a4;&ud3f0;&ud560; &uc544;&uc774;&ud15c; &ud074;&ub798;&uc2a4;</td></tr>
+          <tr><td><span class="var-name">ItemPrice</span></td><td><span class="var-type">int32</span></td><td>(private)</td><td>DataTable&uc5d0;&uc11c; &uc77d;&uc5b4;&uc628; &uac00;&uaca9;</td></tr>
+          <tr><td><span class="var-name">PriceDisplayText / ItemExplainText</span></td><td><span class="var-type">UTextRenderComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>&uac00;&uaca9;/&uc124;&uba85; &ud14d;&uc2a4;&ud2b8; &ub80c;&ub354;</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="vending" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyItemData()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>ItemDataTable&uc5d0;&uc11c; MechineItemID&ub85c; FindRow &rarr; WorldMesh &ub85c;&ub4dc; &rarr; ItemMesh &uc124;&uc815; &rarr; ItemPrice/&uc124;&uba85; &ud45c;&uc2dc;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess(Interactor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Authority &uac80;&uc0ac; &rarr; ShopManager-&gt;Server_BuyItem(ItemPrice, this) &ud638;&ucd9c;</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestBuy(AActor* Interactor)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud558;&ub294; &uc77c;</div>Authority &uac80;&uc0ac; &rarr; ShopManager-&gt;Server_BuyItem &ud638;&ucd9c; (&ud074;&ub77c;&uc774;&uc5b8;&ud2b8; &uc694;&uccad; &uacbd;&ub85c;)</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SpawnVendingItem()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">&ud750;&ub984;</div>StaticMesh &uc55e &ubc29;&ud5a5; 100cm&uc5d0; SpawnActorDeferred &rarr; ItemID &uc124;&uc815; &rarr; FinishSpawningActor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="vending" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>&ubc29;&ud5a5;</th><th>&ub300;&uc0c1;</th><th>&uad00;&uacc4; &uc124;&uba85;</th></tr>
+          <tr><td>&uc758;&uc874;</td><td><span class="rel-cls">AAO_ShopManager</span></td><td>Server_BuyItem()&uc73c;&ub85c; &uad6c;&ub9e4; &uc694;&uccad;</td></tr>
+          <tr><td>&uc77d;&uc74c;</td><td><span class="rel-cls">FAO_struct_FItemBase</span></td><td>DataTable&uc5d0;&uc11c; &uba54;&uc2dc;&middot;&uac00;&uaca9;&middot;&uc124;&uba85; &uc77d;&uae30;</td></tr>
+          <tr><td>&uc2a4;&ud3f0;</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>&uad6c;&ub9e4; &uc131;&uacf5; &uc2dc; &uc544;&uc774;&ud15c; &uc2a4;&ud3f0;</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 &uae40;&ud53c;&ud0d5; &ucef4;&ud37c;&ub2c8; &nbsp;&middot;&nbsp; UE 5.6<br>
+  &uc18c;&uc2a4; &ucf54;&ub4dc; &ub9ac;&ubdf0; &mdash; &ud559;&uc2b5; &ubaa9;&uc801; &uc804;&uc6a9;
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['gsm','gus','fueldata','camprofile','itembase','collision','aitypes','travtypes','maproutes','log','delegatemgr','itemmgr','shopmgr','invlistener','fuellistener','travtransform','newtrain','samplefuel','trollweapon','revivechip','traindoor','invsavezone','vending'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click handler
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

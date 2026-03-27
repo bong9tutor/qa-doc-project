@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — UI 위젯 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#2563eb;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#eff6ff;color:#2563eb;border-left-color:#2563eb;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#2563eb;border-bottom-color:#2563eb;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #2563eb;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#eff6ff;border-color:#93c5fd;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #93c5fd;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#2563eb;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#2563eb;font-weight:600;}
+
+.flow-box{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+.bug-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.7;color:#991b1b;margin-top:8px;}
+.bug-box strong{color:#dc2626;}
+
+.note-box{background:#fffbeb;border:1px solid #fef3c7;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.7;color:#92400e;margin-top:8px;}
+
+.lifecycle-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#166534;margin-top:8px;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">UI Widgets</div>
+  <div class="nav-sub">UI 위젯 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">UI 위젯 클래스</div>
+  <div class="hero-sub">메뉴&middot;다이얼로그&middot;로비&middot;HUD 위젯 17개 클래스 &mdash; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">AO_UserWidget</span>
+    <span class="badge">AO_ConfirmQuitGameWidget</span>
+    <span class="badge">AO_ConfirmReturnToMenuWidget</span>
+    <span class="badge">AO_HostDialogWidget</span>
+    <span class="badge">AO_PasswordDialogWidget</span>
+    <span class="badge">AO_MainMenuWidget</span>
+    <span class="badge">AO_PauseMenuWidget</span>
+    <span class="badge">AO_SpectateWidget</span>
+    <span class="badge">AO_LobbyListWidget</span>
+    <span class="badge">AO_LobbyListEntryWidget</span>
+    <span class="badge">AO_LobbyReadyBoardWidget</span>
+    <span class="badge">AO_LobbyReadyBoardRowWidget</span>
+    <span class="badge">AO_LobbyReadyBoardActor</span>
+    <span class="badge">AO_HealthWidget</span>
+    <span class="badge">AO_StaminaWidget</span>
+    <span class="badge">AO_NameTagWidget</span>
+    <span class="badge">AO_PasswordPanelInspectable</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#userwidget">AO_UserWidget</a>
+      <a class="toc-item" href="#confirmquit">AO_ConfirmQuitGameWidget</a>
+      <a class="toc-item" href="#confirmreturn">AO_ConfirmReturnToMenuWidget</a>
+      <a class="toc-item" href="#hostdialog">AO_HostDialogWidget</a>
+      <a class="toc-item" href="#pwdialog">AO_PasswordDialogWidget</a>
+      <a class="toc-item" href="#mainmenu">AO_MainMenuWidget</a>
+      <a class="toc-item" href="#pausemenu">AO_PauseMenuWidget</a>
+      <a class="toc-item" href="#spectate">AO_SpectateWidget</a>
+      <a class="toc-item" href="#lobbylist">AO_LobbyListWidget</a>
+      <a class="toc-item" href="#lobbyentry">AO_LobbyListEntryWidget</a>
+      <a class="toc-item" href="#readyboard">AO_LobbyReadyBoardWidget</a>
+      <a class="toc-item" href="#readyrow">AO_LobbyReadyBoardRowWidget</a>
+      <a class="toc-item" href="#boardactor">AO_LobbyReadyBoardActor</a>
+      <a class="toc-item" href="#health">AO_HealthWidget</a>
+      <a class="toc-item" href="#stamina">AO_StaminaWidget</a>
+      <a class="toc-item" href="#nametag">AO_NameTagWidget</a>
+      <a class="toc-item" href="#pwpanel">AO_PasswordPanelInspectable</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_UserWidget ==================== -->
+    <div class="class-card" id="userwidget">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_UserWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'userwidget','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'userwidget','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'userwidget','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'userwidget','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="userwidget" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">프로젝트 전체 위젯의 공통 기반 클래스로, DataTable 기반 UI 사운드 재생, ESC 닫기 이벤트 인터페이스, 호버 불투명도 기본값을 제공합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (엔진 기본 위젯)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">설계 의도</div>
+            <div class="info-value">WBP_Base_Modal 등 중간 블루프린트 계층을 통해 Open/Close 애니메이션을 하위 WBP에 일괄 적용하는 확장 포인트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">구조체</div>
+            <div class="info-value">FAO_SoundRow (FTableRowBase) &mdash; SoundAsset, VolumeMultiplier, PitchMultiplier, Description</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          프로젝트 내 모든 커스텀 위젯의 최상위 부모로 설계된 클래스입니다.
+          WBP_Base_Modal 등 중간 블루프린트 계층을 통해 Open/Close 애니메이션 등 공통 행동을 하위 WBP에 일괄 적용할 수 있습니다.
+          <br><br>
+          <strong>PlayUISoundFromDataTable</strong>은 DataTable에서 FAO_SoundRow를 RowName으로 검색하여 PlaySound2D(IsUISound=true)로 2D 사운드를 재생합니다.
+          SoundDataTable null 체크, Row 미발견 시 화면 디버그 메시지(GEngine->AddOnScreenDebugMessage) 출력을 포함합니다.
+          <br><br>
+          <strong>OnEscapeCloseRequested</strong>는 BlueprintImplementableEvent로, C++에서는 선언만 제공하고 블루프린트에서 ESC 키 닫기 동작을 구현합니다.
+          이 이벤트는 하위 위젯에서 일관된 ESC 키 처리 인터페이스 역할을 합니다.
+        </div>
+        <div class="lifecycle-box">
+          <strong>위젯 수명주기 참고:</strong> 이 클래스 자체는 NativeOnInitialized/NativeConstruct/NativeDestruct 오버라이드가 없습니다.
+          하위 클래스(ConfirmQuit, ConfirmReturn 등)가 이 수명주기 메서드를 오버라이드하며, Super 호출을 통해 UUserWidget의 기본 동작이 보장됩니다.
+        </div>
+        <div class="note-box">
+          <strong>설계 관찰:</strong> ConfirmQuit/ConfirmReturn/Spectate/Health/Stamina/NameTag만 이 클래스를 상속합니다.
+          반면 HostDialog/PasswordDialog/MainMenu/LobbyList/LobbyEntry/PauseMenu/ReadyBoard/ReadyBoardRow는 UUserWidget을 직접 상속하여,
+          PlayUISoundFromDataTable이나 HoverOpacity 등 공통 기능을 사용하지 못합니다. 의도적 설계인지 확인이 필요합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="userwidget" data-tab="vars">
+        <div class="struct-box">
+          <div class="struct-title">FAO_SoundRow (USTRUCT, BlueprintType)</div>
+          <div class="struct-field"><div class="sf-name">SoundAsset</div><div class="sf-desc">TObjectPtr&lt;USoundBase&gt; &mdash; 재생할 사운드 에셋. EditAnywhere, BlueprintReadWrite.</div></div>
+          <div class="struct-field"><div class="sf-name">VolumeMultiplier</div><div class="sf-desc">float (기본 1.0f) &mdash; 볼륨 배수. EditAnywhere, BlueprintReadWrite.</div></div>
+          <div class="struct-field"><div class="sf-name">PitchMultiplier</div><div class="sf-desc">float (기본 1.0f) &mdash; 피치 배수. EditAnywhere, BlueprintReadWrite.</div></div>
+          <div class="struct-field"><div class="sf-name">Description</div><div class="sf-desc">FString &mdash; 사운드 설명. 에디터 참고용, 런타임에는 미사용.</div></div>
+        </div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HoverOpacity</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">VisibleDefaultsOnly, BPReadOnly</span></td>
+            <td>호버 상태 불투명도 (기본 1.0f). protected이므로 블루프린트에서 읽기 전용으로 접근 가능합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">UnHoverOpacity</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">VisibleDefaultsOnly, BPReadOnly</span></td>
+            <td>비호버 상태 불투명도 (기본 0.5f). 블루프린트 OnHovered/OnUnhovered에서 SetRenderOpacity로 활용됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="userwidget" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnEscapeCloseRequested()</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>ESC 키로 위젯 닫기가 요청될 때 블루프린트에서 구현할 수 있는 이벤트입니다. C++에서는 선언만 제공하며, 본문이 없습니다(BlueprintImplementableEvent). 하위 WBP에서 오버라이드하여 애니메이션 재생 후 RemoveFromParent 등을 구현합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                이 이벤트는 현재 C++ 하위 클래스(ConfirmQuit, ConfirmReturn 등)에서는 직접 호출되지 않습니다.
+                대신 NativeOnPreviewKeyDown에서 HandleClicked_Cancel을 직접 호출하는 방식을 사용합니다.
+                WBP 계층에서만 이 이벤트를 사용하는 것으로 보이며, C++ 레벨에서는 각 위젯이 자체적으로 ESC 처리를 구현하고 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PlayUISoundFromDataTable(FName, UDataTable*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>주어진 DataTable에서 RowName으로 FAO_SoundRow를 검색하고, 해당 사운드 에셋을 PlaySound2D(IsUISound=true)로 재생합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; SoundDataTable null 체크 &rarr; 실패 시 AO_LOG(Warning) 후 return<br>
+                &#9313; static const FString ContextString으로 컨텍스트 설정 (스레드 세이프 아님에 주의)<br>
+                &#9314; FindRow&lt;FAO_SoundRow&gt;(RowName, ContextString)으로 행 검색<br>
+                &#9315; Row 발견 &amp; SoundAsset 유효 시: PlaySound2D(World, SoundAsset, Volume, Pitch, 0.0f, nullptr, nullptr, true)<br>
+                &#9316; Row 미발견 시: AO_LOG(Warning) + GEngine-&gt;AddOnScreenDebugMessage로 화면 출력
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                <strong>PlaySound2D 파라미터:</strong> StartTime=0.0f, ConcurrencySettings=nullptr, OwningActor=nullptr, bIsUISound=true.
+                bIsUISound=true는 게임 일시정지 시에도 사운드가 재생되도록 합니다(UI 사운드 속성).<br>
+                <strong>디버그 메시지:</strong> Row 미발견 시 GEngine-&gt;AddOnScreenDebugMessage를 호출하는데, 이는 Shipping 빌드에서도 실행됩니다.
+                프로덕션에서는 #if !UE_BUILD_SHIPPING 가드가 필요할 수 있습니다.<br>
+                <strong>SoundAsset null 체크:</strong> Row를 찾았으나 SoundAsset이 nullptr인 경우 조용히 무시됩니다(로그 없음). 디버깅 시 혼란의 원인이 될 수 있습니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="userwidget" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 UserWidget을 상속합니다.</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_ConfirmQuitGameWidget</span></td><td>게임 종료 확인 팝업</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_ConfirmReturnToMenuWidget</span></td><td>메인 메뉴 복귀 확인 팝업</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_SpectateWidget</span></td><td>관전 모드 위젯</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_HealthWidget</span></td><td>체력 HUD 위젯</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_StaminaWidget</span></td><td>스태미나 HUD 위젯</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">UAO_NameTagWidget</span></td><td>네임태그 위젯</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UGameplayStatics</span></td><td>PlaySound2D를 통한 UI 사운드 재생</td></tr>
+        </table>
+        <div class="note-box">
+          <strong>상속 불일치:</strong> HostDialogWidget, PasswordDialogWidget, MainMenuWidget, PauseMenuWidget, LobbyListWidget,
+          LobbyListEntryWidget, LobbyReadyBoardWidget, LobbyReadyBoardRowWidget은 UUserWidget을 직접 상속하여
+          이 기반 클래스의 공통 기능(사운드, 호버 불투명도)을 공유하지 않습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== AO_ConfirmQuitGameWidget ==================== -->
+    <div class="class-card" id="confirmquit">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_ConfirmQuitGameWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'confirmquit','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmquit','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmquit','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmquit','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="confirmquit" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">게임 종료 확인 팝업 위젯으로, 확인/취소 델리게이트를 브로드캐스트합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">키 입력 처리</div>
+            <div class="info-value">NativeOnPreviewKeyDown에서 AO_UIActionKeySubsystem을 통해 UICloseKey 감지 시 Cancel 처리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">리팩토링 이력</div>
+            <div class="info-value">기존 BindWidget + UButton 직접 바인딩이 WBP Application Btn 방식으로 교체되어 주석 처리됨</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          게임 종료(Quit) 전 사용자에게 확인을 요청하는 모달 팝업입니다.
+          기존 UButton 직접 바인딩(BindWidget) 코드는 WBP Application Btn 방식으로 교체되어 주석 처리된 상태입니다.
+          현재는 블루프린트에서 HandleClicked_Confirm/Cancel을 BlueprintCallable로 호출합니다.
+          <br><br>
+          ESC 키는 NativeOnPreviewKeyDown에서 UIActionKeySubsystem의 IsUICloseKey 검사를 통해 Cancel과 동일하게 동작합니다.
+          키 이벤트 처리 체인: GetOwningPlayer() &rarr; GetGameInstance() &rarr; GetSubsystem&lt;UAO_UIActionKeySubsystem&gt;() &rarr; IsUICloseKey(Key).
+          어느 단계에서든 null이면 Super::NativeOnPreviewKeyDown으로 폴백합니다.
+        </div>
+        <div class="lifecycle-box">
+          <strong>위젯 수명주기:</strong>
+          NativeOnInitialized에서 Super만 호출합니다 (기존 버튼 바인딩 코드는 주석 처리).
+          NativeOnPreviewKeyDown이 키 입력 인터셉트의 핵심이며, ESC 감지 시 HandleClicked_Cancel을 호출하고 FReply::Handled()를 반환하여 이벤트 전파를 차단합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="confirmquit" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">OnConfirmQuitGame</span></td>
+            <td><span class="var-type">FOnConfirmQuitGame</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>확인 버튼 클릭 시 브로드캐스트되는 다이내믹 멀티캐스트 델리게이트. DECLARE_DYNAMIC_MULTICAST_DELEGATE로 파라미터 없이 선언됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnCancelQuitGame</span></td>
+            <td><span class="var-type">FOnCancelQuitGame</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>취소 버튼 또는 ESC 키 입력 시 브로드캐스트되는 다이내믹 멀티캐스트 델리게이트.</td>
+          </tr>
+        </table>
+        <div class="note-box">
+          <strong>주석 처리된 멤버:</strong> Btn_Confirm(UButton*), Btn_Cancel(UButton*), Txt_Message(UTextBlock*, OptionalWidget) &mdash;
+          헤더에 class UButton, UTextBlock 전방 선언이 남아있으나 더 이상 사용되지 않습니다.
+          cpp에도 Button.h, TextBlock.h include가 남아 있어 불필요한 컴파일 의존성이 발생합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="confirmquit" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeOnInitialized()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super::NativeOnInitialized() 호출만 수행합니다. 기존 Btn_Confirm/Btn_Cancel OnClicked 바인딩과 Txt_Message 텍스트 설정 코드는 전체 주석 처리되어 있습니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                주석 처리된 코드에서 Txt_Message-&gt;SetText의 하드코딩 영문 문자열 "Are you sure you want to quit the game?"이 보입니다.
+                현재는 WBP에서 처리하므로 로컬라이제이션이 블루프린트 레벨에서 이루어질 수 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeOnPreviewKeyDown(FGeometry, FKeyEvent)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>키 입력을 가로채서 UICloseKey(ESC 등)이면 HandleClicked_Cancel()을 호출하고 FReply::Handled()를 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; InKeyEvent.GetKey()로 FKey 추출<br>
+                &#9313; GetOwningPlayer() &rarr; null이면 Super 폴백<br>
+                &#9314; PC-&gt;GetGameInstance() &rarr; null이면 Super 폴백<br>
+                &#9315; GI-&gt;GetSubsystem&lt;UAO_UIActionKeySubsystem&gt;() &rarr; null이면 Super 폴백<br>
+                &#9316; Keys-&gt;IsUICloseKey(Key) &rarr; true이면 HandleClicked_Cancel() + FReply::Handled()<br>
+                &#9317; 그 외 Super::NativeOnPreviewKeyDown으로 전달
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                이 ESC 처리 패턴은 ConfirmReturnToMenuWidget과 완전히 동일한 보일러플레이트 코드입니다.
+                공통 기반 클래스(UAO_UserWidget)에 이 로직을 올리고, 가상 함수로 Cancel 동작을 위임하는 리팩토링이 가능합니다.
+                현재 구현은 각 위젯마다 동일한 null 체크 체인이 반복됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleClicked_Confirm()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>OnConfirmQuitGame.Broadcast()를 호출합니다. 파라미터 없는 단순 브로드캐스트입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                위젯 자체는 RemoveFromParent()를 호출하지 않습니다. 구독자(일반적으로 부모 위젯 또는 컨트롤러)가 델리게이트를 받아 실제 종료 처리와 위젯 제거를 수행해야 합니다.
+                이 분리는 의도적으로 보이며, 확인 후 추가 로직(세이브, 네트워크 종료 등)을 구독자가 제어할 수 있게 합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleClicked_Cancel()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>OnCancelQuitGame.Broadcast()를 호출합니다. ESC 키 입력 시에도 이 함수가 호출됩니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="confirmquit" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스를 상속합니다.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIActionKeySubsystem</span></td><td>ESC 키 판별을 위해 IsUICloseKey()를 호출합니다.</td></tr>
+          <tr><td>패턴 공유</td><td><span class="rel-cls">UAO_ConfirmReturnToMenuWidget</span></td><td>ESC 처리, 델리게이트 브로드캐스트 구조가 완전히 동일합니다.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_ConfirmReturnToMenuWidget ==================== -->
+    <div class="class-card" id="confirmreturn">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_ConfirmReturnToMenuWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'confirmreturn','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmreturn','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmreturn','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'confirmreturn','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="confirmreturn" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">메인 메뉴 복귀 확인 팝업 위젯으로, ConfirmQuitGame과 동일한 패턴입니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">패턴</div>
+            <div class="info-value">ConfirmQuitGame과 동일 구조 (델리게이트 이름만 상이: OnConfirmLeaveToMenu / OnCancelLeaveToMenu)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">리팩토링 이력</div>
+            <div class="info-value">기존 BindWidget 버튼 바인딩이 WBP로 이관, 주석 처리됨</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          메인 메뉴로 돌아가기 전 사용자에게 확인을 요청하는 모달 팝업입니다.
+          AO_ConfirmQuitGameWidget과 구조적으로 동일하며, 델리게이트 이름만 다릅니다.
+          HandleClicked_Confirm에서 OnConfirmLeaveToMenu, HandleClicked_Cancel에서 OnCancelLeaveToMenu를 브로드캐스트합니다.
+        </div>
+        <div class="bug-box">
+          <strong>P3 잠재적 이슈:</strong> HandleClicked_Confirm/Cancel 함수에 <code>UFUNCTION(BlueprintCallable, meta = (BindWidget))</code> 지정자가 사용되었습니다.
+          meta=(BindWidget)은 UPROPERTY에서 UMG 위젯 포인터를 바인딩하는 용도로 설계된 메타데이터이며, UFUNCTION에는 의미가 없습니다.
+          ConfirmQuitGame에서는 <code>UFUNCTION(BlueprintCallable)</code>만 사용하여 일관성이 깨져 있습니다.
+          기능적 영향은 없으나 코드 리뷰 시 혼란을 줄 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="confirmreturn" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">OnConfirmLeaveToMenu</span></td>
+            <td><span class="var-type">FOnConfirmLeaveToMenu</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>메인 메뉴 복귀 확인 시 브로드캐스트. DECLARE_DYNAMIC_MULTICAST_DELEGATE, 파라미터 없음.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnCancelLeaveToMenu</span></td>
+            <td><span class="var-type">FOnCancelLeaveToMenu</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>취소 또는 ESC 키 입력 시 브로드캐스트.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="confirmreturn" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeOnInitialized()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super 호출만 수행합니다. 주석 처리된 기존 코드에서는 Txt_Message에 줄바꿈(\n)이 포함된 영문 문자열을 설정했습니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeOnPreviewKeyDown(FGeometry, FKeyEvent)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>ConfirmQuitGame과 완전히 동일한 로직입니다. UIActionKeySubsystem의 IsUICloseKey 검사를 통해 ESC 키 입력 시 HandleClicked_Cancel()을 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleClicked_Confirm()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>OnConfirmLeaveToMenu.Broadcast()를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleClicked_Cancel()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>OnCancelLeaveToMenu.Broadcast()를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="confirmreturn" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스를 상속합니다.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIActionKeySubsystem</span></td><td>ESC 키 판별을 위해 IsUICloseKey()를 호출합니다.</td></tr>
+          <tr><td>패턴 동일</td><td><span class="rel-cls">UAO_ConfirmQuitGameWidget</span></td><td>델리게이트 이름만 다른 동일 패턴입니다.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_HostDialogWidget ==================== -->
+    <div class="class-card" id="hostdialog">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_HostDialogWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'hostdialog','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'hostdialog','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'hostdialog','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'hostdialog','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="hostdialog" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">방 이름/비밀번호를 입력받아 세션을 생성(HostSessionAuto)하는 모달 팝업 다이얼로그</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 아님에 주의)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">입력 모드</div>
+            <div class="info-value">UIOnly 모드, 방 이름 텍스트박스에 초기 포커스, 마우스 커서 표시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">유효성 검사</div>
+            <div class="info-value">방 이름: 1~10자, 제어문자(&lt;0x20) 금지. 비밀번호: 최대 4자 (실시간 자동 절삭)</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          세션 호스팅을 위한 마우스 중심 모달 팝업입니다. NativeConstruct에서 Btn_Backdrop, Txt_RoomName, Txt_Password의 이벤트를 바인딩하고
+          ApplyModalInput으로 UIOnly 입력 모드를 설정합니다.
+          <br><br>
+          <strong>방 이름 유효성:</strong> IsValidRoomName은 빈 문자열, 10자 초과, 제어문자(U+0020 미만)를 거부합니다.
+          GetTrimmedRoomName은 좌우 공백을 TrimStartAndEnd로 제거합니다.
+          <br><br>
+          <strong>비밀번호:</strong> OnPasswordChanged에서 4자 초과 입력 시 LeftInline(4)으로 실시간 잘라냅니다.
+          GetTrimmedPassword에서도 동일한 4자 제한을 적용합니다. TrimStartAndEnd + LeftInline 이중 처리.
+          <br><br>
+          <strong>세션 생성:</strong> OnClicked_Create에서 유효성 검증 후 OnlineSessionSubsystem-&gt;HostSessionAuto(4, RoomName, Password)를 호출합니다.
+          최대 인원이 4로 하드코딩되어 있습니다.
+          <br><br>
+          <strong>Enter 키:</strong> OnRoomNameCommitted에서 ETextCommit::OnEnter 감지 시 OnClicked_Create()를 직접 호출하여
+          Enter 키로도 방 생성이 가능합니다.
+        </div>
+        <div class="note-box">
+          <strong>NativeConstruct 중복 바인딩 위험:</strong> Btn_Backdrop에는 IsAlreadyBound 체크가 있지만,
+          Txt_RoomName과 Txt_Password의 OnTextChanged/OnTextCommitted에는 중복 바인딩 방지가 없습니다.
+          NativeConstruct가 여러 번 호출되는 시나리오(예: SetVisibility 토글)에서 델리게이트 다중 등록이 발생할 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="hostdialog" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Txt_RoomName</span></td>
+            <td><span class="var-type">UEditableTextBox*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>방 이름 입력 텍스트박스. 초기 포커스 대상.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Txt_Password</span></td>
+            <td><span class="var-type">UEditableTextBox*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>비밀번호 입력 텍스트박스. 4자 자동 절삭.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Btn_Create</span></td>
+            <td><span class="var-type">UUserWidget*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>생성 버튼 (WBP Application Btn). 방 이름 유효 시 SetIsEnabled(true).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Btn_Cancel</span></td>
+            <td><span class="var-type">UUserWidget*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>취소 버튼 (WBP Application Btn). 클릭 시 RemoveFromParent.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Btn_Backdrop</span></td>
+            <td><span class="var-type">UButton*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>배경 클릭 감지용 투명 UButton. 클릭 시 Cancel과 동일 처리.</td>
+          </tr>
+        </table>
+        <div class="note-box">
+          <strong>상수:</strong> <code>kRoomNameMaxLen = 10</code> (익명 namespace, cpp 파일 로컬). 방 이름 최대 길이.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="hostdialog" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeConstruct()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super 호출 후 Btn_Backdrop OnClicked, Txt_RoomName OnTextChanged/OnTextCommitted, Txt_Password OnTextChanged를 바인딩합니다. ApplyModalInput() + UpdateCreateButtonState()를 호출합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; Super::NativeConstruct()<br>
+                &#9313; Btn_Backdrop: IsAlreadyBound 체크 후 OnClicked 바인딩<br>
+                &#9314; Txt_RoomName: OnTextChanged &rarr; OnRoomNameChanged, OnTextCommitted &rarr; OnRoomNameCommitted<br>
+                &#9315; Txt_Password: OnTextChanged &rarr; OnPasswordChanged<br>
+                &#9316; ApplyModalInput() &mdash; UIOnly 모드 + 포커스 설정<br>
+                &#9317; UpdateCreateButtonState() &mdash; 초기 버튼 상태 갱신
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyModalInput()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>FInputModeUIOnly 설정: 마우스 잠금 해제, Txt_RoomName TakeWidget으로 초기 포커스, bShowMouseCursor=true. 이후 Txt_RoomName->SetKeyboardFocus() 추가 호출.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                GetPlayerController(GetWorld(), 0)를 사용하여 인덱스 0 컨트롤러를 가져옵니다. 분할 화면 시나리오에서는 문제가 될 수 있으나, 이 게임은 분할 화면을 지원하지 않으므로 문제없습니다.
+                TakeWidget()과 SetKeyboardFocus() 이중 포커스 설정은 Slate와 UMG 포커스 경로가 다르기 때문에 필요합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Create()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>방 이름 유효성 검증 후 OnlineSessionSubsystem-&gt;HostSessionAuto(4, RoomName, Password)를 호출하고 RemoveFromParent()로 자신을 제거합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; GetTrimmedRoomName() / GetTrimmedPassword()로 입력값 추출<br>
+                &#9313; IsValidRoomName(RoomName) 검증 &mdash; 실패 시 SetError + SetKeyboardFocus + return<br>
+                &#9314; GetGameInstance() &rarr; GetSubsystem&lt;UAO_OnlineSessionSubsystem&gt;()<br>
+                &#9315; Sub-&gt;HostSessionAuto(4, RoomName, Password)<br>
+                &#9316; RemoveFromParent()
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                최대 인원 4가 하드코딩되어 있습니다. 향후 변경 가능성이 있다면 UPROPERTY로 노출하는 것이 좋습니다.
+                RemoveFromParent() 호출 후 입력 모드 복원이 없습니다. 세션 생성이 맵 전환을 트리거하므로 문제가 되지 않지만,
+                HostSessionAuto가 실패할 경우 입력 모드가 UIOnly 상태로 남을 수 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Cancel() / OnClicked_Backdrop()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Cancel은 RemoveFromParent() 호출. Backdrop은 Cancel을 호출하여 동일하게 처리합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                Cancel 시 입력 모드를 원래 상태로 복원하지 않습니다. MainMenuWidget에서 HostDialog를 팝업으로 열 때 이미 UIOnly 모드이므로 문제가 되지 않지만, 다른 컨텍스트에서 사용 시 주의가 필요합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPasswordChanged(FText)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>비밀번호 텍스트가 4자를 초과하면 LeftInline(4)로 잘라낸 후 SetText/SetKeyboardFocus를 호출합니다. 4자 이하면 즉시 return.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                SetText 호출이 OnTextChanged를 다시 트리거할 수 있으나, 잘라낸 텍스트는 4자 이하이므로 재귀 루프가 발생하지 않습니다.
+                EAllowShrinking::No 플래그는 내부 메모리 해제를 방지하여 빈번한 할당/해제를 줄입니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsValidRoomName(FString) / GetTrimmedRoomName() / GetTrimmedPassword()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>IsValidRoomName: 빈 문자열, 10자 초과, 제어문자(0x20 미만) 검사. GetTrimmedRoomName/Password: TrimStartAndEnd로 좌우 공백 제거, 비밀번호는 추가로 4자 제한.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="hostdialog" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 UserWidget을 직접 상속합니다 (UAO_UserWidget 미사용).</td></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_MainMenuWidget</span></td><td>OnClicked_Host에서 CreateWidget으로 생성합니다.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>HostSessionAuto(4, RoomName, Password)를 호출합니다.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PasswordDialogWidget ==================== -->
+    <div class="class-card" id="pwdialog">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PasswordDialogWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pwdialog','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwdialog','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwdialog','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwdialog','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pwdialog" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">방 참가용 비밀번호 입력 다이얼로그. 검색 결과 인덱스로 세션을 식별합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비밀번호 검증</div>
+            <div class="info-value">OnlineSessionSubsystem의 VerifyPasswordAgainstIndex로 로컬 해시 기반 사전 검증</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 위젯</div>
+            <div class="info-value">TWeakObjectPtr&lt;UAO_LobbyListWidget&gt;로 ParentList를 약한 참조</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          로비 리스트에서 비밀번호가 설정된 방에 참가할 때 표시되는 팝업 다이얼로그입니다.
+          SetParentList와 SetTargetIndex로 외부에서 컨텍스트를 주입받습니다.
+          <br><br>
+          <strong>비밀번호 검증 흐름:</strong> OnClicked_Ok에서 VerifyPasswordAgainstIndex로 로컬 해시 사전 검증 &rarr; 성공 시 JoinSessionByIndex &rarr; RemoveFromParent.
+          실패 시 ClientMessage("비밀번호가 올바르지 않습니다.")를 출력합니다.
+          <br><br>
+          <strong>Back 처리:</strong> OnClicked_Back에서 RemoveFromParent 후 ParentList의 Visibility를 Visible로 복원하고 포커스를 되돌립니다.
+        </div>
+        <div class="note-box">
+          <strong>헤더 의존성:</strong> AO_LobbyListWidget.h를 직접 #include하고 있어, LobbyListWidget의 변경이 이 파일의 재컴파일을 유발합니다.
+          전방 선언만으로 충분할 수 있으나, SetParentList가 인라인 구현되어 있어 헤더에 전체 정의가 필요합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pwdialog" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Txt_Password</span></td>
+            <td><span class="var-type">UEditableTextBox*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>비밀번호 입력 텍스트박스. NativeConstruct에서 IsReadOnly(false), 포커스 설정, OnTextChanged 바인딩.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Btn_Ok / Btn_Back</span></td>
+            <td><span class="var-type">UUserWidget*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>WBP Application Btn 타입 버튼. BlueprintCallable 함수로 클릭 처리.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ParentList</span></td>
+            <td><span class="var-type">TWeakObjectPtr&lt;UAO_LobbyListWidget&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>부모 리스트 위젯 약한 참조. Back 시 Visibility/포커스 복구용.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TargetIndex</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td>private</td>
+            <td>조인 대상 세션 검색 결과 인덱스 (기본 -1).</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pwdialog" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeConstruct()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>SetIsFocusable(true) 설정, Txt_Password ReadOnly 해제 + 포커스 + OnTextChanged 바인딩.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                HostDialogWidget과 마찬가지로 OnTextChanged에 IsAlreadyBound 체크가 없어 NativeConstruct 재호출 시 중복 바인딩 위험이 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Ok()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>TargetIndex 유효성 검사 &rarr; VerifyPasswordAgainstIndex로 비밀번호 검증 &rarr; 성공 시 JoinSessionByIndex + RemoveFromParent, 실패 시 ClientMessage 출력.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; TargetIndex &lt; 0 이면 Warning 후 return<br>
+                &#9313; Txt_Password에서 비밀번호 텍스트 추출 (null이면 빈 문자열)<br>
+                &#9314; GetGameInstance() &rarr; GetSubsystem&lt;UAO_OnlineSessionSubsystem&gt;()<br>
+                &#9315; Sub-&gt;VerifyPasswordAgainstIndex(TargetIndex, Pw) &mdash; 로컬 해시 검증<br>
+                &#9316; 성공: JoinSessionByIndex(TargetIndex) + RemoveFromParent()<br>
+                &#9317; 실패: ClientMessage("비밀번호가 올바르지 않습니다.")
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                비밀번호 실패 시 RemoveFromParent가 호출되지 않아 사용자가 다시 입력할 수 있습니다. 그러나 실패 피드백이 ClientMessage(로그 영역)로만 제공되어 사용자에게 시각적으로 보이지 않을 수 있습니다. UI 텍스트블록으로 에러 메시지를 표시하는 것이 더 적절합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Back()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>RemoveFromParent 후 ParentList가 유효하면 Visible로 복원하고 FInputModeUIOnly로 포커스를 ParentList에 되돌립니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                ParentList가 TWeakObjectPtr이므로 GC에 의해 이미 소멸된 경우를 안전하게 처리합니다.
+                그러나 GetPlayerController(GetWorld(), 0)를 사용하는데, RemoveFromParent() 이후에도 GetWorld()가 유효한지는 보장되지 않습니다.
+                실제로는 위젯이 뷰포트에서 즉시 제거되더라도 같은 프레임에서 GetWorld()는 유효하므로 문제가 되지 않습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPasswordChanged(FText)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>4자 초과 입력 시 LeftInline(4)로 잘라냅니다. 잘라낸 텍스트가 현재 텍스트와 동일하면 SetText를 건너뜁니다(무한 루프 방지).</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                HostDialogWidget의 OnPasswordChanged보다 진보한 구현입니다. EqualTo 비교를 통해 SetText &rarr; OnTextChanged &rarr; SetText의 무한 루프를 명시적으로 차단합니다.
+                HostDialogWidget에는 이 비교가 없으나, 4자 이하 체크로 암묵적으로 루프가 방지됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pwdialog" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>HandleJoin에서 CreateWidget으로 생성됩니다.</td></tr>
+          <tr><td>약한 참조</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>ParentList로 포커스 복구용 참조.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>VerifyPasswordAgainstIndex, JoinSessionByIndex를 호출합니다.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_MainMenuWidget ==================== -->
+    <div class="class-card" id="mainmenu">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_MainMenuWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'mainmenu','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'mainmenu','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'mainmenu','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'mainmenu','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="mainmenu" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">메인 메뉴: Host / Join / Settings / Quit 4개 액션을 제공하는 루트 메뉴 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">위젯 생성</div>
+            <div class="info-value">Host &rarr; HostDialogWidget, Join &rarr; LobbyListWidget을 CreateWidget으로 동적 생성</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Settings</div>
+            <div class="info-value">DelegateManager::OnSettingsOpen을 브로드캐스트 (실제 설정 위젯은 별도 처리)</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          메인 메뉴의 진입점입니다. 4개의 BlueprintCallable 클릭 핸들러가 각각의 액션을 처리합니다.
+          <br><br>
+          <strong>Host:</strong> HostDialogClass로 CreateWidget &rarr; AddToViewport(200) &rarr; Visible + Focusable 설정.
+          Z-Order 200으로 다른 위젯 위에 표시됩니다.
+          <br><br>
+          <strong>Join:</strong> LobbyListWidgetClass로 CreateWidget &rarr; SetParentMenu(this) &rarr; AddToViewport(100) &rarr; UIOnly 입력 모드 + 포커스 전환.
+          SetParentMenu를 통해 LobbyList가 닫힐 때 이 메뉴로 돌아올 수 있습니다.
+          <br><br>
+          <strong>Settings:</strong> AO_DelegateManager 서브시스템의 OnSettingsOpen을 브로드캐스트합니다. 실제 설정 위젯의 생성/표시는 이 델리게이트의 구독자가 처리합니다.
+          <br><br>
+          <strong>Quit:</strong> UKismetSystemLibrary::QuitGame(EQuitPreference::Quit, false)로 게임을 즉시 종료합니다.
+        </div>
+        <div class="bug-box">
+          <strong>P2 잠재적 이슈 (Quit 확인 없음):</strong> OnClicked_Quit에서 확인 다이얼로그 없이 QuitGame을 즉시 호출합니다.
+          ConfirmQuitGameWidget이 존재하지만 여기서는 사용되지 않습니다.
+          사용자가 실수로 Quit 버튼을 클릭하면 즉시 게임이 종료됩니다.
+          블루프린트 레벨에서 확인 팝업이 추가되었을 수 있으나, C++ 코드만으로는 확인할 수 없습니다.
+        </div>
+        <div class="note-box">
+          <strong>Settings null 체크 누락:</strong> OnClicked_Settings에서 GetGameInstance()의 반환값을 null 체크 없이 직접 GetSubsystem을 호출합니다.
+          GetGameInstance()가 nullptr을 반환하면 크래시가 발생합니다.
+          Host/Join/Quit에서는 null 체크가 있으나 Settings에서는 누락되어 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="mainmenu" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HostDialogClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_HostDialogWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>Host 클릭 시 생성할 다이얼로그 위젯 클래스. 에디터에서 지정.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LobbyListWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_LobbyListWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>Join 클릭 시 생성할 로비 리스트 위젯 클래스. 에디터에서 지정.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="mainmenu" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Host()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>HostDialogClass null 체크 &rarr; CreateWidget &rarr; AddToViewport(200) &rarr; Visible + Focusable.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Join()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>LobbyListWidgetClass null 체크 &rarr; CreateWidget &rarr; SetParentMenu(this) &rarr; AddToViewport(100) &rarr; FInputModeUIOnly + 포커스 전환.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                SetParentMenu(this)를 통해 LobbyListWidget이 닫힐 때 이 메뉴의 Visibility를 복원하고 포커스를 되돌립니다.
+                그러나 이 메뉴 자체의 Visibility를 Hidden으로 변경하지 않아, LobbyList가 Z-Order 100으로 위에 표시되지만 메인 메뉴가 뒤에 보일 수 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Settings()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>DelegateManager::OnSettingsOpen.Broadcast()를 호출합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                GetGameInstance()-&gt;GetSubsystem을 null 체크 없이 체이닝합니다. GetGameInstance()가 nullptr이면 크래시입니다.
+                다른 함수들에서는 if 체크를 하고 있어 일관성이 깨져 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Quit()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PlayerController(0) 가져온 후 QuitGame(EQuitPreference::Quit, false) 호출. bIgnorePlatformRestrictions=false.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="mainmenu" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_HostDialogWidget</span></td><td>Host 클릭 시 CreateWidget으로 팝업 생성.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>Join 클릭 시 CreateWidget으로 리스트 생성.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_DelegateManager</span></td><td>Settings 클릭 시 OnSettingsOpen 브로드캐스트.</td></tr>
+          <tr><td>참조됨</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>SetParentMenu(this)로 역참조 설정.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PauseMenuWidget ==================== -->
+    <div class="class-card" id="pausemenu">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PauseMenuWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pausemenu','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pausemenu','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pausemenu','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pausemenu','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pausemenu" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">인게임 일시정지 메뉴: Settings, ReturnLobby, QuitGame, Resume 4개 액션 델리게이트 브로드캐스트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">ESC 처리</div>
+            <div class="info-value">NativeOnPreviewKeyDown에서 UICloseKey 감지 시 OnRequestResume 브로드캐스트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">함수 이중화</div>
+            <div class="info-value">HandleClicked_* (내부) + OnClicked_* (BlueprintCallable) 이중 레이어</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          인게임에서 일시정지 시 표시되는 메뉴입니다. 4개의 BlueprintAssignable 델리게이트(OnRequestSettings, OnRequestReturnLobby,
+          OnRequestQuitGame, OnRequestResume)를 제공하며, 실제 처리 로직은 컨트롤러 등 구독자가 담당합니다.
+          <br><br>
+          NativeOnPreviewKeyDown에서 ESC 키를 감지하면 OnRequestResume을 브로드캐스트하여 메뉴를 닫습니다.
+          ConfirmQuit/ConfirmReturn과 동일한 UIActionKeySubsystem 패턴을 사용합니다.
+          <br><br>
+          <strong>함수 이중화:</strong> HandleClicked_* (UFUNCTION, 내부 로직)과 OnClicked_* (BlueprintCallable, 외부 인터페이스)가 분리되어 있습니다.
+          OnClicked_*는 HandleClicked_*를 단순 호출합니다. 이는 블루프린트에서 호출 가능한 진입점과 내부 로직을 분리하는 패턴이나,
+          현재 HandleClicked_*가 단순 Broadcast만 수행하므로 추가 레이어의 실익이 적습니다.
+        </div>
+        <div class="note-box">
+          <strong>빈 수명주기 메서드:</strong> NativeConstruct와 NativeOnInitialized를 오버라이드하지만 Super 호출만 수행합니다.
+          향후 확장을 위한 예약으로 보이나, 현재는 불필요한 오버라이드입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pausemenu" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">OnRequestSettings</span></td>
+            <td><span class="var-type">FAO_OnPauseMenuRequestSettings</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>설정 요청 델리게이트</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnRequestReturnLobby</span></td>
+            <td><span class="var-type">FAO_OnPauseMenuRequestReturnLobby</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>로비 복귀 요청 델리게이트</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnRequestQuitGame</span></td>
+            <td><span class="var-type">FAO_OnPauseMenuRequestQuitGame</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>게임 종료 요청 델리게이트</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnRequestResume</span></td>
+            <td><span class="var-type">FAO_OnPauseMenuRequestResume</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>재개(닫기) 요청 델리게이트. ESC 키에도 연결됨.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Btn_Settings / Btn_ReturnLobby / Btn_QuitGame / Btn_Resume</span></td>
+            <td><span class="var-type">UUserWidget*</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>각 메뉴 항목의 WBP Application Btn (초기값 nullptr)</td>
+          </tr>
+        </table>
+        <div class="note-box">
+          <strong>DECLARE_DYNAMIC_MULTICAST_DELEGATE 위치:</strong> 4개 델리게이트 타입이 클래스 본문 내부(public 섹션)에 선언되어 있습니다.
+          일반적으로 클래스 외부에 선언하는 것이 관례이지만, 기능적 차이는 없습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pausemenu" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeOnPreviewKeyDown(FGeometry, FKeyEvent)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>UICloseKey 감지 시 OnRequestResume.Broadcast() + FReply::Handled(). ConfirmQuit과 동일한 null 체크 체인이나 중첩 if 스타일로 구현.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                ConfirmQuit/ConfirmReturn에서는 각 단계에서 early return하는 가드 패턴을 사용하지만,
+                PauseMenu에서는 중첩 if 패턴을 사용합니다. 기능적으로 동일하나 코드 스타일이 일관되지 않습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleClicked_* / OnClicked_* (4쌍)</span>
+              <span class="fn-spec bp-call">BlueprintCallable (OnClicked만)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>각 HandleClicked_*는 대응하는 델리게이트를 Broadcast합니다. OnClicked_*는 HandleClicked_*를 단순 위임합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pausemenu" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIActionKeySubsystem</span></td><td>ESC 키 판별.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_DelegateManager</span></td><td>cpp에서 include하지만 현재 직접 사용하지 않음 (Settings는 델리게이트로 전달).</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_SpectateWidget ==================== -->
+    <div class="class-card" id="spectate">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_SpectateWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'spectate','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spectate','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="spectate" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">사망 후 관전 모드에서 다른 플레이어의 이름, 체력, 스태미나를 표시하는 HUD 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">내장 위젯</div>
+            <div class="info-value">HealthWidget + StaminaWidget을 BindWidget으로 포함, 관전 대상 변경 시 자동 리바인딩</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">BP 확장 포인트</div>
+            <div class="info-value">SetSpectatingPlayerName, BeforeSpectatingCharacterChanged, AfterSpectatingCharacterChanged (BlueprintImplementableEvent)</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          관전 모드에서 관전 대상 캐릭터의 정보를 표시합니다.
+          SetSpectatingCharacter가 핵심 함수로, 관전 대상 변경 시 Before/After 이벤트를 발행하고
+          HealthWidget/StaminaWidget을 새 캐릭터에 리바인딩합니다.
+        </div>
+        <div class="bug-box">
+          <strong>P0 크래시 위험:</strong> SetSpectatingCharacter에서 <code>checkf(InCharacter, TEXT("InCharacter is nullptr"))</code>를 사용합니다.
+          checkf는 조건이 false일 때 Development/Debug 빌드에서 크래시(assertion failure)를 발생시키고,
+          Shipping 빌드에서는 무시됩니다. 그러나 이후 코드에서 InCharacter를 역참조하므로 Shipping에서도 nullptr 크래시가 발생합니다.
+          nullptr InCharacter에 대한 우아한 처리(early return 등)가 필요합니다.
+          <br><br>
+          또한 BeforeSpectatingCharacterChanged(SpectatingCharacter)가 checkf 이전에 호출되므로,
+          이전 SpectatingCharacter가 nullptr(첫 호출 시)일 때 BlueprintImplementableEvent에 nullptr이 전달됩니다.
+          BP에서 이를 처리하지 않으면 문제가 될 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HealthWidget</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_HealthWidget&gt;</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>관전 대상의 체력을 표시하는 내장 위젯. BindToCharacter로 대상 변경.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StaminaWidget</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_StaminaWidget&gt;</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>관전 대상의 스태미나를 표시하는 내장 위젯. BindToCharacter로 대상 변경.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpectatingCharacter</span></td>
+            <td><span class="var-type">TObjectPtr&lt;ACharacter&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>현재 관전 중인 캐릭터. SetSpectatingCharacter에서 갱신됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetSpectatingCharacter(ACharacter*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>관전 대상 캐릭터를 변경하고 HealthWidget/StaminaWidget을 리바인딩합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; BeforeSpectatingCharacterChanged(현재 SpectatingCharacter) &mdash; BP 이벤트<br>
+                &#9313; checkf(InCharacter) &mdash; nullptr이면 크래시<br>
+                &#9314; SpectatingCharacter = InCharacter<br>
+                &#9315; PlayerState에서 이름 추출 &rarr; SetSpectatingPlayerName(FText)<br>
+                &#9316; HealthWidget-&gt;BindToCharacter(InCharacter) &mdash; null 체크 후<br>
+                &#9317; StaminaWidget-&gt;BindToCharacter(InCharacter) &mdash; null 체크 후<br>
+                &#9318; AfterSpectatingCharacterChanged(SpectatingCharacter) &mdash; BP 이벤트
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetSpectatingPlayerName(FText) / Before/AfterSpectatingCharacterChanged(ACharacter*)</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent + BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>3개 모두 BlueprintImplementableEvent이자 BlueprintCallable입니다. C++에서 호출하되, 실제 구현은 블루프린트에서 합니다. 이름 표시, 전환 전/후 효과(애니메이션 등) 처리용.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spectate" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스 상속.</td></tr>
+          <tr><td>포함</td><td><span class="rel-cls">UAO_HealthWidget</span></td><td>BindWidget으로 체력 위젯 내장.</td></tr>
+          <tr><td>포함</td><td><span class="rel-cls">UAO_StaminaWidget</span></td><td>BindWidget으로 스태미나 위젯 내장.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">APlayerState</span></td><td>관전 대상의 이름을 GetPlayerName으로 조회.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LobbyListWidget ==================== -->
+    <div class="class-card" id="lobbylist">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_LobbyListWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'lobbylist','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbylist','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbylist','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbylist','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="lobbylist" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">세션 목록 표시, 검색, 페이지네이션, 비밀번호 진입을 담당하는 로비 리스트 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">페이지네이션</div>
+            <div class="info-value">NumSessionsPerPage=5, FilteredIndices 기반 클라이언트 사이드 페이징</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">세션 필터</div>
+            <div class="info-value">IsInGameByIndex로 진행 중인 방 숨김, 검색어로 방 이름 필터링</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Steam 세션 검색 결과를 리스트로 표시하는 핵심 로비 위젯입니다.
+          NativeConstruct에서 OnFindSessionsCompleteEvent를 구독하고 즉시 Refresh(FindSessionsAuto(50))를 호출합니다.
+          NativeDestruct에서 구독을 해제합니다.
+          <br><br>
+          <strong>검색 &amp; 필터:</strong> Edt_Search에서 OnTextCommitted 시 CurrentSearch를 갱신하고 RebuildFilter/RebuildList를 호출합니다.
+          RebuildFilter에서 IsInGameByIndex로 진행 중인 방을 제거하고, 검색어가 있으면 방 이름의 ToLower().Contains(Query)로 필터링합니다.
+          <br><br>
+          <strong>페이지네이션:</strong> 5개씩 표시, Prev/Next 버튼으로 페이지 이동. ClampAndUpdatePage로 범위를 제한합니다.
+          <br><br>
+          <strong>Close 처리:</strong> ParentMenu가 있으면 Visibility 복원 + 포커스 전환, 없으면 MainMenuClass로 새 메뉴를 생성합니다.
+          이 폴백 생성 로직은 ParentMenu가 GC되었을 때의 안전장치입니다.
+        </div>
+        <div class="note-box">
+          <strong>RebuildList 내 재귀적 RebuildFilter 호출:</strong> RebuildList에서 FilteredIndices.Num()==0이고 GetSub()가 유효하면 RebuildFilter()를 재호출합니다.
+          RebuildFilter 내부에서 ClampAndUpdatePage + UpdatePageUI를 호출하므로, RebuildList &rarr; RebuildFilter &rarr; (UpdatePageUI)의 흐름이 발생합니다.
+          무한 루프 위험은 없으나(재귀 깊이 1), 의도가 명확하지 않습니다.
+        </div>
+        <div class="note-box">
+          <strong>Steam 불안정 안내:</strong> OnFindSessionsComplete에서 이전에 결과가 있었는데(bFirstTime이 아닌 경우) 새 검색에서 0개가 나오면
+          "Steam matchmaking service is currently unstable" 안내 메시지를 표시합니다. 최초 검색에서 0개면 메시지를 표시하지 않습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lobbylist" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Btn_Refresh / Btn_Close</span></td><td><span class="var-type">UUserWidget*</span></td><td><span class="prop-tag">BindWidget</span></td><td>새로고침/닫기 WBP 버튼</td></tr>
+          <tr><td><span class="var-name">Btn_BackDrop</span></td><td><span class="var-type">UButton*</span></td><td><span class="prop-tag">BindWidget</span></td><td>배경 클릭 감지용 UButton</td></tr>
+          <tr><td><span class="var-name">Scroll_SessionList</span></td><td><span class="var-type">UScrollBox*</span></td><td><span class="prop-tag">BindWidget</span></td><td>세션 엔트리가 추가되는 스크롤박스</td></tr>
+          <tr><td><span class="var-name">Txt_InfoMessage</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidget</span></td><td>Steam 불안정 안내 등 정보 메시지</td></tr>
+          <tr><td><span class="var-name">Edt_Search</span></td><td><span class="var-type">UEditableTextBox*</span></td><td><span class="prop-tag">BindWidgetOptional</span></td><td>검색어 입력 (선택적 바인딩)</td></tr>
+          <tr><td><span class="var-name">Btn_Prev / Btn_Next</span></td><td><span class="var-type">UUserWidget*</span></td><td><span class="prop-tag">BindWidgetOptional</span></td><td>페이지 이동 버튼 (선택적)</td></tr>
+          <tr><td><span class="var-name">Txt_PageInfo</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidgetOptional</span></td><td>"1 / 3" 형태 페이지 정보</td></tr>
+          <tr><td><span class="var-name">LobbyEntryClass</span></td><td><span class="var-type">TSubclassOf&lt;UAO_LobbyListEntryWidget&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>각 세션 행 위젯 클래스</td></tr>
+          <tr><td><span class="var-name">PasswordDialogClass</span></td><td><span class="var-type">TSubclassOf&lt;UAO_PasswordDialogWidget&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>비밀번호 다이얼로그 클래스</td></tr>
+          <tr><td><span class="var-name">ParentMenu</span></td><td><span class="var-type">TObjectPtr&lt;UAO_MainMenuWidget&gt;</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>부모 메뉴 (닫기 시 복귀용)</td></tr>
+          <tr><td><span class="var-name">FilteredIndices</span></td><td><span class="var-type">TArray&lt;int32&gt;</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>필터링된 세션 인덱스 배열</td></tr>
+          <tr><td><span class="var-name">PageIndex</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>현재 페이지 (0부터)</td></tr>
+          <tr><td><span class="var-name">NumSessionsPerPage</span></td><td><span class="var-type">int32</span></td><td>static constexpr</td><td>페이지당 세션 수 (5)</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="lobbylist" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NativeConstruct() / NativeDestruct()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Construct: 검색/백드롭 바인딩, OnFindSessionsCompleteEvent 구독, 초기 Refresh 호출. Destruct: 이벤트 구독 해제.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                수명주기 관리가 잘 되어 있습니다. NativeDestruct에서 OnFindSessionsCompleteEvent를 RemoveDynamic하여 메모리 누수를 방지합니다.
+                그러나 Btn_BackDrop만 IsAlreadyBound 체크가 있고, Edt_Search에는 중복 바인딩 방지가 없습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleJoin(int32, bool)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>비밀번호 불필요 시 직접 JoinSessionByIndex, 필요 시 PasswordDialogWidget 팝업 생성.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; IsInGameByIndex 체크 &mdash; 진행 중이면 차단<br>
+                &#9313; !bNeedsPassword: Sub-&gt;JoinSessionByIndex(Index) 직접 호출<br>
+                &#9314; bNeedsPassword: PasswordDialogWidget CreateWidget &rarr; SetParentList/SetTargetIndex &rarr; AddToViewport(200) &rarr; 포커스 전환
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RebuildFilter() / RebuildList() / ClampAndUpdatePage() / UpdatePageUI()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>RebuildFilter: 세션을 필터링하여 FilteredIndices 구축. RebuildList: 현재 페이지의 엔트리 위젯 생성. ClampAndUpdatePage: 페이지 범위 보정. UpdatePageUI: "N / M" 텍스트 갱신.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                RebuildList에서 Entry.Setup(ResultIndex, RoomName, OpenSlots, MaxSlots, bHasPw)을 호출합니다.
+                CurrentPlayers 계산은 GetCurrentPlayersByIndex가 음수를 반환하는 경우
+                MaxSlots - GetOpenPublicConnectionsByIndex로 폴백합니다. 이 이중 폴백은 Steam API의 불안정성을 보완합니다.
+                CurrentPlayers가 MaxSlots를 초과하는 경우도 클램프합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lobbylist" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_MainMenuWidget</span></td><td>Join 클릭 시 생성됩니다.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_LobbyListEntryWidget</span></td><td>RebuildList에서 행 위젯을 동적 생성합니다.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_PasswordDialogWidget</span></td><td>HandleJoin에서 비밀번호 팝업을 생성합니다.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>FindSessionsAuto, JoinSessionByIndex 등 세션 API 호출.</td></tr>
+          <tr><td>역참조</td><td><span class="rel-cls">UAO_MainMenuWidget</span></td><td>ParentMenu로 닫기 시 복귀.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LobbyListEntryWidget ==================== -->
+    <div class="class-card" id="lobbyentry">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_LobbyListEntryWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'lobbyentry','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbyentry','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbyentry','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lobbyentry','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="lobbyentry" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">세션 리스트의 한 줄(행) 항목 위젯. 방 제목, 인원수, 잠금 아이콘을 표시합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">데이터 바인딩</div>
+            <div class="info-value">Setup 함수로 외부에서 Index, Title, OpenSlots, MaxSlots, bNeedsPassword를 주입</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Join 처리</div>
+            <div class="info-value">ParentLobby(TWeakObjectPtr)를 통해 LobbyListWidget.HandleJoin으로 위임</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          LobbyListWidget의 ScrollBox에 동적으로 추가되는 세션 엔트리 위젯입니다.
+          Setup에서 인덱스, 방 제목, 슬롯 정보, 비밀번호 여부를 받아 UI를 구성합니다.
+          Join 버튼 클릭 시 ParentLobby-&gt;HandleJoin을 호출하여 실제 참가 로직을 부모에게 위임합니다.
+        </div>
+        <div class="note-box">
+          <strong>미사용 멤버:</strong> bInGame 필드가 선언되어 있으나 어디서도 설정되지 않습니다 (기본값 false).
+          GetParentLobby() 함수가 GetTypedOuter를 사용하지만 실제로 호출되는 곳이 없습니다 (ParentLobby 멤버를 직접 사용).
+          NativeConstruct에서 Btn_Join OnClicked 바인딩이 없는데, 블루프린트에서 처리하는 것으로 보입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lobbyentry" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Btn_Join</span></td><td><span class="var-type">UButton*</span></td><td><span class="prop-tag">BindWidget</span></td><td>참가 버튼 (C++에서 바인딩 없음, BP에서 처리 추정)</td></tr>
+          <tr><td><span class="var-name">Txt_Title</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidget</span></td><td>방 제목 표시</td></tr>
+          <tr><td><span class="var-name">Txt_Slots</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidget</span></td><td>"2/4" 형태 인원수 표시</td></tr>
+          <tr><td><span class="var-name">Img_Lock</span></td><td><span class="var-type">UImage*</span></td><td><span class="prop-tag">BindWidgetOptional</span></td><td>비밀번호 있는 방의 잠금 아이콘 (선택적)</td></tr>
+          <tr><td><span class="var-name">ParentLobby</span></td><td><span class="var-type">TWeakObjectPtr&lt;UAO_LobbyListWidget&gt;</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>부모 로비 리스트 약한 참조</td></tr>
+          <tr><td><span class="var-name">Index / bNeedsPassword / MaxSlots / OpenSlots</span></td><td><span class="var-type">int32 / bool / int32 / int32</span></td><td>private</td><td>Setup에서 설정되는 세션 정보</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="lobbyentry" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Setup(int32, FString, int32, int32, bool)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>멤버 변수 저장, Txt_Title/Txt_Slots 텍스트 설정, Img_Lock 가시성 토글.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                CurPlayers = FMath::Clamp(MaxSlots - OpenSlots, 0, MaxSlots)로 현재 인원을 계산합니다.
+                이 Clamp는 LobbyListWidget.RebuildList에서 이미 수행된 보정을 다시 적용하는 방어적 코딩입니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnClicked_Join()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>ParentLobby가 유효하면 HandleJoin(Index, bNeedsPassword)를 호출합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lobbyentry" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>RebuildList에서 생성됩니다.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_LobbyListWidget</span></td><td>HandleJoin으로 참가 로직 위임.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LobbyReadyBoardWidget ==================== -->
+    <div class="class-card" id="readyboard">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_LobbyReadyBoardWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'readyboard','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyboard','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyboard','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyboard','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="readyboard" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">로비 레디 보드의 UMG 위젯. VerticalBox에 Row 위젯을 동적으로 추가합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UUserWidget (UAO_UserWidget 미사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">표시 방식</div>
+            <div class="info-value">AAO_LobbyReadyBoardActor의 WidgetComponent에 장착되어 월드 공간에 표시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">데이터 소스</div>
+            <div class="info-value">FAOLobbyReadyBoardEntry 배열을 받아 각 엔트리를 RowWidget으로 변환</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          3D 월드에 배치된 레디 보드의 UMG 측 구현입니다.
+          SetEntries에서 VB_Entries(VerticalBox)를 ClearChildren한 후, 각 FAOLobbyReadyBoardEntry에 대해
+          RowWidgetClass로 CreateWidget &rarr; Setup &rarr; AddChild를 수행합니다.
+          각 Row의 패딩은 FMargin(0, 2)으로 설정됩니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="readyboard" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">VB_Entries</span></td><td><span class="var-type">UVerticalBox*</span></td><td><span class="prop-tag">BindWidget</span></td><td>Row 위젯이 추가되는 VerticalBox 컨테이너</td></tr>
+          <tr><td><span class="var-name">RowWidgetClass</span></td><td><span class="var-type">TSubclassOf&lt;UAO_LobbyReadyBoardRowWidget&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>한 줄 위젯 블루프린트 클래스</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="readyboard" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetEntries(TArray&lt;FAOLobbyReadyBoardEntry&gt;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>VB_Entries ClearChildren &rarr; 각 Entry에 대해 CreateWidget(RowWidgetClass) &rarr; Setup(Entry) &rarr; AddChild &rarr; SetPadding(0, 2).</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                매 호출마다 ClearChildren + 전체 재생성하는 방식입니다. 플레이어 수가 최대 4명이므로 성능 문제는 없으나,
+                대규모 리스트에는 부적합한 패턴입니다. AddChild 반환값을 UVerticalBoxSlot으로 캐스트하여 패딩을 설정하는데,
+                실패 시(non-VerticalBoxSlot) 에러 로그를 출력합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="readyboard" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>호출자</td><td><span class="rel-cls">AAO_LobbyReadyBoardActor</span></td><td>ApplyToWidget에서 SetEntries를 호출합니다.</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_LobbyReadyBoardRowWidget</span></td><td>각 엔트리를 Row 위젯으로 생성합니다.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LobbyReadyBoardRowWidget ==================== -->
+    <div class="class-card" id="readyrow">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_LobbyReadyBoardRowWidget</div>
+        <div class="class-parent">부모: UUserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'readyrow','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyrow','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyrow','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'readyrow','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="readyrow" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">레디 보드의 한 줄(플레이어 1명) 표시 위젯. 이름/상태 텍스트 + 색상 코딩.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">색상 규칙</div>
+            <div class="info-value">호스트 이름: 하늘색(0.2,0.8,1.0), 게스트 이름: 흰색. 상태: 비활성=회색, 게스트 레디=초록, 호스트 시작가능=노랑.</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          FAOLobbyReadyBoardEntry 데이터를 받아 Txt_PlayerName과 Txt_Status의 텍스트와 색상을 설정합니다.
+          색상 분기 로직이 C++에 하드코딩되어 있으며, 호스트/게스트, 활성/비활성 상태에 따라 4가지 색상 조합을 사용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="readyrow" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">Txt_PlayerName</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidget</span></td><td>플레이어 이름 표시</td></tr>
+          <tr><td><span class="var-name">Txt_Status</span></td><td><span class="var-type">UTextBlock*</span></td><td><span class="prop-tag">BindWidget</span></td><td>"Ready" 또는 "Start" 상태 표시</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="readyrow" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Setup(FAOLobbyReadyBoardEntry)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PlayerName/StatusLabel 텍스트 설정 + 호스트/게스트/활성/비활성에 따른 색상 코딩.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                <strong>색상 매핑:</strong><br>
+                - 이름: 호스트=하늘색(0.2, 0.8, 1.0), 게스트=흰색(1, 1, 1)<br>
+                - 상태(비활성): 진한 회색(0.2, 0.2, 0.2)<br>
+                - 상태(활성, 게스트 레디): 초록(0, 0.9, 0.3)<br>
+                - 상태(활성, 호스트 시작가능): 노랑(1.0, 0.8, 0.2)<br>
+                <br>
+                색상이 로컬 const 변수로 선언되어 있어 매 Setup 호출마다 스택에 생성됩니다.
+                static const로 변경하면 미세한 최적화가 가능하나, 호출 빈도가 낮아 실질적 영향은 없습니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="readyrow" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UUserWidget</span></td><td>UE5 기본 위젯 직접 상속.</td></tr>
+          <tr><td>생성자</td><td><span class="rel-cls">UAO_LobbyReadyBoardWidget</span></td><td>SetEntries에서 CreateWidget으로 생성됩니다.</td></tr>
+          <tr><td>데이터</td><td><span class="rel-cls">FAOLobbyReadyBoardEntry</span></td><td>Setup 파라미터로 데이터 주입.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LobbyReadyBoardActor ==================== -->
+    <div class="class-card" id="boardactor">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_LobbyReadyBoardActor</div>
+        <div class="class-parent">부모: AActor</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'boardactor','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'boardactor','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'boardactor','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'boardactor','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="boardactor" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">로비 맵에 배치되는 레디 보드 액터. WidgetComponent로 3D 공간에 UMG 위젯을 표시합니다.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">AActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">네트워크</div>
+            <div class="info-value">bReplicates=true, MulticastRebuildBoard(NetMulticast, Reliable)로 모든 클라이언트에서 보드 재빌드</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">정렬 규칙</div>
+            <div class="info-value">호스트 맨 위, 나머지 JoinOrder 오름차순</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          로비 맵에 배치되어 플레이어들의 레디 상태를 3D 공간에 표시하는 액터입니다.
+          생성자에서 WidgetComponent를 루트 컴포넌트로 설정하고 WorldSpace, DrawSize(800x400), TwoSided=true로 구성합니다.
+          <br><br>
+          <strong>RebuildBoard 흐름:</strong> GameState.PlayerArray를 순회하여 AAO_PlayerState로 캐스트, 호스트/레디/JoinOrder 정보를 수집합니다.
+          IsEveryoneReadyExceptHost로 전체 레디 상태를 확인하여 호스트의 "Start" 버튼 활성화 여부를 결정합니다.
+          결과를 Sort(호스트 우선, JoinOrder 오름차순)한 후 ApplyToWidget으로 UMG에 전달합니다.
+          <br><br>
+          <strong>MulticastRebuildBoard:</strong> 서버에서 호출 시 모든 클라이언트에서 RebuildBoard를 실행합니다.
+          각 클라이언트가 자신의 GameState 데이터로 독립적으로 보드를 구성합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="boardactor" data-tab="vars">
+        <div class="struct-box">
+          <div class="struct-title">FAOLobbyReadyBoardEntry (USTRUCT, BlueprintType)</div>
+          <div class="struct-field"><div class="sf-name">PlayerName</div><div class="sf-desc">FString &mdash; 플레이어 표시 이름</div></div>
+          <div class="struct-field"><div class="sf-name">bIsHost</div><div class="sf-desc">bool &mdash; 로비 호스트 여부</div></div>
+          <div class="struct-field"><div class="sf-name">StatusLabel</div><div class="sf-desc">FString &mdash; "Start" 또는 "Ready"</div></div>
+          <div class="struct-field"><div class="sf-name">bStatusActive</div><div class="sf-desc">bool &mdash; 활성 상태 (호스트: 전원 레디 시 true, 게스트: 레디 시 true)</div></div>
+          <div class="struct-field"><div class="sf-name">JoinOrder</div><div class="sf-desc">int32 &mdash; 입장 순서 (정렬용, UPROPERTY 아님)</div></div>
+        </div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">BoardWidgetComponent</span></td>
+            <td><span class="var-type">UWidgetComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere, BPReadOnly</span></td>
+            <td>월드 공간 위젯 컴포넌트. DrawSize(800,400), TwoSided=true.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="boardactor" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastRebuildBoard()</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>모든 클라이언트에서 RebuildBoard()를 호출합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RebuildBoard()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>GameState.PlayerArray에서 엔트리 배열을 구성하고 정렬 후 ApplyToWidget으로 전달합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                &#9312; World / GameState 유효성 확인<br>
+                &#9313; PlayerArray 순회 &rarr; AAO_PlayerState 캐스트 (null이면 skip)<br>
+                &#9314; IsEveryoneReadyExceptHost로 호스트 "Start" 활성 여부 결정<br>
+                &#9315; FAOLobbyReadyBoardEntry 배열 생성: 호스트는 StatusLabel="Start", 게스트는 "Ready"<br>
+                &#9316; Sort: bIsHost가 true면 앞으로, 동일 시 JoinOrder 오름차순<br>
+                &#9317; ApplyToWidget(Entries)
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsEveryoneReadyExceptHost(TArray&lt;APlayerState*&gt;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>2명 이상이고 호스트를 제외한 모든 플레이어가 IsLobbyReady()이면 true 반환. 1명 이하 또는 호스트 미발견 시 false.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                호스트를 IsLobbyHost()로 식별합니다. 여러 명이 호스트로 표시되는 경우 첫 번째 발견된 호스트만 사용합니다.
+                AAO_PlayerState 캐스트 실패 시 즉시 false를 반환하여 비-AO PlayerState가 섞여있으면 항상 false가 됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyToWidget(TArray&lt;FAOLobbyReadyBoardEntry&gt;)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>BoardWidgetComponent &rarr; GetUserWidgetObject &rarr; Cast&lt;UAO_LobbyReadyBoardWidget&gt; &rarr; SetEntries(Entries).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="boardactor" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>포함</td><td><span class="rel-cls">UWidgetComponent</span></td><td>월드 공간 위젯 표시용 컴포넌트.</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_LobbyReadyBoardWidget</span></td><td>ApplyToWidget에서 SetEntries 호출.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>호스트/레디/JoinOrder 조회.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AGameStateBase</span></td><td>PlayerArray로 전체 플레이어 목록 접근.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_HealthWidget ==================== -->
+    <div class="class-card" id="health">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_HealthWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'health','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'health','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'health','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'health','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="health" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">GAS 체력 어트리뷰트(Health/MaxHealth)를 감시하여 블루프린트에 값 변경을 전달하는 HUD 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">바인딩 패턴</div>
+            <div class="info-value">Initialize에서 자동 바인딩 + BindToASC/BindToCharacter로 런타임 수동 바인딩</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">어트리뷰트</div>
+            <div class="info-value">AO_PlayerCharacter_AttributeSet의 Health / MaxHealth</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          플레이어의 체력 상태를 표시하는 HUD 위젯입니다.
+          <br><br>
+          <strong>자동 바인딩 (Initialize):</strong> GetOwningPlayerPawn &rarr; AAO_PlayerCharacter 캐스트 &rarr; GetAbilitySystemComponent &rarr; BindToASC.
+          캐스트 실패나 ASC 미보유 시 false를 반환합니다.
+          <br><br>
+          <strong>수동 바인딩 (BindToASC/BindToCharacter):</strong> 런타임에 대상을 변경할 수 있습니다.
+          BindToASC는 동일 ASC면 스킵, 이전 ASC Unbind &rarr; 새 ASC Bind 순서로 처리합니다.
+          BindToCharacter는 FindComponentByClass&lt;UAbilitySystemComponent&gt;로 ASC를 탐색합니다.
+          <br><br>
+          <strong>델리게이트 관리:</strong> GetGameplayAttributeValueChangeDelegate에 AddUObject로 바인딩하고,
+          Unbind 시 FDelegateHandle로 정확히 제거합니다. BoundASC를 UPROPERTY로 보유하여 GC 안전성을 확보합니다.
+        </div>
+        <div class="lifecycle-box">
+          <strong>수명주기:</strong> Initialize() &rarr; (자동 바인딩 시도) &rarr; 런타임 중 BindToCharacter/BindToASC 호출 가능.
+          위젯 파괴 시 UnbindHealthDelegates가 명시적으로 호출되지 않으나, BoundASC가 UPROPERTY이므로 GC가 참조를 정리합니다.
+          다만 델리게이트 핸들이 해제되지 않으면 dangling callback 가능성이 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="health" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">CurrentHealth</span></td><td><span class="var-type">float</span></td><td>private</td><td>현재 체력 캐시 값 (기본 0.0f)</td></tr>
+          <tr><td><span class="var-name">MaxHealth</span></td><td><span class="var-type">float</span></td><td>private</td><td>최대 체력 캐시 값 (기본 0.0f)</td></tr>
+          <tr><td><span class="var-name">BoundASC</span></td><td><span class="var-type">TObjectPtr&lt;UAbilitySystemComponent&gt;</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>현재 바인딩된 ASC. GC 참조 보유.</td></tr>
+          <tr><td><span class="var-name">HealthChangedHandle</span></td><td><span class="var-type">FDelegateHandle</span></td><td>private</td><td>Health 변경 델리게이트 핸들</td></tr>
+          <tr><td><span class="var-name">MaxHealthChangedHandle</span></td><td><span class="var-type">FDelegateHandle</span></td><td>private</td><td>MaxHealth 변경 델리게이트 핸들</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="health" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super 성공 후 소유 캐릭터에서 ASC를 찾아 BindToASC를 호출합니다. 실패 시 false 반환.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                Initialize는 위젯이 뷰포트에 추가될 때 1회 호출됩니다.
+                이 시점에 캐릭터가 아직 스폰되지 않았거나 ASC가 초기화되지 않은 경우 false를 반환합니다.
+                이 경우 BP에서 수동으로 BindToCharacter를 호출해야 합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindToASC(UAbilitySystemComponent*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>동일 ASC면 early return. UnbindHealthDelegates &rarr; BoundASC 갱신 &rarr; BindHealthDelegates.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                nullptr을 전달하면 UnbindHealthDelegates만 수행되고 BoundASC=nullptr이 됩니다.
+                이후 null BoundASC에 대해 BindHealthDelegates는 호출되지 않습니다 (if(BoundASC) 가드).
+                이를 통해 "바인딩 해제"가 가능합니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindToCharacter(ACharacter*)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>캐릭터에서 FindComponentByClass로 ASC를 찾아 BindToASC 호출. null 캐릭터나 ASC 미보유 시 Unbind.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnHealthChanged(float, float)</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Health 또는 MaxHealth 변경 시 호출. (CurrentHealth, MaxHealth) 쌍으로 항상 최신 값을 전달합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="health" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스 상속.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>어트리뷰트 변경 델리게이트 바인딩.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>Health/MaxHealth 어트리뷰트 감시.</td></tr>
+          <tr><td>포함됨</td><td><span class="rel-cls">UAO_SpectateWidget</span></td><td>관전 위젯의 BindWidget으로 포함.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_StaminaWidget ==================== -->
+    <div class="class-card" id="stamina">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_StaminaWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'stamina','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'stamina','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stamina','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stamina','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="stamina" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">GAS 스태미나 어트리뷰트(Stamina/MaxStamina)를 감시하여 블루프린트에 값 변경을 전달하는 HUD 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">구조</div>
+            <div class="info-value">HealthWidget과 완전히 동일한 구조. 어트리뷰트 이름만 Stamina/MaxStamina로 변경.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">어트리뷰트</div>
+            <div class="info-value">AO_PlayerCharacter_AttributeSet의 Stamina / MaxStamina</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          플레이어의 스태미나 상태를 표시하는 HUD 위젯으로, HealthWidget과 완전히 동일한 구조를 가집니다.
+          Initialize에서 소유 캐릭터의 ASC를 자동 바인딩하고, Stamina/MaxStamina 어트리뷰트 변경을 감지하여
+          OnStaminaChanged(BlueprintImplementableEvent)를 호출합니다.
+          BindToASC/BindToCharacter로 런타임에 대상을 변경할 수 있으며, SpectateWidget에서 관전 대상 변경 시 사용됩니다.
+        </div>
+        <div class="note-box">
+          <strong>코드 중복:</strong> HealthWidget과 StaminaWidget은 어트리뷰트 이름/이벤트 이름만 다른 완전한 복제 코드입니다.
+          템플릿 또는 공통 기반 클래스로 리팩토링하면 유지보수성이 향상됩니다.
+          현재 두 클래스의 Unbind 패턴, Bind 패턴, Initialize 패턴이 100% 동일합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stamina" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">CurrentStamina / MaxStamina</span></td><td><span class="var-type">float</span></td><td>private</td><td>현재/최대 스태미나 캐시 값 (기본 0.0f)</td></tr>
+          <tr><td><span class="var-name">BoundASC</span></td><td><span class="var-type">TObjectPtr&lt;UAbilitySystemComponent&gt;</span></td><td><span class="prop-tag">UPROPERTY</span></td><td>바인딩된 ASC 참조</td></tr>
+          <tr><td><span class="var-name">StaminaChangedHandle / MaxStaminaChangedHandle</span></td><td><span class="var-type">FDelegateHandle</span></td><td>private</td><td>어트리뷰트 변경 델리게이트 핸들</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="stamina" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize() / BindToASC() / BindToCharacter()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>HealthWidget과 동일 패턴. Stamina/MaxStamina 어트리뷰트를 대상으로 바인딩합니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnStaminaChanged(float, float)</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Stamina 또는 MaxStamina 변경 시 호출. (CurrentStamina, MaxStamina) 쌍으로 전달합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stamina" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스 상속.</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>Stamina/MaxStamina 어트리뷰트 감시.</td></tr>
+          <tr><td>포함됨</td><td><span class="rel-cls">UAO_SpectateWidget</span></td><td>관전 위젯의 BindWidget으로 포함.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_NameTagWidget ==================== -->
+    <div class="class-card" id="nametag">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_NameTagWidget</div>
+        <div class="class-parent">부모: UAO_UserWidget</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'nametag','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'nametag','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nametag','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'nametag','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="nametag" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 캐릭터 머리 위에 이름과 음성 채팅 아이콘을 표시하는 네임플레이트 위젯</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAO_UserWidget</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">표시 방식</div>
+            <div class="info-value">캐릭터의 WidgetComponent에 부착되어 월드 공간에 표시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">기능</div>
+            <div class="info-value">이름 텍스트, 거리 기반 스케일, 음성 채팅 아이콘 가시성</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          멀티플레이어 게임에서 다른 플레이어의 이름을 표시하는 네임태그 위젯입니다.
+          SetPlayerName으로 이름 텍스트를 설정하고, SetUIScale로 거리에 따른 스케일을 조정합니다.
+          SetPlayerTalkingVisibility로 음성 채팅 중인지 여부에 따라 마이크 아이콘의 가시성을 Visible/Hidden으로 토글합니다.
+        </div>
+        <div class="bug-box">
+          <strong>P0 크래시 버그:</strong> SetPlayerTalkingVisibility에서 Img_IsTalking의 null 체크가 누락되어 있습니다.
+          Img_IsTalking은 BindWidget으로 바인딩되므로 WBP에서 누락되면 nullptr이 됩니다.
+          이 경우 Img_IsTalking-&gt;SetVisibility 호출 시 nullptr 역참조로 크래시가 발생합니다.
+          <br><br>
+          SetPlayerName에서는 <code>if (Text_Name)</code> null 체크가 있으나,
+          SetPlayerTalkingVisibility에서는 동일한 패턴의 null 체크가 누락되어 일관성이 깨져 있습니다.
+          이는 의도적으로 삽입된 QA 버그일 가능성이 높습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="nametag" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Text_Name</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UTextBlock&gt;</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>플레이어 이름 텍스트. SetPlayerName에서 null 체크 후 설정.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Img_IsTalking</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UImage&gt;</span></td>
+            <td><span class="prop-tag">BindWidget</span></td>
+            <td>음성 채팅 아이콘 이미지. SetPlayerTalkingVisibility에서 null 체크 없이 사용 (P0 버그).</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="nametag" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetPlayerName(FText)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Text_Name이 유효하면 SetText(InName)을 호출합니다. null 체크가 올바르게 구현되어 있습니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetUIScale(float)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>SetRenderScale(FVector2D(InScale, InScale))로 위젯 전체 스케일을 균일하게 조정합니다. 거리 기반 크기 조절에 사용됩니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetPlayerTalkingVisibility(bool)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>bIsTalking이면 Visible, 아니면 Hidden으로 Img_IsTalking을 설정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                <strong>P0 크래시:</strong> Img_IsTalking null 체크가 없습니다. BindWidget이므로 WBP가 올바르게 구성되어 있으면
+                null이 되지 않지만, WBP 수정 시 실수로 제거되면 크래시가 발생합니다.<br>
+                <strong>Visible vs Hidden:</strong> Hidden은 공간은 차지하되 보이지 않습니다. Collapsed(공간도 차지하지 않음)가 더 적절할 수 있으나,
+                월드 공간 위젯에서는 레이아웃 변동을 방지하기 위해 Hidden이 의도적인 선택일 수 있습니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="nametag" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_UserWidget</span></td><td>공통 위젯 기반 클래스 상속.</td></tr>
+          <tr><td>부착</td><td><span class="rel-cls">AO_PlayerCharacter (간접)</span></td><td>캐릭터의 WidgetComponent에 부착되어 머리 위에 표시.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PasswordPanelInspectable ==================== -->
+    <div class="class-card" id="pwpanel">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PasswordPanelInspectable</div>
+        <div class="class-parent">부모: AAO_InspectionPuzzle</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pwpanel','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwpanel','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwpanel','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pwpanel','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pwpanel" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">검사(Inspection) 모드에서 4자리 비밀번호를 입력하는 퍼즐 액터. 버튼 클릭과 비밀번호 정답 처리.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">AAO_InspectionPuzzle (AActor 계열)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">복제</div>
+            <div class="info-value">CurrentPassword: DOREPLIFETIME(무조건 복제). MulticastNotifyButtonClicked: NetMulticast, Reliable.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">비밀번호</div>
+            <div class="info-value">0000~9999 (FMath::RandRange(0, 9999)). 서버 권한으로만 생성.</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          퍼즐 시스템의 비밀번호 패널입니다.
+          <br><br>
+          <strong>생성자:</strong> InspectionTitle="Password Panel", InspectionContent=": Press F to Inspect"으로 초기화합니다.
+          <br><br>
+          <strong>클릭 흐름:</strong> OnInspectionMeshClicked(서버 권한 확인) &rarr; MulticastNotifyButtonClicked(RPC) &rarr;
+          OnButtonClickedEvent(BlueprintImplementableEvent). 모든 클라이언트에서 시각 효과가 재생됩니다.
+          <br><br>
+          <strong>비밀번호 생성:</strong> GenerateRandomPassword는 서버에서만 실행되며, CurrentPassword가 Replicated이므로
+          자동으로 모든 클라이언트에 전파됩니다.
+          <br><br>
+          <strong>정답 처리:</strong> NotifyPasswordCorrect는 서버에서만 실행되며 OnPasswordCorrectEvent를 브로드캐스트합니다.
+          실제 비밀번호 비교 로직은 블루프린트에서 GetPasswordDigits를 사용하여 구현됩니다.
+        </div>
+        <div class="note-box">
+          <strong>NotifyPasswordCorrect 서버 전용 이슈:</strong> OnPasswordCorrectEvent.Broadcast()가 서버에서만 실행됩니다.
+          이 델리게이트에 바인딩된 퍼즐 반응 액터(PuzzleReactionActor 등)가 서버에만 존재하면 문제없으나,
+          클라이언트에서도 시각/사운드 피드백이 필요하다면 별도의 Multicast RPC가 필요합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pwpanel" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CurrentPassword</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 비밀번호 (0~9999). DOREPLIFETIME으로 무조건 복제. private + AllowPrivateAccess.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnPasswordCorrectEvent</span></td>
+            <td><span class="var-type">FOnPasswordCorrect</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>비밀번호 정답 시 브로드캐스트. DECLARE_DYNAMIC_MULTICAST_DELEGATE, 파라미터 없음.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pwpanel" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInspectionMeshClicked(UPrimitiveComponent*)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>ClickedComponent null 체크 + HasAuthority() 확인 후 MulticastNotifyButtonClicked(ClickedComponent) RPC 호출.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                서버 권한이 없는 클라이언트의 클릭은 조용히 무시됩니다.
+                이는 클라이언트가 검사 모드에서 직접 이 함수를 호출하는 것이 아니라,
+                Server RPC를 통해 서버에서 실행되기 때문에 정상 동작입니다.
+                부모 AAO_InspectionPuzzle의 Server RPC가 이 함수를 서버에서 호출하는 구조로 추정됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastNotifyButtonClicked(UPrimitiveComponent*)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>_Implementation에서 OnButtonClickedEvent(ButtonComponent) BlueprintImplementableEvent를 호출합니다. 모든 클라이언트에서 버튼 클릭 시각 효과를 재생합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                UPrimitiveComponent*를 RPC 파라미터로 전달합니다. UE5에서 UObject 포인터의 네트워크 전송은
+                해당 오브젝트가 replicated이거나 stably named인 경우에만 올바르게 동작합니다.
+                StaticMeshComponent 등은 일반적으로 stably named이므로 문제없을 가능성이 높습니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyPasswordCorrect()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>HasAuthority() 확인 후 OnPasswordCorrectEvent.Broadcast(). 서버에서만 실행됩니다.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GenerateRandomPassword()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>HasAuthority() 확인 후 FMath::RandRange(0, 9999)로 비밀번호 생성. Replicated 속성으로 자동 전파.</div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetPasswordDigits(int32&amp;, int32&amp;, int32&amp;, int32&amp;)</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CurrentPassword를 4자리 숫자로 분해합니다: Digit1=(pw/1000)%10, Digit2=(pw/100)%10, Digit3=(pw/10)%10, Digit4=pw%10.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                const 함수이며 BlueprintPure로 노출됩니다. 출력 파라미터 4개를 참조로 반환하는 방식으로,
+                BP에서 각 자릿수를 개별 핀으로 접근할 수 있습니다.
+                CurrentPassword가 음수가 될 가능성은 FMath::RandRange(0, 9999)로 생성되므로 없으나,
+                Replicated 초기값이 0이므로 GenerateRandomPassword 호출 전에는 항상 0000입니다.
+              </div>
+            </div>
+          </div>
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLifetimeReplicatedProps(TArray&lt;FLifetimeProperty&gt;&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super 호출 후 DOREPLIFETIME(AAO_PasswordPanelInspectable, CurrentPassword)로 무조건 복제를 등록합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pwpanel" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_InspectionPuzzle</span></td><td>검사 퍼즐 기반 클래스 상속. OnInspectionMeshClicked 오버라이드.</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">AO_PuzzleConditionChecker (간접)</span></td><td>OnPasswordCorrectEvent를 통해 퍼즐 조건 체커에 정답을 알립니다.</td></tr>
+          <tr><td>네트워크</td><td><span class="rel-cls">모든 클라이언트</span></td><td>MulticastNotifyButtonClicked으로 버튼 시각 효과 전파, CurrentPassword Replicated.</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['userwidget','confirmquit','confirmreturn','hostdialog','pwdialog','mainmenu','pausemenu','spectate','lobbylist','lobbyentry','readyboard','readyrow','boardactor','health','stamina','nametag','pwpanel'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click -> immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

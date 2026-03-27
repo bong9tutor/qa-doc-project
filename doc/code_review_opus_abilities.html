@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — GAS 어빌리티 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#16a34a;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;font-weight:500;}
+
+/* Layout */
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+/* Sidebar TOC */
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f0fdf4;color:#16a34a;border-left-color:#16a34a;font-weight:600;}
+
+/* Content */
+.content{flex:1;min-width:0;}
+
+/* Class Card */
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#16a34a;border-bottom-color:#16a34a;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+/* Overview */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #16a34a;}
+
+/* Variable Table */
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+/* Function Accordion */
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f0fdf4;border-color:#bbf7d0;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #bbf7d0;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+/* Relation Table */
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#16a34a;font-weight:600;}
+
+/* Section bottom */
+.section-divider{border:none;border-top:1px solid #e5e7eb;margin:32px 0 0;}
+
+/* Responsive */
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">GAS Abilities &mdash; Opus</div>
+  <div class="nav-sub">GAS 어빌리티 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">GAS 어빌리티 클래스</div>
+  <div class="hero-sub">플레이어 행동을 정의하는 Gameplay Ability System 기반 10개 클래스 &mdash; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">Death</span>
+    <span class="badge">HitReact</span>
+    <span class="badge">Sprint</span>
+    <span class="badge">Jump</span>
+    <span class="badge">MeleeAttack</span>
+    <span class="badge">MeleeHitConfirm</span>
+    <span class="badge">Traversal</span>
+    <span class="badge">Interact Trace</span>
+    <span class="badge">Interact Execute</span>
+    <span class="badge">Inspect Enter</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#death">GA_Death</a>
+      <a class="toc-item" href="#hitreact">GA_HitReact</a>
+      <a class="toc-item" href="#sprint">GA_Sprint</a>
+      <a class="toc-item" href="#jump">GA_Jump</a>
+      <a class="toc-item" href="#melee">GA_MeleeAttack</a>
+      <a class="toc-item" href="#meleehit">GA_MeleeHitConfirm</a>
+      <a class="toc-item" href="#trav">GA_Traversal</a>
+      <a class="toc-item" href="#int_trace">GA_Interact_Trace</a>
+      <a class="toc-item" href="#int_exec">GA_Interact_Execute</a>
+      <a class="toc-item" href="#insp">GA_Inspect_Enter</a>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ==================== AO_GameplayAbility_Death ==================== -->
+    <div class="class-card" id="death">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Death</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'death','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'death','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'death','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'death','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="death" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 사망 처리 어빌리티 &mdash; 사망 몽타주 재생, 이동 차단, 래그돌 전환까지 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.State.Death &middot; InstancedPerActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerOnly &mdash; 서버에서만 활성화되어 권한 있는 상태에서 사망 로직 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">HitReact 취소, 사망 사운드 재생, Death/Block 태그 적용, 래그돌 이벤트 대기 및 전환</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          체력이 0이 되면 서버에서 활성화되는 사망 전용 어빌리티입니다.
+          생성자에서 InstancingPolicy를 InstancedPerActor, NetExecutionPolicy를 ServerOnly로 설정하고,
+          Ability.State.Death 태그를 AssetTag로 등록합니다.
+          활성화 시 CommitAbility &rarr; IsNetAuthority 검사 &rarr; Status.Death 중복 확인 순서로 진행합니다.
+          진행 중인 HitReact 어빌리티를 Ability.State.HitReact 태그로 CancelAbilities() 호출하여 취소하고,
+          GameplayCue.Player.Death를 ExecuteGameplayCue로 실행하여 사망 사운드를 재생합니다.
+          UAbilityTask_WaitGameplayEvent 태스크를 생성하여 RagdollEventTag에 해당하는 이벤트를 대기하며,
+          동시에 DeathSpectateComponent의 MulticastRPC_PlayDeathMontage()로 모든 클라이언트에서 사망 몽타주를 재생합니다.
+          서버 권한으로 CharacterMovement의 StopMovementImmediately() &rarr; DisableMovement()를 호출하고,
+          DeathTagEffectClass와 BlockAbilitiesEffectClass를 MakeOutgoingGameplayEffectSpec &rarr; ApplyGameplayEffectSpecToOwner 체인으로 적용합니다.
+          DeathMontage->GetPlayLength()를 폴백 시간으로 사용하는 타이머를 설정하여,
+          래그돌 이벤트를 수신하지 못하더라도 FinalizeDeath()가 반드시 호출되도록 보장합니다.
+          FinalizeDeath()는 bDeathFinalizeCalled 플래그로 이중 호출을 방지하고,
+          ASC->CurrentMontageStop(0.05f)으로 몽타주를 즉시 정지한 뒤
+          DeathSpectateComponent->MulticastRPC_EnterRagdoll()로 래그돌 상태로 전환합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="death" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DeathMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>사망 시 재생할 애니메이션 몽타주. DeathSpectateComponent의 MulticastRPC_PlayDeathMontage()로 모든 클라이언트에서 재생됩니다. GetPlayLength()를 폴백 타이머 시간으로도 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DeathTagEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>Status.Death 태그를 부여하는 GameplayEffect 클래스. MakeOutgoingGameplayEffectSpec(Level 1.0f) &rarr; ApplyGameplayEffectSpecToOwner 체인으로 적용됩니다. 다른 어빌리티가 이 태그로 사망 상태를 감지합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">BlockAbilitiesEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>사망 중 다른 어빌리티 활성화를 차단하는 GameplayEffect 클래스. DeathTagEffectClass와 동일한 적용 방식을 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">RagdollEventTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>래그돌 전환 시점을 알리는 GameplayEvent의 태그. UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, RagdollEventTag, nullptr, true, true)로 대기합니다. AnimNotify에서 이 태그로 이벤트를 발송합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bDeathFinalizeCalled</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(private, 기본값 false)</td>
+            <td>FinalizeDeath() 중복 호출 방지 플래그. ActivateAbility 시작 시 false로 리셋되며, FinalizeDeath() 진입 시 true로 설정됩니다. 래그돌 이벤트 콜백과 폴백 타이머 중 먼저 도착한 것만 실행되도록 보장합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DeathFinalizeTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(private)</td>
+            <td>래그돌 이벤트 미수신 시 폴백 타이머의 핸들. World->GetTimerManager().SetTimer()로 설정되며, EndAbility/CancelAbility에서 ClearTimer()로 정리됩니다. 타이머 시간은 DeathMontage->GetPlayLength()이며, 0 이하이면 1.0f를 폴백으로 사용합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="death" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Death()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UAO_GameplayAbility_Death()</code> &mdash; 기본 생성자</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InstancingPolicy = InstancedPerActor 설정 &mdash; 액터당 하나의 인스턴스를 유지하여 FinalizeDeath 상태를 보존합니다.<br>
+                2. NetExecutionPolicy = ServerOnly 설정 &mdash; 사망 판정을 서버 권한으로만 실행합니다.<br>
+                3. FGameplayTag::RequestGameplayTag("Ability.State.Death")로 태그를 생성하고, SetAssetTags()에 등록합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">GAS 파이프라인</div>ServerOnly이므로 클라이언트에서는 활성화되지 않습니다. 서버에서 GAS가 이 어빌리티를 부여하면, 서버에서만 ActivateAbility가 호출됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerOnly</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)</code> &mdash; 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility(Handle, ActorInfo, ActivationInfo) 호출 &mdash; 실패 시 EndAbility(bWasCancelled=true)로 즉시 종료합니다.<br>
+                2. ActorInfo 유효성 및 IsNetAuthority() 검사 &mdash; 클라이언트에서 실행 시 EndAbility로 종료합니다.<br>
+                3. bDeathFinalizeCalled = false로 리셋합니다.<br>
+                4. ASC = ActorInfo->AbilitySystemComponent.Get() 취득 &mdash; ensure()로 null 체크합니다.<br>
+                5. ASC->HasMatchingGameplayTag("Status.Death") &mdash; 이미 사망 상태이면 중복 실행을 방지하고 종료합니다.<br>
+                6. Ability.State.HitReact 태그로 ASC->CancelAbilities() 호출 &mdash; 진행 중인 HitReact를 취소합니다.<br>
+                7. ASC->ExecuteGameplayCue("GameplayCue.Player.Death") &mdash; 사망 사운드를 재생합니다.<br>
+                8. UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, RagdollEventTag, nullptr, true, true) 생성 &mdash; OnlyMatchExact=true, OnlyTriggerOnce=true로 설정합니다.<br>
+                9. WaitRagdollEventTask->EventReceived.AddDynamic(&OnRagdollEventReceived) 바인딩 후 ReadyForActivation().<br>
+                10. AAO_PlayerCharacter로 캐스팅 &rarr; FindComponentByClass&lt;UAO_DeathSpectateComponent&gt;() &rarr; MulticastRPC_PlayDeathMontage(DeathMontage).<br>
+                11. IsNetAuthority() 블록 내: Character->GetCharacterMovement()->StopMovementImmediately() &rarr; DisableMovement().<br>
+                12. MakeOutgoingGameplayEffectSpec(DeathTagEffectClass, 1.f) &rarr; ApplyGameplayEffectSpecToOwner로 Death 태그 적용.<br>
+                13. 동일 방식으로 BlockAbilitiesEffectClass 적용.<br>
+                14. DeathMontage->GetPlayLength()를 SafeSeconds로 계산 (0 이하이면 1.0f) &rarr; World->GetTimerManager().SetTimer(DeathFinalizeTimerHandle, &OnDeathFinalizeTimerExpired, SafeSeconds, false).
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>ServerOnly이므로 서버에서만 실행됩니다. MulticastRPC_PlayDeathMontage를 통해 모든 클라이언트에서 몽타주가 재생됩니다. GE 적용도 서버에서만 수행되며, 태그 변경은 GAS 복제를 통해 클라이언트에 전파됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)</code> &mdash; 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ActorInfo와 AvatarActor.IsValid() 검사.<br>
+                2. World->GetTimerManager().ClearTimer(DeathFinalizeTimerHandle) &mdash; 폴백 타이머를 정리합니다.<br>
+                3. Super::EndAbility() 호출 &mdash; GAS 프레임워크의 기본 종료 처리(태스크 정리, 태그 제거)를 위임합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CancelAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)</code> &mdash; 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. EndAbility와 동일하게 ActorInfo/AvatarActor 유효성 검사 후 DeathFinalizeTimerHandle을 ClearTimer()합니다.<br>
+                2. Super::CancelAbility() 호출 &mdash; 내부적으로 EndAbility(bWasCancelled=true)를 호출합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRagdollEventReceived()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION() void OnRagdollEventReceived(FGameplayEventData Payload)</code> &mdash; 파라미터: FGameplayEventData(값 전달), 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CurrentActorInfo->IsNetAuthority() 검사 &mdash; 서버가 아니면 무시합니다.<br>
+                2. FinalizeDeath(CurrentActorInfo, bFromNotify=true) 호출.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>WaitGameplayEvent 태스크가 RagdollEventTag에 해당하는 이벤트를 수신하면 자동으로 호출됩니다. AnimNotify에서 이 태그로 이벤트를 발송합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FinalizeDeath()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void FinalizeDeath(const FGameplayAbilityActorInfo* ActorInfo, bool bFromNotify)</code> &mdash; 파라미터: ActorInfo(액터 정보), bFromNotify(true면 AnimNotify 경유, false면 타이머 폴백), 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. bDeathFinalizeCalled가 true이면 즉시 반환 &mdash; 이중 호출을 방지합니다.<br>
+                2. bDeathFinalizeCalled = true로 설정합니다.<br>
+                3. bFromNotify가 false이면 AO_LOG(Warning)으로 "FinalizeDeath called without notify" 기록합니다.<br>
+                4. CurrentActorInfo->AvatarActor를 AAO_PlayerCharacter로 캐스팅합니다.<br>
+                5. ASC->CurrentMontageStop(0.05f) &mdash; 현재 몽타주를 0.05초 블렌드아웃으로 정지합니다.<br>
+                6. FindComponentByClass&lt;UAO_DeathSpectateComponent&gt;() &rarr; MulticastRPC_EnterRagdoll() &mdash; 모든 클라이언트에서 래그돌 전환합니다.<br>
+                7. EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false) 호출 &mdash; bWasCancelled=false로 정상 종료합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnDeathFinalizeTimerExpired()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void OnDeathFinalizeTimerExpired()</code> &mdash; 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CurrentActorInfo가 null이 아닌지 확인합니다.<br>
+                2. FinalizeDeath(CurrentActorInfo, bFromNotify=false) 호출 &mdash; 타이머 경유임을 표시합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>DeathMontage->GetPlayLength() 초 후에 World 타이머에 의해 호출됩니다. 래그돌 AnimNotify가 발송되지 않았을 때의 안전망입니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="death" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_DeathSpectateComponent</span></td><td>MulticastRPC_PlayDeathMontage()와 MulticastRPC_EnterRagdoll()을 호출하여 모든 클라이언트에서 사망 연출</td></tr>
+          <tr><td>취소</td><td><span class="rel-cls">UAO_GameplayAbility_HitReact</span></td><td>Ability.State.HitReact 태그로 CancelAbilities()를 호출하여 진행 중인 피격 리액션을 취소</td></tr>
+          <tr><td>적용</td><td><span class="rel-cls">UGameplayEffect (Death/Block)</span></td><td>DeathTagEffectClass로 Status.Death 태그 부여, BlockAbilitiesEffectClass로 어빌리티 차단 Effect 적용</td></tr>
+          <tr><td>대기</td><td><span class="rel-cls">UAbilityTask_WaitGameplayEvent</span></td><td>RagdollEventTag로 래그돌 이벤트를 수신하는 AbilityTask 생성, OnlyMatchExact/OnlyTriggerOnce=true</td></tr>
+          <tr><td>캐스팅</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>AvatarActor를 PlayerCharacter로 캐스팅하여 DeathSpectateComponent 접근</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Death -->
+
+    <!-- ==================== AO_GameplayAbility_HitReact ==================== -->
+    <div class="class-card" id="hitreact">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_HitReact</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'hitreact','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'hitreact','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'hitreact','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'hitreact','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="hitreact" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">피격 리액션 전용 어빌리티 &mdash; 피격 방향에 따른 몽타주 재생과 무적/차단 효과 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.State.HitReact &middot; InstancedPerActor &middot; Event Trigger(Event.Combat.HitReact)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &mdash; 서버에서 시작하여 클라이언트로 복제, 양쪽에서 몽타주 재생</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">피격 방향 계산(DotProduct), 방향별 몽타주 선택/재생, 무적+차단 GE 적용/제거, 이동 비활성화/복원</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Event.Combat.HitReact 이벤트를 AbilityTrigger로 발동하는 피격 리액션 어빌리티입니다.
+          생성자에서 InstancedPerActor, ServerInitiated를 설정하고, FAbilityTriggerData에 Event.Combat.HitReact 태그를
+          GameplayEvent 소스로 등록합니다. Ability.State.HitReact를 AssetTag로, Status.Death를 ActivationBlockedTag로 설정합니다.
+          활성화 시 TriggerEventData에서 이벤트 태그(예: Event.Combat.HitReact.Heavy)를 BaseTag로 추출하고,
+          GetHitDirectionSuffix()로 Front/Back/Left/Right 방향을 결정합니다.
+          방향 접미사를 BaseTag에 FString::Printf로 결합하여 FinalTag(예: Event.Combat.HitReact.Heavy.Front)를 생성하고,
+          HitReactMontageMap에서 FinalTag &rarr; BaseTag &rarr; DefaultHitReactMontage 순서로 3단계 폴백으로 몽타주를 선택합니다.
+          PlayMontageAndWait 태스크로 재생하며, OnCompleted/OnBlendOut에 OnMontageCompleted, OnCancelled/OnInterrupted에 OnMontageCancelled를 바인딩합니다.
+          서버(HasAuthority)에서만 CharacterMovement->DisableMovement()로 이동을 차단하고,
+          InvulnerableEffectClass와 BlockAbilitiesEffectClass를 적용하여 핸들을 저장합니다.
+          EndAbility에서 서버 권한으로 MOVE_Walking 복원, 핸들로 효과를 제거 후 Invalidate합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="hitreact" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DefaultHitReactMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>방향별 몽타주를 찾지 못했을 때 사용하는 최종 폴백 피격 리액션 몽타주. checkf()로 null이면 크래시합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitReactMontageMap</span></td>
+            <td><span class="var-type">TMap&lt;FGameplayTag, TObjectPtr&lt;UAnimMontage&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>GameplayTag를 키로 하는 방향별 피격 몽타주 맵. Event.Combat.HitReact.Heavy.Front 등의 태그로 매핑합니다. Find()로 포인터를 조회하여 .Get()으로 역참조합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InvulnerableEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>피격 리액션 중 무적 상태를 부여하는 GameplayEffect. if(InvulnerableEffectClass) 조건부로 적용하며, 핸들을 InvulnerableEffectHandle에 저장합니다. EndAbility에서 RemoveActiveGameplayEffect()로 제거 후 Invalidate()합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">BlockAbilitiesEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>피격 리액션 중 다른 어빌리티 활성화를 차단하는 GameplayEffect. InvulnerableEffectClass와 동일한 적용/제거 패턴입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InvulnerableEffectHandle</span></td>
+            <td><span class="var-type">FActiveGameplayEffectHandle</span></td>
+            <td>(private)</td>
+            <td>적용된 무적 효과의 핸들. EndAbility에서 IsValid() 확인 후 RemoveActiveGameplayEffect()으로 효과를 정확하게 제거합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">BlockAbilitiesEffectHandle</span></td>
+            <td><span class="var-type">FActiveGameplayEffectHandle</span></td>
+            <td>(private)</td>
+            <td>적용된 차단 효과의 핸들. InvulnerableEffectHandle과 동일한 제거 패턴입니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="hitreact" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_HitReact()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InstancedPerActor, ServerInitiated로 설정합니다.<br>
+                2. FAbilityTriggerData를 생성하여 TriggerTag = Event.Combat.HitReact, TriggerSource = GameplayEvent로 설정하고 AbilityTriggers에 추가합니다.<br>
+                3. Ability.State.HitReact를 AssetTag로 등록합니다 &mdash; Death 어빌리티가 이 태그로 CancelAbilities()를 호출합니다.<br>
+                4. Status.Death를 ActivationBlockedTag에 추가 &mdash; 사망 상태에서는 활성화를 차단합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">GAS 파이프라인</div>ServerInitiated이므로 서버에서 이벤트를 수신하면 활성화가 시작되고, 클라이언트에도 복제됩니다. 양쪽에서 몽타주가 재생됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                2. checkf(DefaultHitReactMontage) &mdash; null이면 크래시합니다.<br>
+                3. TriggerEventData에서 BaseTag = EventTag 추출.<br>
+                4. GetHitDirectionSuffix(TriggerEventData, ActorInfo) 호출 &rarr; FString DirectionSuffix.<br>
+                5. BaseTag가 유효하면 FString::Printf("%s.%s", BaseTag, DirectionSuffix)로 FinalTag 생성 &rarr; RequestGameplayTag()로 변환.<br>
+                6. 몽타주 선택 3단계: HitReactMontageMap.Find(FinalTag) &rarr; HitReactMontageMap.Find(BaseTag) &rarr; DefaultHitReactMontage.<br>
+                7. UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy() 태스크 생성.<br>
+                8. OnCompleted/OnBlendOut &rarr; OnMontageCompleted, OnCancelled/OnInterrupted &rarr; OnMontageCancelled 바인딩 후 ReadyForActivation().<br>
+                9. HasAuthority(&ActivationInfo) 블록 내: Character->GetCharacterMovement()->DisableMovement().<br>
+                10. InvulnerableEffectClass가 유효하면 MakeOutgoingGameplayEffectSpec &rarr; ApplyGameplayEffectSpecToOwner &rarr; InvulnerableEffectHandle에 저장.<br>
+                11. BlockAbilitiesEffectClass가 유효하면 동일 패턴으로 적용 &rarr; BlockAbilitiesEffectHandle에 저장.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>ServerInitiated이므로 서버에서 활성화가 시작되고 클라이언트에 복제됩니다. 몽타주 재생 태스크는 양쪽에서 실행되어 클라이언트에서도 시각적 피격 리액션이 표시됩니다. GE 적용과 이동 비활성화는 서버에서만 수행됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. HasAuthority(&ActivationInfo) 블록 내:<br>
+                &nbsp;&nbsp;a. Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking) &mdash; 이동 모드를 복원합니다.<br>
+                &nbsp;&nbsp;b. ASC->RemoveActiveGameplayEffect(InvulnerableEffectHandle) &rarr; Invalidate().<br>
+                &nbsp;&nbsp;c. ASC->RemoveActiveGameplayEffect(BlockAbilitiesEffectHandle) &rarr; Invalidate().<br>
+                2. Super::EndAbility() 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnMontageCompleted() / OnMontageCancelled()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION() void OnMontageCompleted()</code>, <code>UFUNCTION() void OnMontageCancelled()</code> &mdash; 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                CurrentActorInfo 유효성 검사 후 EndAbility를 호출합니다. OnMontageCompleted는 bWasCancelled=false, OnMontageCancelled는 bWasCancelled=true로 전달합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetHitDirectionSuffix()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>FString GetHitDirectionSuffix(const FGameplayEventData* TriggerEventData, const FGameplayAbilityActorInfo* ActorInfo) const</code> &mdash; 반환값: FString("Front"/"Back"/"Left"/"Right")</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. TriggerEventData->Instigator를 InstigatorActor로, ActorInfo->AvatarActor를 TargetActor로 추출합니다. 어느 쪽이든 null이면 "Front"를 반환합니다.<br>
+                2. InstigatorLocation - TargetLocation으로 ToInstigator 벡터를 계산하고, Z=0으로 2D 평면화 후 Normalize합니다. 실패하면 "Front".<br>
+                3. TargetActor->GetActorForwardVector()를 Forward로, Z=0 평면화 후 Normalize합니다.<br>
+                4. Right = FVector::CrossProduct(FVector::UpVector, Forward) &mdash; 월드 Up과 Forward의 외적으로 Right 벡터를 계산합니다.<br>
+                5. ForwardDot = DotProduct(Forward, ToInstigator), RightDot = DotProduct(Right, ToInstigator).<br>
+                6. 임계값 0.707f(약 45도)를 사용: ForwardDot > 0.707 &rarr; "Front", &lt; -0.707 &rarr; "Back", 그 외 RightDot >= 0 &rarr; "Right", 아니면 "Left".
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="hitreact" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>트리거</td><td><span class="rel-cls">UAO_GameplayAbility_MeleeHitConfirm</span></td><td>SendHitReactEvent()가 Event.Combat.HitReact 이벤트를 전송하여 이 어빌리티를 발동</td></tr>
+          <tr><td>취소됨</td><td><span class="rel-cls">UAO_GameplayAbility_Death</span></td><td>사망 어빌리티가 Ability.State.HitReact 태그로 CancelAbilities() 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAbilityTask_PlayMontageAndWait</span></td><td>CreatePlayMontageAndWaitProxy()로 피격 리액션 몽타주 재생</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_HitReact -->
+
+    <!-- ==================== AO_GameplayAbility_Sprint ==================== -->
+    <div class="class-card" id="sprint">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Sprint</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'sprint','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'sprint','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'sprint','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'sprint','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="sprint" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">달리기 어빌리티 &mdash; 입력 유지 중 스프린트 상태를 활성화하고 스태미나를 소비</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.Movement.Sprint &middot; InstancedPerActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">LocalPredicted &mdash; 클라이언트에서 즉시 예측 실행, 서버에서 확인 후 보정</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">스태미나 검사(절대/비율), 속도/앉기 상태 검사, 이동 속도 변경, Cost Effect 제거, 재생 지연 적용</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          입력이 유지되는 동안 스프린트 상태를 관리하는 어빌리티입니다.
+          생성자에서 Ability.Movement.Sprint를 AssetTag로, Status.Action.Sprint를 ActivationOwnedTag로,
+          Status.Lockout.Stamina를 ActivationBlockedTag로 등록합니다.
+          CanActivateAbility에서 UAO_PlayerCharacter_AttributeSet으로부터 Stamina/MaxStamina를 조회하여
+          (1) StaminaCost 미만 여부 &rarr; Ability.Fail.NotEnoughStamina 태그 추가,
+          (2) Super::CanActivateAbility 호출,
+          (3) Velocity.SizeSquared2D()가 KINDA_SMALL_NUMBER 미만(정지 상태),
+          (4) IsCrouching()(앉기 중),
+          (5) Stamina &lt; MaxStamina * StaminaLockoutPercent (잠금 비율 미만)
+          순서로 5중 검사를 수행합니다.
+          활성화 시 CommitAbility &rarr; AAO_PlayerCharacter::StartSprint_GAS(true)로 이동 속도를 증가시킵니다.
+          InputPressed에서 정지 상태이면 EndAbility(bWasCancelled=true)로 취소합니다.
+          InputReleased에서 EndAbility(bWasCancelled=false)로 정상 종료합니다.
+          EndAbility에서 IsActive() 검사 후 StartSprint_GAS(false)로 속도 복원,
+          Effect.Cost.Sprint 태그로 RemoveActiveEffectsWithTags() 호출,
+          서버 권한에서 ASC->MakeOutgoingSpec(PostSprintNoRegenEffectClass) &rarr; ApplyGameplayEffectSpecToSelf로 재생 지연을 적용합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="sprint" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PostSprintNoRegenEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>스프린트 종료 후 스태미나 재생을 일시적으로 차단하는 GameplayEffect 클래스. checkf()로 null이면 크래시합니다. 서버 권한에서만 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StaminaCost</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>스프린트 활성화에 필요한 최소 스태미나 절대값. 기본값 2.0f. CanActivateAbility에서 GetStamina() &lt; StaminaCost로 비교합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="sprint" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Sprint()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Ability.Movement.Sprint를 AssetTag로 설정합니다.<br>
+                2. InstancedPerActor, LocalPredicted로 설정합니다.<br>
+                3. Status.Action.Sprint를 ActivationOwnedTag에 추가 &mdash; 스프린트 활성화 동안 이 태그가 부여됩니다.<br>
+                4. Status.Lockout.Stamina를 ActivationBlockedTag에 추가 &mdash; 스태미나 잠금 상태에서는 활성화가 차단됩니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">GAS 파이프라인</div>LocalPredicted이므로 클라이언트에서 즉시 실행되고 서버에서 확인합니다. 입력 기반 어빌리티이므로 bRetriggerInstancedAbility 패턴 없이 InputPressed/InputReleased로 유지/종료를 관리합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool CanActivateAbility(const FGameplayAbilitySpecHandle, const FGameplayAbilityActorInfo*, const FGameplayTagContainer*, const FGameplayTagContainer*, FGameplayTagContainer*) const</code> &mdash; 반환값: bool</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ASC->GetSet&lt;UAO_PlayerCharacter_AttributeSet&gt;()로 AttributeSet 취득 &mdash; null이면 false.<br>
+                2. GetStamina() &lt; StaminaCost이면 OptionalRelevantTags에 Ability.Fail.NotEnoughStamina 추가 후 false.<br>
+                3. Super::CanActivateAbility() 호출 &mdash; GAS의 태그 기반 차단(ActivationBlockedTags 등)을 확인합니다.<br>
+                4. ActorInfo, ASC, AvatarActor 유효성 검사.<br>
+                5. AAO_PlayerCharacter로 캐스팅 실패 시 false.<br>
+                6. CharacterMovement->Velocity.SizeSquared2D() &lt; KINDA_SMALL_NUMBER &mdash; 정지 상태이면 false.<br>
+                7. CharacterMovement->IsCrouching() &mdash; 앉기 상태이면 false.<br>
+                8. CurrentStamina &lt; MaxStamina * StaminaLockoutPercent &mdash; 잠금 비율 미만이면 false.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                2. AvatarActor를 AAO_PlayerCharacter로 캐스팅.<br>
+                3. Character->StartSprint_GAS(true) &mdash; 캐릭터의 이동 속도를 스프린트 속도로 변경합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>LocalPredicted이므로 클라이언트에서 즉시 속도가 변경됩니다. CommitAbility에서 Cost GE가 적용되어 스태미나 소비가 시작됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InputPressed()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::InputPressed() 호출.<br>
+                2. AAO_PlayerCharacter로 캐스팅, CharacterMovement 취득.<br>
+                3. Velocity.SizeSquared2D() &lt; KINDA_SMALL_NUMBER이면 EndAbility(bWasCancelled=true) &mdash; 정지 시 스프린트를 취소합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InputReleased()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility=true, bWasCancelled=false)를 호출하여 정상 종료합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. IsActive() 검사 &mdash; 비활성 상태이면 조기 반환합니다.<br>
+                2. AAO_PlayerCharacter로 캐스팅 &rarr; StartSprint_GAS(false) &mdash; 이동 속도를 원래대로 복원합니다.<br>
+                3. ASC 취득 &rarr; Effect.Cost.Sprint 태그로 RemoveActiveEffectsWithTags() &mdash; 스프린트 비용 GE를 제거합니다.<br>
+                4. checkf(PostSprintNoRegenEffectClass) &mdash; null이면 크래시합니다.<br>
+                5. IsNetAuthority() 블록: ASC->MakeEffectContext() &rarr; MakeOutgoingSpec(PostSprintNoRegenEffectClass, 1.f) &rarr; ApplyGameplayEffectSpecToSelf() &mdash; 스태미나 재생 지연 GE를 서버에서만 적용합니다.<br>
+                6. Super::EndAbility() 호출.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="sprint" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>StartSprint_GAS(bool)로 이동 속도 변경 요청</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>Stamina, MaxStamina, StaminaLockoutPercent를 GetSet&lt;&gt;()으로 조회</td></tr>
+          <tr><td>적용/제거</td><td><span class="rel-cls">UGameplayEffect (Cost/NoRegen)</span></td><td>Effect.Cost.Sprint 태그로 Cost Effect 제거, PostSprintNoRegenEffectClass를 서버에서 적용</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Sprint -->
+
+    <!-- ==================== AO_GameplayAbility_Jump ==================== -->
+    <div class="class-card" id="jump">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Jump</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'jump','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'jump','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'jump','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'jump','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="jump" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">점프 어빌리티 &mdash; 캐릭터 점프 실행 및 착지 감지를 통한 종료 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.Movement.Jump &middot; InstancedPerActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">LocalPredicted &mdash; 클라이언트에서 즉시 점프하여 반응성 확보, 서버에서 확인</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">스태미나 검사, CanJump() 확인, Character::Jump() 호출, WaitMovementModeChange로 착지 감지, 스태미나 변화 차단</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          점프 입력 시 활성화되는 어빌리티입니다.
+          생성자에서 Ability.Movement.Jump를 AssetTag로, Status.Action.Jump와 Status.Debuff.NoStaminaChange를 ActivationOwnedTag로,
+          Status.Action.Inspecting을 ActivationBlockedTag로 등록합니다. NoStaminaChange 태그로 점프 중 스태미나 소비/재생이 일시 중단됩니다.
+          CanActivateAbility에서 (1) AttributeSet->GetStamina() &lt; StaminaCost, (2) Super::CanActivateAbility,
+          (3) IsActive() 중복 검사, (4) CastChecked&lt;ACharacter&gt;()->CanJump() 순서로 4중 검사를 수행합니다.
+          활성화 시 CommitAbility &rarr; CastChecked&lt;ACharacter&gt;()->Jump() &rarr;
+          UAbilityTask_WaitMovementModeChange::CreateWaitMovementModeChange(this, MOVE_Walking)으로 착지를 대기합니다.
+          OnMovementModeChanged 콜백에서 IsActive()와 MOVE_Walking 확인 후 EndAbility를 호출합니다.
+          EndAbility에서 서버 권한으로 PostSprintNoChangeEffectClass를 적용하여 착지 후 스태미나 변화 지연을 부여합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="jump" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PostSprintNoChangeEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>착지 후 스태미나 변화를 일시적으로 차단하는 GameplayEffect 클래스. checkf()로 null이면 크래시합니다. 서버 권한에서만 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StaminaCost</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>점프 활성화에 필요한 최소 스태미나 값. 기본값 10.0f.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="jump" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Jump()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InstancedPerActor, LocalPredicted 설정.<br>
+                2. Ability.Movement.Jump를 AssetTag로 등록.<br>
+                3. Status.Action.Jump, Status.Debuff.NoStaminaChange를 ActivationOwnedTag에 추가.<br>
+                4. Status.Action.Inspecting을 ActivationBlockedTag에 추가 &mdash; 검사 모드에서는 점프가 차단됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool CanActivateAbility(...) const</code> &mdash; 반환값: bool</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ASC->GetSet&lt;UAO_PlayerCharacter_AttributeSet&gt;() &rarr; GetStamina() &lt; StaminaCost이면 NotEnoughStamina 태그 추가 후 false.<br>
+                2. Super::CanActivateAbility() 호출.<br>
+                3. IsActive()가 true이면 false &mdash; 점프 중 재점프를 방지합니다.<br>
+                4. CastChecked&lt;ACharacter&gt;(AvatarActor)->CanJump()가 false이면 false.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                2. CastChecked&lt;ACharacter&gt;(AvatarActor)->Jump() &mdash; 엔진의 점프 메커니즘을 실행합니다.<br>
+                3. UAbilityTask_WaitMovementModeChange::CreateWaitMovementModeChange(this, MOVE_Walking) &mdash; 착지(Walking 전환)를 대기하는 태스크를 생성합니다.<br>
+                4. WaitTask->OnChange.AddDynamic(&OnMovementModeChanged) &rarr; ReadyForActivation().
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. IsActive() 검사 &mdash; 비활성이면 조기 반환.<br>
+                2. ASC 취득, checkf(PostSprintNoChangeEffectClass).<br>
+                3. IsNetAuthority() 블록: MakeEffectContext() &rarr; MakeOutgoingSpec(PostSprintNoChangeEffectClass, 1.f) &rarr; ApplyGameplayEffectSpecToSelf().<br>
+                4. Super::EndAbility() 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnMovementModeChanged()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION() void OnMovementModeChanged(EMovementMode NewMovementMode)</code> &mdash; 파라미터: EMovementMode, 반환값: void</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>IsActive() && NewMovementMode == MOVE_Walking이면 EndAbility(bWasCancelled=false)를 호출합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="jump" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출</td><td><span class="rel-cls">ACharacter</span></td><td>CastChecked로 캐스팅 후 Jump()와 CanJump()를 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>GetStamina()로 스태미나를 조회하여 활성화 조건 검사</td></tr>
+          <tr><td>대기</td><td><span class="rel-cls">UAbilityTask_WaitMovementModeChange</span></td><td>MOVE_Walking 전환(착지) 감지용 AbilityTask</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Jump -->
+
+    <!-- ==================== AO_GameplayAbility_MeleeAttack_Base ==================== -->
+    <div class="class-card" id="melee">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_MeleeAttack_Base</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'melee','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'melee','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="melee" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">기본 근접 공격 어빌리티 &mdash; 공격 몽타주 재생만 담당 (데미지 판정은 MeleeHitConfirm이 처리)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">근접 전투 &middot; InstancedPerActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">LocalPredicted &mdash; 클라이언트에서 몽타주를 즉시 재생하여 반응성 확보</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">CommitAbility 후 AttackMontage를 PlayMontageAndWait로 재생, 완료/취소 콜백으로 종료</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          근접 공격의 애니메이션 재생만 담당하는 기반 어빌리티입니다.
+          생성자에서 InstancedPerActor, LocalPredicted만 설정하며 AssetTag나 ActivationOwnedTag는 없습니다.
+          실제 히트 판정과 데미지 적용은 공격 몽타주 중 AnimNotify에서 발송하는 Event.Combat.Confirm 이벤트를 받는
+          AO_GameplayAbility_MeleeHitConfirm(ServerOnly)이 수행합니다.
+          이러한 분리를 통해 공격 애니메이션(클라이언트 예측)과 데미지 로직(서버 권한)의 실행 위치를 독립적으로 관리하여,
+          클라이언트에서는 즉각적인 공격 피드백을 제공하면서 데미지 판정은 서버에서만 이루어지도록 합니다.
+          AttackMontage는 public UPROPERTY로 노출되어 Blueprint 서브클래스에서 공격 종류별로 다른 몽타주를 설정할 수 있습니다.
+          PlayMontageAndWait 태스크의 4개 콜백(OnCompleted, OnBlendOut, OnCancelled, OnInterrupted)을 각각
+          OnMontageCompleted와 OnMontageCancelled에 바인딩합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="melee" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AttackMontage</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>근접 공격 시 재생할 애니메이션 몽타주. public 접근 수준으로 선언되어 있습니다. checkf()로 null이면 크래시합니다. 에디터에서 공격 종류별로 다른 몽타주를 설정할 수 있습니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="melee" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_MeleeAttack_Base()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>InstancedPerActor, LocalPredicted만 설정합니다. 태그 등록 없이 최소한의 설정만 수행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                2. checkf(AttackMontage) &mdash; null이면 크래시합니다.<br>
+                3. UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage) &mdash; 태스크 이름은 NAME_None입니다.<br>
+                4. checkf(MontageTask) &mdash; 태스크 생성 실패 시 크래시합니다.<br>
+                5. OnCompleted/OnBlendOut &rarr; OnMontageCompleted, OnCancelled/OnInterrupted &rarr; OnMontageCancelled 바인딩.<br>
+                6. ReadyForActivation() &mdash; 태스크를 활성화합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>LocalPredicted이므로 클라이언트에서 즉시 몽타주가 재생됩니다. 서버에서도 동일한 몽타주가 재생되며, 공격 몽타주 중 AnimNotify가 Event.Combat.Confirm 이벤트를 발송하면 ServerOnly인 MeleeHitConfirm이 서버에서만 데미지 판정을 수행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>Super::EndAbility()만 호출합니다. 별도의 정리 로직 없이 GAS 프레임워크의 기본 종료 처리(활성 태스크 정리, ActivationOwnedTag 제거)를 위임합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnMontageCompleted() / OnMontageCancelled()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>CurrentActorInfo 유효성 검사 후 EndAbility를 호출합니다. OnMontageCompleted는 bWasCancelled=false, OnMontageCancelled는 bWasCancelled=true입니다. bReplicateEndAbility=true로 양쪽에서 종료됩니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="melee" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>연계</td><td><span class="rel-cls">UAO_GameplayAbility_MeleeHitConfirm</span></td><td>몽타주의 AnimNotify가 Event.Combat.Confirm 이벤트를 발송하여 히트 판정 어빌리티를 활성화</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAbilityTask_PlayMontageAndWait</span></td><td>CreatePlayMontageAndWaitProxy()로 공격 몽타주 재생</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_MeleeAttack_Base -->
+
+    <!-- ==================== AO_GameplayAbility_MeleeHitConfirm ==================== -->
+    <div class="class-card" id="meleehit">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_MeleeHitConfirm</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'meleehit','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'meleehit','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'meleehit','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'meleehit','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="meleehit" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">근접 히트 판정 어빌리티 &mdash; AnimNotify에서 보낸 이벤트를 받아 SphereTraceMulti로 적중 판정 및 데미지 적용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Event.Combat.Confirm &middot; InstancedPerActor &middot; Event Trigger</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerOnly &mdash; 서버에서만 데미지 판정을 수행하여 치트 방지</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">UAO_MeleeHitEventPayload 파싱, SphereTraceMulti, TSet 중복 필터링, SetByCallerMagnitude 데미지, HitReact 이벤트 전송</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          공격 몽타주의 AnimNotify가 전송하는 Event.Combat.Confirm 이벤트를 AbilityTrigger로 발동합니다.
+          생성자에서 InstancedPerActor, ServerOnly를 설정하고, TraceChannel을 ECC_Pawn으로 초기화합니다.
+          FAbilityTriggerData에 Event.Combat.Confirm, GameplayEvent 소스를 등록합니다.
+          HitReactEventTag를 Event.Combat.HitReact로 초기화합니다.
+          ActivateAbility에서 IsNetAuthority() 검사 후 CommitAbility를 호출하지 않고 DoMeleeHitConfirm()을 즉시 실행하고
+          EndAbility로 종료하는 단발성 구조입니다.
+          DoMeleeHitConfirm에서 EventData->OptionalObject를 UAO_MeleeHitEventPayload로 캐스팅하여
+          FAO_MeleeHitTraceParams(TraceStart, TraceEnd, TraceRadius, DamageEffectClass, DamageAmount)를 추출합니다.
+          UKismetSystemLibrary::SphereTraceMulti로 적중 액터를 수집하고,
+          TSet&lt;TWeakObjectPtr&lt;AActor&gt;&gt;으로 중복 적중을 필터링합니다.
+          ApplyDamageToActor에서 TargetASC 존재 확인, Status.Invulnerable 태그 확인 후
+          EffectContext에 Instigator(OwnerActor, AvatarActor)를 설정하고,
+          MakeOutgoingSpec &rarr; SetSetByCallerMagnitude(Data.Damage, DamageAmount) &rarr; ApplyGameplayEffectSpecToTarget 체인으로 데미지를 적용합니다.
+          SendHitReactEvent에서 FGameplayEventData를 구성하여 SendGameplayEventToActor()로 대상의 HitReact를 발동합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="meleehit" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">TraceChannel</span></td>
+            <td><span class="var-type">TEnumAsByte&lt;ECollisionChannel&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>히트 판정에 사용할 충돌 채널. 생성자에서 ECC_Pawn으로 초기화됩니다. UEngineTypes::ConvertToTraceType()로 변환하여 SphereTraceMulti에 전달합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIgnoreInstigator</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>트레이스에서 공격자 자신을 제외할지 여부. 기본값 true. true이면 ActorsToIgnore에 AvatarActor를 추가합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HitReactEventTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>피격 리액션 이벤트의 태그. 생성자에서 Event.Combat.HitReact로 초기화됩니다. SendHitReactEvent()에서 EventTag와 SendGameplayEventToActor의 태그로 사용됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="meleehit" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_MeleeHitConfirm()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InstancedPerActor, ServerOnly 설정.<br>
+                2. TraceChannel = ECC_Pawn으로 초기화.<br>
+                3. FAbilityTriggerData: TriggerTag = Event.Combat.Confirm, TriggerSource = GameplayEvent &rarr; AbilityTriggers에 추가.<br>
+                4. HitReactEventTag = Event.Combat.HitReact로 초기화.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerOnly</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. IsNetAuthority() 검사 &mdash; 비권한이면 EndAbility(bReplicateEndAbility=false, bWasCancelled=true).<br>
+                2. checkf(TriggerEventData) &mdash; null이면 크래시.<br>
+                3. DoMeleeHitConfirm(ActorInfo, TriggerEventData) 호출.<br>
+                4. EndAbility(bReplicateEndAbility=true, bWasCancelled=false) &mdash; CommitAbility 없이 단발 실행 후 즉시 종료.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">DoMeleeHitConfirm()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void DoMeleeHitConfirm(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* EventData)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. EventData->OptionalObject를 UAO_MeleeHitEventPayload로 Cast &mdash; checkf로 null 방어.<br>
+                2. Payload->Params에서 FAO_MeleeHitTraceParams(TraceStart, TraceEnd, TraceRadius, DamageEffectClass, DamageAmount) 참조.<br>
+                3. bIgnoreInstigator가 true이면 ActorsToIgnore에 AvatarActor 추가.<br>
+                4. UKismetSystemLibrary::SphereTraceMulti(World, TraceStart, TraceEnd, TraceRadius, ConvertToTraceType(TraceChannel), false, ActorsToIgnore, None, HitResults, true).<br>
+                5. TSet&lt;TWeakObjectPtr&lt;AActor&gt;&gt; UniqueHitActors로 중복 제거 순회.<br>
+                6. 각 유효 HitActor에 대해 ApplyDamageToActor() 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyDamageToActor()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void ApplyDamageToActor(AActor* TargetActor, const FAO_MeleeHitTraceParams&amp; Params, const FGameplayAbilityActorInfo* ActorInfo)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor) &mdash; null이면 조기 반환 (벽 등 ASC 없는 액터).<br>
+                2. TargetASC->HasMatchingGameplayTag("Status.Invulnerable") &mdash; 무적 상태이면 조기 반환.<br>
+                3. SourceASC->MakeEffectContext() &rarr; Context.AddInstigator(OwnerActor, AvatarActor).<br>
+                4. MakeOutgoingSpec(Params.DamageEffectClass, 1.f, Context) &rarr; checkf(Handle.IsValid()).<br>
+                5. SetSetByCallerMagnitude("Data.Damage", Params.DamageAmount) &mdash; 데미지 수치를 동적으로 주입합니다.<br>
+                6. ApplyGameplayEffectSpecToTarget(*Handle.Data.Get(), TargetASC) &mdash; 대상에게 데미지 GE를 적용합니다.<br>
+                7. SendHitReactEvent(TargetActor, AvatarActor, DamageAmount) 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendHitReactEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void SendHitReactEvent(AActor* TargetActor, AActor* InstigatorActor, float DamageAmount)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. checkf(TargetActor), checkf(HitReactEventTag.IsValid()).<br>
+                2. FGameplayEventData 구성: EventTag = HitReactEventTag, Instigator = InstigatorActor, Target = TargetActor, EventMagnitude = DamageAmount.<br>
+                3. UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, HitEvent) &mdash; 대상의 HitReact 어빌리티를 발동합니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="meleehit" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>트리거됨</td><td><span class="rel-cls">UAO_GameplayAbility_MeleeAttack_Base</span></td><td>공격 몽타주의 AnimNotify가 Event.Combat.Confirm 이벤트를 발송</td></tr>
+          <tr><td>트리거</td><td><span class="rel-cls">UAO_GameplayAbility_HitReact</span></td><td>SendHitReactEvent()가 Event.Combat.HitReact로 대상의 HitReact 어빌리티를 발동</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_MeleeHitEventPayload</span></td><td>EventData->OptionalObject에서 캐스팅하여 트레이스 파라미터/데미지 정보를 추출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UKismetSystemLibrary</span></td><td>SphereTraceMulti로 적중 판정을 수행</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_MeleeHitConfirm -->
+
+    <!-- ==================== AO_GameplayAbility_Traversal ==================== -->
+    <div class="class-card" id="trav">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Traversal</div>
+        <div class="class-parent">부모: UGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'trav','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'trav','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="trav" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">파쿠르/트래버설 어빌리티 &mdash; 장애물 감지, Chooser 평가, Motion Matching으로 최적 몽타주 선택 및 재생</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.Movement.Traversal &middot; InstancedPerActor</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">LocalPredicted &mdash; 클라이언트에서 예측, 서버 이동 보정 무시(bIgnoreClientMovementErrorChecksAndCorrection) 포함</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">캡슐 트레이스로 장애물 감지, TraversableComponent에서 레지 정보 획득, ChooserTable 평가, PoseSearch MotionMatch, MotionWarping 타겟 설정</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          장애물을 넘거나 기어오르는 파쿠르 동작을 처리하는 어빌리티입니다.
+          생성자에서 Ability.Movement.Traversal을 AssetTag로, Status.Action.Traversal과 Status.Debuff.NoStaminaChange를 ActivationOwnedTag로 등록합니다.
+          OnAvatarSet에서 Owner, Character, CharacterMovement, CapsuleComponent 참조를 캐싱합니다.
+          CanActivateAbility에서 스태미나 검사 &rarr; Super 호출 &rarr; IsActive() 검사 &rarr; const_cast로 TryTraversal() 호출을 수행합니다.
+          TryTraversal()은 DetectTraversal() &rarr; EvaluateTraversal() &rarr; SelectTraversal() 3단계 파이프라인입니다.
+          DetectTraversal에서 GetTraversalCheckInputs()로 이동 모드별 트레이스 파라미터를 결정하고,
+          RunCapsuleTrace(SweepSingleByChannel, ECC_Visibility)로 전방 장애물을 감지합니다.
+          TraversableComponent->GetLedgeTransforms()로 Front/Back 레지 위치를 가져오고,
+          Room Check 트레이스로 캐릭터 이동 공간을 확인하며, 장애물 높이/깊이/뒤쪽 바닥을 측정합니다.
+          EvaluateTraversal에서 UChooserFunctionLibrary를 사용하여 AnimChooserTable을 평가하고,
+          FTraversalChooserInput에 모든 장애물 데이터를 입력하여 ActionType(Vault/Hurdle/Climb)과 몽타주 후보를 결정합니다.
+          SelectTraversal에서 UPoseSearchLibrary::MotionMatch로 현재 포즈와 레지 거리에 최적인 몽타주, 시작 시간, 재생 속도를 결정합니다.
+          활성화 시 UpdateWarpTargets()로 MotionWarpingComponent에 FrontLedge/BackLedge/BackFloor 워프 타겟을 설정하고,
+          서버 이동 보정을 비활성화한 뒤 선택된 몽타주를 PlayMontageAndWait로 재생합니다.
+          이동 모드를 MOVE_Flying으로 변경하여 중력을 무시합니다.
+          EndAbility에서 Vault이면 MOVE_Falling, 그 외에는 MOVE_Walking으로 복원하고 서버 보정을 재활성화합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AnimChooserTable</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UChooserTable&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span> <span class="prop-tag bp">BPReadOnly</span></td>
+            <td>트래버설 동작 유형 및 조건에 따라 몽타주 후보를 선별하는 Chooser Table 에셋. checkf()로 null이면 크래시합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DrawDebugLevel</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span> <span class="prop-tag bp">BPReadWrite</span></td>
+            <td>디버그 시각화 수준. 0=없음, 1=AO_LOG 출력, 2=캡슐/스피어/라인 드로잉. 기본값 0.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DrawDebugDuration</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span> <span class="prop-tag bp">BPReadWrite</span></td>
+            <td>디버그 드로잉 지속 시간(초). 기본값 5.0f.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PostSprintNoChangeEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>트래버설 종료 후 스태미나 변화를 일시 차단하는 GameplayEffect 클래스. 서버 권한에서만 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StaminaCost</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>트래버설 활성화에 필요한 최소 스태미나 값. 기본값 10.0f.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraversalResult</span></td>
+            <td><span class="var-type">FTraversalCheckResult</span></td>
+            <td>(private)</td>
+            <td>트래버설 감지 결과를 저장하는 구조체. FrontLedgeLocation, BackLedgeLocation, ObstacleHeight, ObstacleDepth, ActionType, ChosenMontage, StartTime, PlayRate 등을 포함합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Owner / Character / CharacterMovement / CapsuleComponent</span></td>
+            <td><span class="var-type">TObjectPtr&lt;...&gt;</span></td>
+            <td>(private, UPROPERTY)</td>
+            <td>OnAvatarSet에서 캐시하는 참조들. AActor, ACharacter, UCharacterMovementComponent, UCapsuleComponent 순서로 초기화됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnAvatarSet()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec&amp; Spec)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::OnAvatarSet() 호출.<br>
+                2. Owner = ActorInfo->AvatarActor.Get() &mdash; checkf로 null 방어.<br>
+                3. Character = Cast&lt;ACharacter&gt;(Owner) &mdash; checkf.<br>
+                4. CharacterMovement = Character->GetCharacterMovement() &mdash; checkf.<br>
+                5. CapsuleComponent = Cast&lt;UCapsuleComponent&gt;(Owner->GetComponentByClass()) &mdash; checkf.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. AttributeSet->GetStamina() &lt; StaminaCost &rarr; NotEnoughStamina 태그.<br>
+                2. Super::CanActivateAbility().<br>
+                3. IsActive() &rarr; 중복 방지.<br>
+                4. const_cast&lt;UAO_GameplayAbility_Traversal*&gt;(this)->TryTraversal() &mdash; CanActivateAbility가 const이므로 const_cast가 필요합니다. TryTraversal이 TraversalResult를 변경하기 때문입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                2. UpdateWarpTargets() &mdash; MotionWarpingComponent에 FrontLedge/BackLedge/BackFloor 타겟 설정.<br>
+                3. CharacterMovement->bIgnoreClientMovementErrorChecksAndCorrection = true, bServerAcceptClientAuthoritativePosition = true &mdash; 서버 이동 보정을 비활성화합니다.<br>
+                4. CreatePlayMontageAndWaitProxy(this, NAME_None, TraversalResult.ChosenMontage, TraversalResult.PlayRate, NAME_None, true, 1.0f, TraversalResult.StartTime) &mdash; PoseSearch가 결정한 시작 시간과 재생 속도를 사용합니다.<br>
+                5. OnCompleted/OnInterrupted/OnBlendOut/OnCancelled 4개 모두 OnMontageCompleted에 바인딩 &rarr; ReadyForActivation().<br>
+                6. CharacterMovement->SetMovementMode(MOVE_Flying) &mdash; 중력 무시.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>LocalPredicted이므로 클라이언트에서 즉시 실행됩니다. 서버 이동 보정을 비활성화하여 트래버설 중 위치 충돌을 방지합니다. 몽타주의 루트 모션은 MotionWarping을 통해 레지 위치에 정확히 맞춰집니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. IsEndAbilityValid() 검사.<br>
+                2. ActionType == Vault이면 MOVE_Falling, 그 외 MOVE_Walking으로 이동 모드 복원.<br>
+                3. RetriggerableDelay(0.2f) 호출 &mdash; 이동 모드 전환 후 짧은 지연.<br>
+                4. bIgnoreClientMovementErrorChecksAndCorrection = false, bServerAcceptClientAuthoritativePosition = false &mdash; 서버 이동 보정 재활성화.<br>
+                5. PostSprintNoChangeEffectClass를 서버 권한에서 적용.<br>
+                6. Super::EndAbility() 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryTraversal() / DetectTraversal() / EvaluateTraversal() / SelectTraversal()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                <strong>TryTraversal()</strong>: DetectTraversal() &rarr; EvaluateTraversal(EvaluateObjects) &rarr; SelectTraversal(EvaluateObjects) 순차 호출. 하나라도 실패 시 false.<br><br>
+                <strong>DetectTraversal()</strong>: GetTraversalCheckInputs()로 이동 모드별 트레이스 파라미터(Walking/Falling 분기) 결정 &rarr; 전방 캡슐 트레이스 &rarr; TraversableComponent->GetLedgeTransforms() &rarr; Front Room Check &rarr; ObstacleHeight 계산 &rarr; Back Room Check &rarr; ObstacleDepth, BackFloor 계산.<br><br>
+                <strong>EvaluateTraversal()</strong>: UChooserFunctionLibrary::MakeEvaluateChooser(AnimChooserTable)로 컨텍스트 생성 &rarr; FTraversalChooserInput에 장애물 데이터/이동 모드/Gait/속도 입력 &rarr; EvaluateObjectChooserBaseMulti()로 몽타주 후보 목록 획득 &rarr; OutputData.ActionType 설정.<br><br>
+                <strong>SelectTraversal()</strong>: UPoseSearchLibrary::MotionMatch(AnimInstance, EvaluateObjects, "PoseHistory", ..., MotionMatchResult) &rarr; SelectedAnim을 UAnimMontage로 캐스팅 &rarr; TraversalResult에 ChosenMontage, StartTime, PlayRate 저장.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateWarpTargets()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. MotionWarpingComponent 취득.<br>
+                2. FrontLedge: AddOrUpdateWarpTargetFromLocationAndRotation("FrontLedge", Location + Z(0.5f), MakeRotFromX(-FrontLedgeNormal)).<br>
+                3. Hurdle/Vault인 경우: GetMotionWarpingWindowsForWarpTargetFromAnimation("BackLedge") &rarr; GetCurveValueFromAnimation("Distance_From_Ledge") &rarr; BackLedge 타겟 추가. 아니면 RemoveWarpTarget.<br>
+                4. Hurdle인 경우: 동일 패턴으로 "BackFloor" 타겟 설정. BackLedge에서의 거리 차이로 보정. 아니면 RemoveWarpTarget.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RunCapsuleTrace()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool RunCapsuleTrace(const FVector&amp; Start, const FVector&amp; End, float Radius, float HalfHeight, FHitResult&amp; OutHit, FColor DebugHitColor, FColor DebugTraceColor)</code> &mdash; 반환값: bool(적중 여부)</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. FCollisionShape::MakeCapsule(Radius, HalfHeight) &mdash; 캡슐 형태 생성.<br>
+                2. FCollisionQueryParams("TraversalTrace", false, Owner) &mdash; Owner를 무시합니다.<br>
+                3. World->SweepSingleByChannel(OutHit, Start, End, FQuat::Identity, ECC_Visibility, Shape, Params) &mdash; Visibility 채널로 스윕합니다.<br>
+                4. DrawDebugLevel >= 2이면 DrawDebugCapsule/DrawDebugLine으로 시각화합니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="trav" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_TraversableComponent</span></td><td>감지된 장애물에서 GetLedgeTransforms()로 Front/Back 레지 Transform을 조회</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UChooserTable / UChooserFunctionLibrary</span></td><td>EvaluateObjectChooserBaseMulti()로 조건에 맞는 몽타주 후보 선별</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UPoseSearchLibrary</span></td><td>MotionMatch()로 최적 몽타주, 시작 시간, 재생 속도 결정</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UMotionWarpingComponent</span></td><td>AddOrUpdateWarpTargetFromLocationAndRotation()으로 워프 타겟 설정</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>GetStamina()로 스태미나를 조회하여 활성화 조건 검사</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Traversal -->
+
+    <!-- ==================== AO_GameplayAbility_Interact_Trace ==================== -->
+    <div class="class-card" id="int_trace">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Interact_Trace</div>
+        <div class="class-parent">부모: UAO_InteractionGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'int_trace','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_trace','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_trace','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_trace','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="int_trace" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">상호작용 탐색 어빌리티 &mdash; 주기적 트레이스로 주변 상호작용 가능 오브젝트를 감지하고 UI에 표시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Interaction &middot; InstancedPerActor &middot; OnSpawn 자동 활성화 &middot; LocalOnly</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">LocalOnly &mdash; 각 클라이언트에서만 실행되어 UI 표시를 담당, 서버 복제 없음</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">주기적 Sphere Trace(AO_TraceChannel_Interaction), 상호작용 대상 갱신, UI 메시지 브로드캐스트, 사망 시 자동 종료</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          ActivationPolicy가 OnSpawn으로 설정되어 어빌리티 부여 즉시 자동으로 활성화됩니다.
+          NetExecutionPolicy는 LocalOnly로 서버에는 영향을 미치지 않습니다.
+          활성화 시 Status.Death 태그의 NewOrRemoved 이벤트를 RegisterGameplayTagEvent()로 등록하고,
+          FAO_InteractionQuery를 구성하여 UAO_AbilityTask_WaitForInteractableTraceHit 태스크를 생성합니다.
+          태스크에 AO_TraceChannel_Interaction 채널, InteractionTraceRange, InteractionTraceRate, TraceSphereRadius를 전달합니다.
+          태스크의 InteractableChanged 델리게이트에 UpdateInteractions를 바인딩합니다.
+          UpdateInteractions에서 InteractionWidgetController를 통해 FAO_InteractionMessage를 브로드캐스트하고,
+          InteractionInfos[0]에서 Interactable 인터페이스를 통해 액터를 추출(AActor 또는 UActorComponent->GetOwner())하여
+          InteractionComponent의 CurrentInteractTarget으로 설정합니다.
+          OnDeathTagChanged에서 NewCount > 0이면 어빌리티를 종료합니다.
+          EndAbility에서 Death 태그 델리게이트를 UnregisterGameplayTagEvent로 해제하고,
+          현재 타겟의 MeshComponent들의 CustomDepth 하이라이트를 끄고, 타겟을 nullptr로 초기화하고,
+          빈 InteractionMessage를 브로드캐스트하여 UI를 정리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="int_trace" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">InteractionTraceRange</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>상호작용 탐색 트레이스의 최대 거리. 기본값 150.0f.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionTraceRate</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>트레이스 실행 주기(초). 기본값 0.1f (초당 10회).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bShowTraceDebug</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>트레이스 디버그 시각화 활성화 여부. 기본값 false.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TraceSphereRadius</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>Sphere Trace 반경. 기본값 60.0f. meta=(ClampMin="0.0")으로 음수 방지.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DeathTagDelegateHandle</span></td>
+            <td><span class="var-type">FDelegateHandle</span></td>
+            <td>(private)</td>
+            <td>Status.Death 태그 변경 이벤트의 델리게이트 핸들. EndAbility에서 UnregisterGameplayTagEvent()로 해제 후 Reset()합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="int_trace" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Interact_Trace()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ActivationPolicy = EAOAbilityActivationPolicy::OnSpawn &mdash; 부여 즉시 활성화.<br>
+                2. InstancedPerActor.<br>
+                3. LocalOnly &mdash; 서버 복제 없이 각 클라이언트에서만 실행.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Super::ActivateAbility() 호출.<br>
+                2. ASC->RegisterGameplayTagEvent("Status.Death", NewOrRemoved) &rarr; AddUObject(&OnDeathTagChanged) &rarr; DeathTagDelegateHandle 저장.<br>
+                3. FAO_InteractionQuery 구성: RequestingAvatar = GetAvatarActorFromActorInfo(), RequestingController = GetControllerFromActorInfo().<br>
+                4. UAO_AbilityTask_WaitForInteractableTraceHit::WaitForInteractableTraceHit(this, Query, AO_TraceChannel_Interaction, MakeTargetLocationInfoFromOwnerActor(), Range, Rate, bDebug, Radius) 태스크 생성.<br>
+                5. InteractableChanged.AddDynamic(&UpdateInteractions) &rarr; ReadyForActivation().
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. DeathTagDelegateHandle.IsValid()이면 ASC->UnregisterGameplayTagEvent() &rarr; Reset().<br>
+                2. InteractionComponent->GetCurrentInteractTarget() &rarr; 현재 타겟의 모든 UMeshComponent에 SetRenderCustomDepth(false) &mdash; 하이라이트 해제.<br>
+                3. InteractionComponent->SetCurrentInteractTarget(nullptr) &mdash; 타겟 초기화.<br>
+                4. InteractionWidgetController에 빈 FAO_InteractionMessage(bShouldRefresh=true) 브로드캐스트 &mdash; UI 정리.<br>
+                5. Super::EndAbility() 호출.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateInteractions()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION() void UpdateInteractions(const TArray&lt;FAO_InteractionInfo&gt;&amp; InteractionInfos)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. AvatarActor, InteractionComponent 취득.<br>
+                2. InteractionWidgetController에 FAO_InteractionMessage(Notice, bShouldRefresh=true) 브로드캐스트 &mdash; InteractionInfos[0] 또는 빈 Info 전달.<br>
+                3. InteractionInfos[0].Interactable.GetObject()에서 AActor로 캐스팅 시도, 실패 시 UActorComponent->GetOwner() 체인으로 액터 추출.<br>
+                4. InteractionComponent->SetCurrentInteractTarget(TargetActor).
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnDeathTagChanged()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void OnDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>NewCount > 0이면 EndAbility(bWasCancelled=false)를 호출하여 사망 시 트레이스를 중지합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="int_trace" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_AbilityTask_WaitForInteractableTraceHit</span></td><td>주기적 Sphere Trace를 실행하는 커스텀 AbilityTask, AO_TraceChannel_Interaction 채널 사용</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>SetCurrentInteractTarget()으로 현재 상호작용 타겟 설정/해제</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_InteractionWidgetController</span></td><td>BroadcastInteractionMessage()로 상호작용 UI 메시지 브로드캐스트</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">UAO_GameplayAbility_Interact_Execute</span></td><td>트레이스로 감지된 타겟 정보를 InteractionComponent를 통해 실행 어빌리티에 제공</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Interact_Trace -->
+
+    <!-- ==================== AO_GameplayAbility_Interact_Execute ==================== -->
+    <div class="class-card" id="int_exec">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Interact_Execute</div>
+        <div class="class-parent">부모: UAO_GameplayAbility_Interact_Info</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'int_exec','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_exec','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_exec','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'int_exec','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="int_exec" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">상호작용 실행 어빌리티 &mdash; 홀딩 관리, 몽타주 재생, AnimNotify 처리, Finalize 이벤트 전송</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Ability.Action.AbilityInteract.Execute &middot; InstancedPerActor &middot; Event Trigger &middot; ReplicateYes</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerInitiated &middot; ReplicateYes &mdash; 서버에서 시작, 클라이언트로 복제. Server RPC 2개 포함</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">Duration 홀딩 UI/타이머, Toggle/OneShot 분기, 몽타주 멀티캐스트, DecayHold 전용 로직, Server RPC 동기화</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          상호작용 키 입력 시 GameplayEvent로 발동되는 실행 어빌리티입니다.
+          UAO_GameplayAbility_Interact_Info를 상속하여 InitializeAbility()로 타겟 액터의 InteractionInfo를 초기화합니다.
+          생성자에서 Manual, InstancedPerActor, ServerInitiated, ReplicateYes를 설정하고,
+          CDO(RF_ClassDefaultObject)에서 AbilityTag, ActivationOwnedTag(Status.Action.AbilityInteract),
+          AbilityTrigger(Execute 태그, GameplayEvent 소스)를 등록합니다.
+          활성화 시 CommitAbility &rarr; Super::ActivateAbility &rarr; InitializeAbility(TargetActor)를 수행합니다.
+          ASC->GenericGameplayEventCallbacks에 Finalize 태그 리스너를 서버/클라이언트 분기로 등록합니다.
+          DecayHoldElement이면 입력 해제 태스크만 생성하고 반환합니다.
+          Duration=0이면 즉시 ExecuteInteraction(), 양수이면 이동 중지 &rarr; Progress UI &rarr; HoldMontage &rarr;
+          WaitForInvalidInteraction(각도/거리) + WaitInteractionInputRelease 태스크 &rarr; DurationTimer를 설정합니다.
+          ExecuteInteraction에서 PuzzleElement/BaseInteractable의 Toggle 여부에 따라 Active/Deactivate 몽타주를 선택하고,
+          InteractionComponent->MulticastPlayInteractionMontage()로 재생합니다.
+          bWaitForAnimationNotify가 false이면 즉시 SendFinalizeEvent()를 호출합니다.
+          SendFinalizeEvent에서 ASC->TriggerAbilityFromGameplayEvent(AbilityToGrant)로 결과 어빌리티를 활성화합니다.
+          ServerNotifyDecayHoldInputReleased(Server, Reliable)과 ServerNotifyAnimationEvent(Server, Reliable)
+          2개의 Server RPC로 클라이언트-서버 동기화를 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="int_exec" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AcceptanceAngle</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>홀딩 중 허용되는 최대 시야각(도). 초과 시 OnInvalidInteraction()이 호출되어 취소합니다. 기본값 120.0f.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AcceptanceDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>홀딩 중 허용되는 최대 거리. 초과 시 취소됩니다. 기본값 100.0f.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DurationTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(private)</td>
+            <td>홀딩 완료 시점을 관리하는 타이머 핸들. TWeakObjectPtr 기반 람다로 OnDurationEnded()를 호출합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MontageTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(private)</td>
+            <td>몽타주 재생 완료 후 어빌리티 종료를 위한 타이머 핸들. MontageLength + 0.5f로 설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bHoldingPhaseCompleted</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(private)</td>
+            <td>홀딩 단계 완료 여부 플래그. ActivateAbility에서 false로 리셋, OnDurationEnded에서 true로 설정됩니다. InputReleased에서 이 값이 false이면 취소합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="int_exec" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Interact_Execute()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Manual, InstancedPerActor, ServerInitiated, ReplicateYes 설정.<br>
+                2. HasAnyFlags(RF_ClassDefaultObject) 블록 내 (CDO 전용):<br>
+                &nbsp;&nbsp;a. Ability.Action.AbilityInteract.Execute를 AssetTag로 등록.<br>
+                &nbsp;&nbsp;b. Status.Action.AbilityInteract를 ActivationOwnedTag로 추가.<br>
+                &nbsp;&nbsp;c. FAbilityTriggerData: Execute 태그, GameplayEvent 소스 &rarr; AbilityTriggers에 추가.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. CommitAbility() &rarr; Super::ActivateAbility() &rarr; bHoldingPhaseCompleted = false.<br>
+                2. TriggerEventData->Target으로 InitializeAbility() &mdash; 실패 시 종료.<br>
+                3. ASC->GenericGameplayEventCallbacks에 Finalize 태그 리스너 등록: 서버이면 OnAnimNotifyReceived, 클라이언트이면 OnLocalAnimNotifyReceived.<br>
+                4. WorldInteractable->OnInteractActiveStarted() 호출.<br>
+                5. DecayHoldElement 분기: WaitInteractionInputRelease 태스크만 생성 후 return.<br>
+                6. Duration <= 0 분기: bHoldingPhaseCompleted=true &rarr; ExecuteInteraction().<br>
+                7. Duration > 0 분기: StopMovementImmediately() &rarr; Progress UI &rarr; HoldMontage &rarr; WaitForInvalidInteraction(AcceptanceAngle, AcceptanceDistance) &rarr; WaitInteractionInputRelease &rarr; DurationTimer(WeakLambda).
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>ServerInitiated + ReplicateYes이므로 서버에서 활성화가 시작되고 클라이언트에 복제됩니다. 클라이언트에서 AnimNotify를 감지하면 ServerNotifyAnimationEvent RPC로 서버에 전달하고, 서버에서 실제 Finalize 처리를 수행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. DecayHoldElement이면 MulticastSetMovementForActor(true) &mdash; 움직임 복구.<br>
+                2. WorldInteractable->OnInteractActiveEnded() &mdash; 홀딩 종료 알림.<br>
+                3. DurationTimerHandle/MontageTimerHandle ClearTimer.<br>
+                4. ASC->GenericGameplayEventCallbacks에서 Finalize 리스너 RemoveAll(this).<br>
+                5. bHoldingPhaseCompleted = false.<br>
+                6. InteractionWidgetController에 Notice(bShouldRefresh=false, bSwitchActive=true) 브로드캐스트.<br>
+                7. Super::EndAbility().
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ExecuteInteraction()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool ExecuteInteraction()</code> &mdash; 반환값: bool(성공 여부)</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. PuzzleElement 캐스팅: Toggle이면 !IsActivated()로 bShouldActivate 결정 &rarr; Active/Deactivate 몽타주 선택.<br>
+                2. BaseInteractable 캐스팅: IsToggleable()이면 동일 로직.<br>
+                3. 그 외: bShouldActivate=true, ActiveMontage.<br>
+                4. MontageToPlay가 null이면 ActiveMontage/DeactivateMontage 폴백.<br>
+                5. InteractionComponent->MulticastPlayInteractionMontage(Montage, Transform, WarpTargetName) &mdash; MontageLength = GetPlayLength() + 0.5f.<br>
+                6. bWaitForAnimationNotify가 false이면 즉시 SendFinalizeEvent().<br>
+                7. 몽타주가 있으면 MontageTimerHandle로 MontageLength 후 EndAbility 예약.<br>
+                8. return bHasMontage || bSuccess.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SendFinalizeEvent()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool SendFinalizeEvent()</code> &mdash; 반환값: bool</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. FGameplayEventData: EventTag = Finalize, Instigator = AvatarActor, Target = InteractableActor.<br>
+                2. ASC->FindAbilitySpecFromClass(InteractionInfo.AbilityToGrant) &rarr; Handle 취득.<br>
+                3. ASC->TriggerAbilityFromGameplayEvent(Handle, AbilityActorInfo, FinalizeTag, &Payload, *ASC) &mdash; 결과 어빌리티를 발동합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerNotifyDecayHoldInputReleased()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION(Server, Reliable) void ServerNotifyDecayHoldInputReleased()</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. DecayElement 캐스팅 &mdash; null이면 조기 반환.<br>
+                2. GetNotifyCount() &lt; 2이면 StopEarly() &rarr; EndAbility &mdash; 초기에 놓으면 즉시 중단.<br>
+                3. 그 외: ReleasePause() &rarr; GetActiveMontageRemainingTime() &rarr; MontageTimerHandle로 CleanupAfterMontage() + EndAbility 예약.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerNotifyAnimationEvent()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>UFUNCTION(Server, Reliable) void ServerNotifyAnimationEvent(const FGameplayTag EventTag)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>DecayHoldElement이면 OnNotifyReceived(), 그 외이면 SendFinalizeEvent() 호출.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InputReleased() / OnDurationEnded()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                <strong>InputReleased</strong>: Duration > 0이고 !bHoldingPhaseCompleted이면 CancelAbility() 호출.<br>
+                <strong>OnDurationEnded</strong>: bHoldingPhaseCompleted = true &rarr; ExecuteInteraction() 호출, 실패 시 CancelAbility().
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="int_exec" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속</td><td><span class="rel-cls">UAO_GameplayAbility_Interact_Info</span></td><td>InitializeAbility()로 타겟 액터에서 InteractionInfo 초기화 기능 상속</td></tr>
+          <tr><td>연계</td><td><span class="rel-cls">UAO_GameplayAbility_Interact_Trace</span></td><td>Trace 어빌리티가 감지한 타겟에 대해 실행</td></tr>
+          <tr><td>트리거</td><td><span class="rel-cls">AbilityToGrant (Finalize)</span></td><td>TriggerAbilityFromGameplayEvent()로 상호작용 결과 어빌리티 활성화</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>MulticastPlayInteractionMontage()로 몽타주 멀티캐스트 재생</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">AAO_DecayHoldElement</span></td><td>GetNotifyCount(), StopEarly(), ReleasePause(), CleanupAfterMontage() 호출</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_AbilityTask_WaitForInvalidInteraction</span></td><td>홀딩 중 각도/거리 이탈 감지 태스크</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_AbilityTask_WaitInteractionInputRelease</span></td><td>입력 해제 감지 태스크</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Interact_Execute -->
+
+    <!-- ==================== AO_GameplayAbility_Inspect_Enter ==================== -->
+    <div class="class-card" id="insp">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameplayAbility_Inspect_Enter</div>
+        <div class="class-parent">부모: UAO_InteractionGameplayAbility</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'insp','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'insp','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insp','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insp','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="insp" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">검사 모드 진입 어빌리티 &mdash; 상호작용 대상의 InspectableComponent를 통해 검사 모드에 진입</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 카테고리</div>
+            <div class="info-value">Interaction/Inspection &middot; InstancedPerActor &middot; ServerOnly</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">ServerOnly &mdash; 서버에서만 실행되어 잠금 상태를 권한 있게 관리, 멀티플레이어 충돌 방지</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">서버 권한 확인(check()), 다른 플레이어 잠금 확인, InspectableComponent 잠금 설정, InspectionComponent로 검사 모드 진입</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GA_Interact_Execute에서 SendFinalizeEvent() 시 발동되는 검사 모드 진입 어빌리티입니다.
+          에디터에서 검사가 필요한 액터의 AbilityToGrant로 이 클래스를 설정합니다.
+          생성자에서 InstancedPerActor, ServerOnly를 설정하고, Status.Action.Inspecting을 ActivationOwnedTag로,
+          Ability.Action.AbilityInteract를 BlockAbilitiesWithTag로 추가합니다.
+          활성화 시 check(ActorInfo->OwnerActor->HasAuthority())로 서버 권한을 확인합니다(실패 시 크래시).
+          CommitAbility &rarr; Super::ActivateAbility를 수행합니다.
+          TriggerEventData->Target에서 InspectableComponent를 찾아 IsLockedByOtherPlayer(Instigator)로
+          다른 플레이어가 이미 사용 중인지 확인합니다. 사용 가능하면 SetInspectionLocked(true, Instigator)로 잠금 처리합니다.
+          Instigator에서 InspectionComponent를 찾아 SetInspectEnterHandle(Handle)로 어빌리티 핸들을 저장하고,
+          EnterInspectionMode(TargetActor)를 호출하여 검사 모드에 진입합니다.
+          어빌리티가 활성화된 동안 Status.Action.Inspecting 태그가 유지되어 점프 등 다른 어빌리티가 차단됩니다.
+          EndAbility에서는 Super::EndAbility()만 호출하며, 실제 검사 모드 종료와 잠금 해제는 InspectionComponent 측에서 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insp" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">이 클래스는 자체 멤버 변수를 선언하지 않습니다. 부모 UAO_InteractionGameplayAbility의 ActivationPolicy를 사용합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="insp" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_GameplayAbility_Inspect_Enter()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. InstancedPerActor, ServerOnly 설정.<br>
+                2. AO_InteractionTags::Status_Action_Inspecting을 ActivationOwnedTag에 추가 &mdash; 활성화 동안 Inspecting 태그가 부여됩니다.<br>
+                3. AO_InteractionTags::Ability_Action_AbilityInteract를 BlockAbilitiesWithTag에 추가 &mdash; 검사 중 상호작용 어빌리티를 차단합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility()</span>
+              <span class="fn-spec server">ServerOnly</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. check(ActorInfo->OwnerActor->HasAuthority()) &mdash; 서버 권한 확인, 실패 시 check 크래시.<br>
+                2. CommitAbility() &mdash; 실패 시 EndAbility(bWasCancelled=true).<br>
+                3. Super::ActivateAbility() 호출.<br>
+                4. TriggerEventData가 null이거나 Target이 null이면 EndAbility(bWasCancelled=true).<br>
+                5. TargetActor = const_cast&lt;AActor*&gt;(TriggerEventData->Target.Get()), Instigator = const_cast&lt;AActor*&gt;(TriggerEventData->Instigator.Get()).<br>
+                6. TargetActor->FindComponentByClass&lt;UAO_InspectableComponent&gt;() &mdash; null이면 종료.<br>
+                7. InspectableComp->IsLockedByOtherPlayer(Instigator) &mdash; 다른 플레이어가 잠금 중이면 종료.<br>
+                8. Instigator->FindComponentByClass&lt;UAO_InspectionComponent&gt;() &mdash; null이면 종료.<br>
+                9. InspectableComp->SetInspectionLocked(true, Instigator) &mdash; 이 플레이어가 잠금합니다.<br>
+                10. InspectionComp->SetInspectEnterHandle(Handle) &mdash; 어빌리티 핸들을 저장하여 나중에 EndAbility를 호출할 수 있도록 합니다.<br>
+                11. InspectionComp->EnterInspectionMode(TargetActor) &mdash; 실제 검사 모드에 진입합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>GA_Interact_Execute의 SendFinalizeEvent()가 TriggerAbilityFromGameplayEvent()로 이 어빌리티를 트리거합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>Super::EndAbility()만 호출합니다. 검사 모드 종료와 InspectableComponent 잠금 해제는 InspectionComponent 측에서 SetInspectEnterHandle을 통해 이 어빌리티의 EndAbility를 호출하는 방식으로 처리합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insp" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>트리거됨</td><td><span class="rel-cls">UAO_GameplayAbility_Interact_Execute</span></td><td>SendFinalizeEvent()에서 TriggerAbilityFromGameplayEvent로 이 어빌리티를 활성화</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_InspectableComponent</span></td><td>IsLockedByOtherPlayer()로 잠금 확인, SetInspectionLocked()로 잠금 설정</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UAO_InspectionComponent</span></td><td>SetInspectEnterHandle()로 핸들 저장, EnterInspectionMode()로 검사 모드 진입</td></tr>
+          <tr><td>차단</td><td><span class="rel-cls">상호작용 어빌리티</span></td><td>BlockAbilitiesWithTag(Ability.Action.AbilityInteract)로 검사 중 상호작용 차단</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameplayAbility_Inspect_Enter -->
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+// Tab switching
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+// Accordion
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// TOC active highlight on scroll
+const sections = ['death','hitreact','sprint','jump','melee','meleehit','trav','int_trace','int_exec','insp'];
+const tocItems = {};
+sections.forEach(id => {
+  tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`);
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      const key = e.target.id;
+      if (tocItems[key]) tocItems[key].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// TOC click -> immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

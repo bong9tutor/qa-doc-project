@@ -1026,6 +1026,14 @@ const observer = new IntersectionObserver(entries => {
 }, { rootMargin: '-10% 0px -80% 0px' });
 
 sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click → immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
 </script>
 </body>
 </html>

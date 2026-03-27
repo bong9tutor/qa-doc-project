@@ -59,12 +59,28 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
 
 <div class="hero">
   <div class="hero-title" id="ht">소스 코드 리뷰 — Opus 4.6</div>
-  <div class="hero-sub" id="hs">AVaOut — 13개 핵심 클래스 · .h + .cpp 전체 분석 기반 심층 리뷰</div>
+  <div class="hero-sub" id="hs">AVaOut — 268개 전체 클래스 · .h + .cpp 전체 분석 기반 심층 리뷰</div>
   <div class="badges" id="hb">
     <span class="badge">Framework 4</span>
     <span class="badge">Player 2</span>
     <span class="badge">AI 3</span>
     <span class="badge">Systems 4</span>
+    <span class="badge">GameMode 12</span>
+    <span class="badge">Abilities 10</span>
+    <span class="badge">Components 6</span>
+    <span class="badge">AI Types 12</span>
+    <span class="badge">Inventory 9</span>
+    <span class="badge">Interaction 6</span>
+    <span class="badge">ST Tasks 24</span>
+    <span class="badge">ST Conditions 23</span>
+    <span class="badge">AI Detail 14</span>
+    <span class="badge">AI GAS·EQS 18</span>
+    <span class="badge">Puzzle 21</span>
+    <span class="badge">UI Widgets 17</span>
+    <span class="badge">Player Ext 12</span>
+    <span class="badge">World 23</span>
+    <span class="badge">Mechanics 25</span>
+    <span class="badge">Data·Util 23</span>
   </div>
 </div>
 
@@ -152,6 +168,238 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
     </a>
   </div>
 
+  <div class="section-label">게임모드 & 컨트롤러</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_gamemode.html" id="c4" style="--c:#ea580c">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ea580c"></div>
+        <div class="card-num">섹션 05</div>
+        <div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">GameMode</div>
+      </div>
+      <div class="card-title">게임모드 & 컨트롤러 클래스</div>
+      <div class="card-en" style="color:#ea580c">GameMode & Controller</div>
+      <div class="card-desc">맵별 게임 규칙과 플레이어 입력 처리. 서버 권한 로직, ServerTravel 체인, 입력 모드 전환 내부 흐름 심층 분석. 12개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AO_GameMode_*</span>
+        <span class="tag">AO_PlayerController_*</span>
+        <span class="tag">12 Classes</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">GAS 어빌리티</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_abilities.html" id="c5" style="--c:#16a34a">
+      <div class="card-header">
+        <div class="card-dot" style="background:#16a34a"></div>
+        <div class="card-num">섹션 06</div>
+        <div class="card-badge" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">GAS</div>
+      </div>
+      <div class="card-title">GAS 어빌리티 클래스</div>
+      <div class="card-en" style="color:#16a34a">Gameplay Abilities</div>
+      <div class="card-desc">GAS 파이프라인 전체 흐름, 예측(Prediction) 메커니즘, Server RPC 타이밍, GameplayEffect 적용 체인 심층 분석. 10개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">Death · HitReact</span>
+        <span class="tag">Sprint · Jump</span>
+        <span class="tag">Melee · Traversal</span>
+        <span class="tag">Interact · Inspect</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">플레이어 컴포넌트</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_components.html" id="c6" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">섹션 07</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Components</div>
+      </div>
+      <div class="card-title">플레이어 컴포넌트 클래스</div>
+      <div class="card-en" style="color:#2563eb">Player Components</div>
+      <div class="card-desc">ABP 연동 패턴, 사운드 큐 매핑, 카메라 프로파일 전환 내부 흐름, 관전 시스템 네트워크 동기화 심층 분석. 6개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AnimInstance</span>
+        <span class="tag">Sound · Camera</span>
+        <span class="tag">Spectate · Traversable</span>
+        <span class="tag">Nameplate</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI 유형별</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_ai_types.html" id="c7" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 08</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">AI Types</div>
+      </div>
+      <div class="card-title">AI 유형별 클래스</div>
+      <div class="card-en" style="color:#7c3aed">AI Enemy Types</div>
+      <div class="card-desc">StateTree Task별 상세 흐름, EQS 쿼리 구성, GAS 어빌리티 활성화 체인, 7종 적 행동 패턴 심층 분석. 12개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AIController · Subsystem</span>
+        <span class="tag">Bull · Crab · Insect</span>
+        <span class="tag">Stalker · Troll · Werewolf</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">인벤토리 & 아이템</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_inventory.html" id="c8" style="--c:#ea580c">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ea580c"></div>
+        <div class="card-num">섹션 09</div>
+        <div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">Inventory</div>
+      </div>
+      <div class="card-title">인벤토리 & 아이템 클래스</div>
+      <div class="card-en" style="color:#ea580c">Inventory & Items</div>
+      <div class="card-desc">인벤토리 복제 체인, GAS 연료 파이프라인, 아이템 픽업→운반 네트워크 흐름 심층 분석. 9개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">Inventory</span>
+        <span class="tag">Item · Pickup · Carry</span>
+        <span class="tag">Fuel · GAS</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">상호작용 & UI</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_interaction.html" id="c9" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">섹션 10</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">Interaction</div>
+      </div>
+      <div class="card-title">상호작용 & UI 클래스</div>
+      <div class="card-en" style="color:#0891b2">Interaction & UI</div>
+      <div class="card-desc">트레이스→확인→해제 파이프라인, MVC 위젯 패턴, UI 스택 푸시/팝 생명주기 심층 분석. 6개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">InteractionComponent</span>
+        <span class="tag">Widget · Controller</span>
+        <span class="tag">UIStack · ActionKey</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">StateTree Tasks</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_st_tasks.html" id="c10" style="--c:#7c3aed">
+      <div class="card-header"><div class="card-dot" style="background:#7c3aed"></div><div class="card-num">섹션 11</div><div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">ST Tasks</div></div>
+      <div class="card-title">StateTree Task 클래스</div><div class="card-en" style="color:#7c3aed">StateTree Tasks</div>
+      <div class="card-desc">AI 행동 구현 24개 StateTree Task. 내부 실행 흐름·상태 전이·타이밍 심층 분석.</div>
+      <div class="tag-row"><span class="tag">MoveTo · Chase</span><span class="tag">Bull · Insect · Stalker</span><span class="tag">24 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">StateTree Conditions & Evaluators</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_st_conditions.html" id="c11" style="--c:#7c3aed">
+      <div class="card-header"><div class="card-dot" style="background:#7c3aed"></div><div class="card-num">섹션 12</div><div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">ST Cond</div></div>
+      <div class="card-title">StateTree Condition & Evaluator 클래스</div><div class="card-en" style="color:#7c3aed">Conditions & Evaluators</div>
+      <div class="card-desc">AI 판단 로직 17개 Condition + 6개 Evaluator 판정 내부 흐름 심층 분석.</div>
+      <div class="tag-row"><span class="tag">PlayerInSight</span><span class="tag">InAttackRange</span><span class="tag">23 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI 컨트롤러 & 애니메이션</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_ai_detail.html" id="c12" style="--c:#7c3aed">
+      <div class="card-header"><div class="card-dot" style="background:#7c3aed"></div><div class="card-num">섹션 13</div><div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">AI Detail</div></div>
+      <div class="card-title">AI 컨트롤러 & 애니메이션 클래스</div><div class="card-en" style="color:#7c3aed">AI Controllers & Anim</div>
+      <div class="card-desc">7종 적 개별 컨트롤러 + 애니메이션 인스턴스 ABP 연동 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Controllers 7</span><span class="tag">AnimInstances 7</span><span class="tag">14 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI GAS & EQS</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_ai_gas_eqs.html" id="c13" style="--c:#16a34a">
+      <div class="card-header"><div class="card-dot" style="background:#16a34a"></div><div class="card-num">섹션 14</div><div class="card-badge" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">AI GAS</div></div>
+      <div class="card-title">AI GAS 어빌리티 & EQS 클래스</div><div class="card-en" style="color:#16a34a">AI Abilities & EQS</div>
+      <div class="card-desc">AI 전투 어빌리티 GAS 파이프라인 + EQS 쿼리 구성 심층 분석.</div>
+      <div class="tag-row"><span class="tag">GA_* Abilities</span><span class="tag">EQS Context · Test</span><span class="tag">18 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">퍼즐 시스템</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_puzzle.html" id="c14" style="--c:#0891b2">
+      <div class="card-header"><div class="card-dot" style="background:#0891b2"></div><div class="card-num">섹션 15</div><div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">Puzzle</div></div>
+      <div class="card-title">퍼즐 시스템 클래스</div><div class="card-en" style="color:#0891b2">Puzzle System</div>
+      <div class="card-desc">21개 퍼즐 내부 상태 머신·태그 기반 판정·네트워크 동기화 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Cannon · Grid</span><span class="tag">Torch · Pinball</span><span class="tag">21 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">UI 위젯</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_ui_widgets.html" id="c15" style="--c:#2563eb">
+      <div class="card-header"><div class="card-dot" style="background:#2563eb"></div><div class="card-num">섹션 16</div><div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">UI</div></div>
+      <div class="card-title">UI 위젯 클래스</div><div class="card-en" style="color:#2563eb">UI Widgets</div>
+      <div class="card-desc">메뉴·로비·HUD·다이얼로그 위젯 생명주기·데이터 바인딩 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Menu · Lobby</span><span class="tag">Health · Stamina</span><span class="tag">17 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">플레이어 확장</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_player_ext.html" id="c16" style="--c:#2563eb">
+      <div class="card-header"><div class="card-dot" style="background:#2563eb"></div><div class="card-num">섹션 17</div><div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Player Ext</div></div>
+      <div class="card-title">플레이어 확장 클래스</div><div class="card-en" style="color:#2563eb">Player Extended</div>
+      <div class="card-desc">커스터마이징·AbilityTask·추가 GAS 어빌리티 내부 흐름 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Customizing</span><span class="tag">AbilityTask</span><span class="tag">12 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">월드 액터 & 인터페이스</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_world.html" id="c17" style="--c:#0891b2">
+      <div class="card-header"><div class="card-dot" style="background:#0891b2"></div><div class="card-num">섹션 18</div><div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">World</div></div>
+      <div class="card-title">월드 액터 & 인터페이스 클래스</div><div class="card-en" style="color:#0891b2">World & Interfaces</div>
+      <div class="card-desc">인터랙터블·반응 액터·인터페이스 네트워크 호출 체인 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Interactable</span><span class="tag">Interface_*</span><span class="tag">23 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">메카닉 & 컴포넌트</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_mechanics.html" id="c18" style="--c:#ea580c">
+      <div class="card-header"><div class="card-dot" style="background:#ea580c"></div><div class="card-num">섹션 19</div><div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">Mechanics</div></div>
+      <div class="card-title">메카닉 & 컴포넌트 클래스</div><div class="card-en" style="color:#ea580c">Mechanics & Components</div>
+      <div class="card-desc">애님 노티파이·게임플레이 큐·오디오·컴포넌트 내부 파이프라인 심층 분석.</div>
+      <div class="tag-row"><span class="tag">AnimNotify</span><span class="tag">GameplayCue</span><span class="tag">25 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">데이터 & 유틸리티</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_data_util.html" id="c19" style="--c:#6b7280">
+      <div class="card-header"><div class="card-dot" style="background:#6b7280"></div><div class="card-num">섹션 20</div><div class="card-badge" style="background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb">Data</div></div>
+      <div class="card-title">데이터 & 유틸리티 클래스</div><div class="card-en" style="color:#6b7280">Data & Utilities</div>
+      <div class="card-desc">설정·데이터 에셋·매니저·타입 정의 내부 구조 심층 분석.</div>
+      <div class="tag-row"><span class="tag">Settings · Data</span><span class="tag">Manager · Types</span><span class="tag">23 Classes</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
 </div>
 
 <div class="footer" id="ft">
@@ -164,10 +412,16 @@ const els=[
   document.getElementById('ht'),
   document.getElementById('hs'),
   document.getElementById('hb'),
-  document.getElementById('c0'),
-  document.getElementById('c1'),
-  document.getElementById('c2'),
-  document.getElementById('c3'),
+  document.getElementById('c0'),document.getElementById('c1'),
+  document.getElementById('c2'),document.getElementById('c3'),
+  document.getElementById('c4'),document.getElementById('c5'),
+  document.getElementById('c6'),document.getElementById('c7'),
+  document.getElementById('c8'),document.getElementById('c9'),
+  document.getElementById('c10'),document.getElementById('c11'),
+  document.getElementById('c12'),document.getElementById('c13'),
+  document.getElementById('c14'),document.getElementById('c15'),
+  document.getElementById('c16'),document.getElementById('c17'),
+  document.getElementById('c18'),document.getElementById('c19'),
   document.getElementById('ft')
 ];
 els.forEach((el,i)=>setTimeout(()=>el&&el.classList.add('visible'),i*80));

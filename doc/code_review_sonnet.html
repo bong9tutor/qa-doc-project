@@ -59,12 +59,28 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
 
 <div class="hero">
   <div class="hero-title" id="ht">소스 코드 리뷰</div>
-  <div class="hero-sub" id="hs">AVaOut — 13개 핵심 클래스 · 카테고리별 상세 분석</div>
+  <div class="hero-sub" id="hs">AVaOut — 268개 전체 클래스 · 20개 카테고리별 상세 분석</div>
   <div class="badges" id="hb">
     <span class="badge">Framework 4</span>
     <span class="badge">Player 2</span>
     <span class="badge">AI 3</span>
     <span class="badge">Systems 4</span>
+    <span class="badge">GameMode 12</span>
+    <span class="badge">Abilities 10</span>
+    <span class="badge">Components 6</span>
+    <span class="badge">AI Types 12</span>
+    <span class="badge">Inventory 9</span>
+    <span class="badge">Interaction 6</span>
+    <span class="badge">ST Tasks 24</span>
+    <span class="badge">ST Conditions 23</span>
+    <span class="badge">AI Detail 14</span>
+    <span class="badge">AI GAS·EQS 18</span>
+    <span class="badge">Puzzle 21</span>
+    <span class="badge">UI Widgets 17</span>
+    <span class="badge">Player Ext 12</span>
+    <span class="badge">World 23</span>
+    <span class="badge">Mechanics 25</span>
+    <span class="badge">Data·Util 23</span>
   </div>
 </div>
 
@@ -153,6 +169,288 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
     </a>
   </div>
 
+  <div class="section-label">게임모드 & 컨트롤러</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_gamemode.html" id="c4" style="--c:#ea580c">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ea580c"></div>
+        <div class="card-num">섹션 05</div>
+        <div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">GameMode</div>
+      </div>
+      <div class="card-title">게임모드 & 컨트롤러 클래스</div>
+      <div class="card-en" style="color:#ea580c">GameMode & Controller</div>
+      <div class="card-desc">맵별 게임 규칙(GameMode 6종)과 플레이어 입력 처리(PlayerController 6종). 서버 권한 로직, 맵 전환, 입력 바인딩 12개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AO_GameMode_*</span>
+        <span class="tag">AO_PlayerController_*</span>
+        <span class="tag">12 Classes</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">GAS 어빌리티</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_abilities.html" id="c5" style="--c:#16a34a">
+      <div class="card-header">
+        <div class="card-dot" style="background:#16a34a"></div>
+        <div class="card-num">섹션 06</div>
+        <div class="card-badge" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">GAS</div>
+      </div>
+      <div class="card-title">GAS 어빌리티 클래스</div>
+      <div class="card-en" style="color:#16a34a">Gameplay Abilities</div>
+      <div class="card-desc">사망, 피격, 달리기, 점프, 근접 공격, 트래버설, 상호작용, 검사. 플레이어 행동을 정의하는 GAS 기반 10개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">Death · HitReact</span>
+        <span class="tag">Sprint · Jump</span>
+        <span class="tag">Melee · Traversal</span>
+        <span class="tag">Interact · Inspect</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">플레이어 컴포넌트</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_components.html" id="c6" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">섹션 07</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Components</div>
+      </div>
+      <div class="card-title">플레이어 컴포넌트 클래스</div>
+      <div class="card-en" style="color:#2563eb">Player Components</div>
+      <div class="card-desc">애니메이션 인스턴스, 사운드 서브시스템, 카메라 매니저, 사망 관전, 트래버설, 네임플레이트. 6개 컴포넌트 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AnimInstance</span>
+        <span class="tag">Sound · Camera</span>
+        <span class="tag">Spectate · Traversable</span>
+        <span class="tag">Nameplate</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI 유형별</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_ai_types.html" id="c7" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 08</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">AI Types</div>
+      </div>
+      <div class="card-title">AI 유형별 클래스</div>
+      <div class="card-en" style="color:#7c3aed">AI Enemy Types</div>
+      <div class="card-desc">AI 컨트롤러, 서브시스템, 어트리뷰트 + 7종 적 캐릭터(Bull, Crab, Insect, LavaMonster, Stalker, Troll, Werewolf). 12개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">AIController · Subsystem</span>
+        <span class="tag">Bull · Crab · Insect</span>
+        <span class="tag">Stalker · Troll · Werewolf</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">인벤토리 & 아이템</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_inventory.html" id="c8" style="--c:#ea580c">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ea580c"></div>
+        <div class="card-num">섹션 09</div>
+        <div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">Inventory</div>
+      </div>
+      <div class="card-title">인벤토리 & 아이템 클래스</div>
+      <div class="card-en" style="color:#ea580c">Inventory & Items</div>
+      <div class="card-desc">인벤토리 컴포넌트·서브시스템, 아이템 데이터·마스터·픽업·운반, 연료 어트리뷰트·GAS 어빌리티. 9개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">Inventory</span>
+        <span class="tag">Item · Pickup · Carry</span>
+        <span class="tag">Fuel · GAS</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">상호작용 & UI</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_interaction.html" id="c9" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">섹션 10</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">Interaction</div>
+      </div>
+      <div class="card-title">상호작용 & UI 클래스</div>
+      <div class="card-en" style="color:#0891b2">Interaction & UI</div>
+      <div class="card-desc">인터랙션 컴포넌트·위젯·컨트롤러, UI 스택 매니저, 액션키 서브시스템. 6개 클래스.</div>
+      <div class="tag-row">
+        <span class="tag">InteractionComponent</span>
+        <span class="tag">Widget · Controller</span>
+        <span class="tag">UIStack · ActionKey</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">StateTree Tasks</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_st_tasks.html" id="c10" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 11</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">ST Tasks</div>
+      </div>
+      <div class="card-title">StateTree Task 클래스</div>
+      <div class="card-en" style="color:#7c3aed">StateTree Tasks</div>
+      <div class="card-desc">AI 행동을 구현하는 24개 StateTree Task. 이동·추격·공격·도주·사운드 재생 등.</div>
+      <div class="tag-row"><span class="tag">MoveTo · Chase</span><span class="tag">Bull · Crab · Insect</span><span class="tag">Stalker · Troll · Wolf</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">StateTree Conditions & Evaluators</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_st_conditions.html" id="c11" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 12</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">ST Cond</div>
+      </div>
+      <div class="card-title">StateTree Condition & Evaluator 클래스</div>
+      <div class="card-en" style="color:#7c3aed">StateTree Conditions & Evaluators</div>
+      <div class="card-desc">AI 판단 로직 17개 Condition + 컨텍스트 6개 Evaluator = 23개 클래스.</div>
+      <div class="tag-row"><span class="tag">PlayerInSight · InAttackRange</span><span class="tag">IsStunned · WolfPackState</span><span class="tag">Evaluators</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI 컨트롤러 & 애니메이션</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_ai_detail.html" id="c12" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 13</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">AI Detail</div>
+      </div>
+      <div class="card-title">AI 컨트롤러 & 애니메이션 클래스</div>
+      <div class="card-en" style="color:#7c3aed">AI Controllers & AnimInstances</div>
+      <div class="card-desc">7종 적 개별 컨트롤러 + 7종 애니메이션 인스턴스 14개 클래스.</div>
+      <div class="tag-row"><span class="tag">BullController</span><span class="tag">CrabController</span><span class="tag">*_AnimInstance</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI GAS & EQS</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_ai_gas_eqs.html" id="c13" style="--c:#16a34a">
+      <div class="card-header">
+        <div class="card-dot" style="background:#16a34a"></div>
+        <div class="card-num">섹션 14</div>
+        <div class="card-badge" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">AI GAS</div>
+      </div>
+      <div class="card-title">AI GAS 어빌리티 & EQS 클래스</div>
+      <div class="card-en" style="color:#16a34a">AI Abilities & EQS</div>
+      <div class="card-desc">AI 전투 어빌리티 11종 + 환경 쿼리 시스템 7종 = 18개 클래스.</div>
+      <div class="tag-row"><span class="tag">GA_AIAttackBase</span><span class="tag">GA_Bull_Charge</span><span class="tag">EQS Context · Test</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">퍼즐 시스템</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_puzzle.html" id="c14" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">섹션 15</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">Puzzle</div>
+      </div>
+      <div class="card-title">퍼즐 시스템 클래스</div>
+      <div class="card-en" style="color:#0891b2">Puzzle System</div>
+      <div class="card-desc">대포·핀볼·횃불·압력판·회전·그리드·가스룸·밸브 등 21개 퍼즐 클래스.</div>
+      <div class="tag-row"><span class="tag">Cannon · Pinball</span><span class="tag">Torch · Grid</span><span class="tag">PressurePlate · Valve</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">UI 위젯</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_ui_widgets.html" id="c15" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">섹션 16</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">UI</div>
+      </div>
+      <div class="card-title">UI 위젯 클래스</div>
+      <div class="card-en" style="color:#2563eb">UI Widgets</div>
+      <div class="card-desc">메인메뉴·일시정지·로비·HUD(체력·스태미나)·다이얼로그 17개 위젯 클래스.</div>
+      <div class="tag-row"><span class="tag">MainMenu · Pause</span><span class="tag">Lobby · Health</span><span class="tag">Dialog · Spectate</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">플레이어 확장</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_player_ext.html" id="c16" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">섹션 17</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Player Ext</div>
+      </div>
+      <div class="card-title">플레이어 확장 클래스</div>
+      <div class="card-en" style="color:#2563eb">Player Extended</div>
+      <div class="card-desc">커스터마이징·사운드 데이터·어빌리티 태스크·추가 GAS 어빌리티 12개 클래스.</div>
+      <div class="tag-row"><span class="tag">Customizing</span><span class="tag">AbilityTask</span><span class="tag">Inspect · Outline</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">월드 액터 & 인터페이스</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_world.html" id="c17" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">섹션 18</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">World</div>
+      </div>
+      <div class="card-title">월드 액터 & 인터페이스 클래스</div>
+      <div class="card-en" style="color:#0891b2">World Actors & Interfaces</div>
+      <div class="card-desc">인터랙터블 변형·데미지 볼륨·반응 액터·인터페이스·인스펙션 23개 클래스.</div>
+      <div class="tag-row"><span class="tag">WorldInteractable</span><span class="tag">DamageVolume</span><span class="tag">Interface_*</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">메카닉 & 컴포넌트</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_mechanics.html" id="c18" style="--c:#ea580c">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ea580c"></div>
+        <div class="card-num">섹션 19</div>
+        <div class="card-badge" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">Mechanics</div>
+      </div>
+      <div class="card-title">메카닉 & 컴포넌트 클래스</div>
+      <div class="card-en" style="color:#ea580c">Mechanics & Components</div>
+      <div class="card-desc">애님 노티파이·게임플레이 큐·오디오·AI 컴포넌트·스폰 영역 25개 클래스.</div>
+      <div class="tag-row"><span class="tag">AnimNotify</span><span class="tag">GameplayCue</span><span class="tag">Kidnap · Passive</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">데이터 & 유틸리티</div>
+  <div class="grid">
+    <a class="card" href="code_review_sonnet_data_util.html" id="c19" style="--c:#6b7280">
+      <div class="card-header">
+        <div class="card-dot" style="background:#6b7280"></div>
+        <div class="card-num">섹션 20</div>
+        <div class="card-badge" style="background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb">Data</div>
+      </div>
+      <div class="card-title">데이터 & 유틸리티 클래스</div>
+      <div class="card-en" style="color:#6b7280">Data & Utilities</div>
+      <div class="card-desc">설정·데이터 에셋·매니저·타입 정의·보조 액터 23개 클래스.</div>
+      <div class="tag-row"><span class="tag">Settings · FuelData</span><span class="tag">Manager · Types</span><span class="tag">newTrain · Vending</span></div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
 </div>
 
 <div class="footer" id="ft">
@@ -165,10 +463,16 @@ const els=[
   document.getElementById('ht'),
   document.getElementById('hs'),
   document.getElementById('hb'),
-  document.getElementById('c0'),
-  document.getElementById('c1'),
-  document.getElementById('c2'),
-  document.getElementById('c3'),
+  document.getElementById('c0'),document.getElementById('c1'),
+  document.getElementById('c2'),document.getElementById('c3'),
+  document.getElementById('c4'),document.getElementById('c5'),
+  document.getElementById('c6'),document.getElementById('c7'),
+  document.getElementById('c8'),document.getElementById('c9'),
+  document.getElementById('c10'),document.getElementById('c11'),
+  document.getElementById('c12'),document.getElementById('c13'),
+  document.getElementById('c14'),document.getElementById('c15'),
+  document.getElementById('c16'),document.getElementById('c17'),
+  document.getElementById('c18'),document.getElementById('c19'),
   document.getElementById('ft')
 ];
 els.forEach((el,i)=>setTimeout(()=>el&&el.classList.add('visible'),i*80));

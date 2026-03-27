@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — AI 컨트롤러 &amp; 애니메이션 심층 분석</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#7c3aed;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+.nav-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:600;}
+
+.hero{background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%);border-bottom:1px solid #e5e7eb;padding:28px 16px 24px;text-align:center;}
+.hero-title{font-size:22px;font-weight:700;color:#111827;margin-bottom:6px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:6px;}
+.hero-depth{font-size:12px;color:#7c3aed;font-weight:600;margin-bottom:14px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#fff;border:1px solid #ede9fe;color:#7c3aed;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-group{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7c3aed;margin:10px 0 4px 4px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;cursor:pointer;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f5f3ff;color:#7c3aed;border-left-color:#7c3aed;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#7c3aed;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+.class-files{font-size:11px;color:#9ca3af;width:100%;font-family:'JetBrains Mono',monospace;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#7c3aed;border-bottom-color:#7c3aed;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #7c3aed;margin-bottom:10px;}
+.deep-block{font-size:13px;color:#374151;line-height:1.7;background:#faf5ff;border-radius:8px;padding:12px 14px;border-left:3px solid #a78bfa;margin-top:8px;}
+.deep-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7c3aed;margin-bottom:4px;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f5f3ff;border-color:#c4b5fd;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-spec.editor{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #c4b5fd;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7c3aed;font-weight:600;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">AI Controllers &amp; Anim</div>
+  <div class="nav-sub">AI 컨트롤러 &amp; 애니메이션 심층 분석</div>
+  <span class="nav-badge">.h + .cpp 전체 분석</span>
+</div>
+
+<div class="hero">
+  <div class="hero-title">AI 컨트롤러 &amp; 애니메이션 심층 분석</div>
+  <div class="hero-sub">7종 적 컨트롤러 + 7종 애니메이션 인스턴스 14개 클래스</div>
+  <div class="hero-depth">.h + .cpp 전체 분석 &mdash; 상속 계층 / 실행 흐름 / 설계 패턴 / 잠재적 문제점</div>
+  <div class="badges">
+    <span class="badge">AO_BullController</span>
+    <span class="badge">AO_CrabController</span>
+    <span class="badge">AO_InsectController</span>
+    <span class="badge">AO_LavaMonsterCtrl</span>
+    <span class="badge">AO_StalkerController</span>
+    <span class="badge">AO_TrollController</span>
+    <span class="badge">AO_WerewolfController</span>
+    <span class="badge">Bull_AnimInstance</span>
+    <span class="badge">Crab_AnimInstance</span>
+    <span class="badge">Insect_AnimInstance</span>
+    <span class="badge">LavaMonster_AnimInstance</span>
+    <span class="badge">Stalker_AnimInstance</span>
+    <span class="badge">Troll_AnimInstance</span>
+    <span class="badge">Werewolf_AnimInstance</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <div class="toc-group">컨트롤러</div>
+      <a class="toc-item active" href="#bull-ctrl">AO_BullController</a>
+      <a class="toc-item" href="#crab-ctrl">AO_CrabController</a>
+      <a class="toc-item" href="#insect-ctrl">AO_InsectController</a>
+      <a class="toc-item" href="#lava-ctrl">AO_LavaMonsterCtrl</a>
+      <a class="toc-item" href="#stalker-ctrl">AO_StalkerController</a>
+      <a class="toc-item" href="#troll-ctrl">AO_TrollController</a>
+      <a class="toc-item" href="#wolf-ctrl">AO_WerewolfController</a>
+      <div class="toc-group">애니메이션</div>
+      <a class="toc-item" href="#bull-anim">AO_Bull_AnimInstance</a>
+      <a class="toc-item" href="#crab-anim">AO_Crab_AnimInstance</a>
+      <a class="toc-item" href="#insect-anim">AO_Insect_AnimInstance</a>
+      <a class="toc-item" href="#lava-anim">AO_LavaMonster_AnimInstance</a>
+      <a class="toc-item" href="#stalker-anim">AO_Stalker_AnimInstance</a>
+      <a class="toc-item" href="#troll-anim">AO_Troll_AnimInstance</a>
+      <a class="toc-item" href="#wolf-anim">AO_Werewolf_AnimInstance</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_BullController ==================== -->
+    <div class="class-card" id="bull-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_BullController</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase &rarr; AAIController</div>
+        <div class="class-files">AO_BullController.h (43줄) &middot; AO_BullController.cpp (85줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'bull-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="bull-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Bull AI 전용 컨트롤러. 돌진(Charge) 및 근접 공격 판단 로직 담당</div></div>
+          <div class="info-item"><div class="info-label">상속 계층</div><div class="info-value">AggressiveAICtrl 기반 &mdash; 추격/수색/대상 선택/RVO 회피 로직 재사용</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버에서만 AI 로직 실행 (Authority). Perception/StateTree 모두 서버 전용</div></div>
+          <div class="info-item"><div class="info-label">StateTree 연동</div><div class="info-value">CanChargeAttack, CanMeleeAttack으로 공격 조건 제공. Condition이 매 Tick 호출</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AggressiveAICtrl을 상속하여 선공형 AI의 추격/수색/대상 선택 로직을 그대로 활용합니다.
+          Bull 고유 기능으로 돌진 공격(MinChargeDistance~MaxChargeDistance 범위)과
+          근접 공격(MinChargeDistance 미만 거리) 판정을 제공합니다.
+          OnPossess에서 Super::OnPossess를 호출하여 부모 클래스의 Perception 설정, StateTree 초기화, Team ID 설정을 수행합니다.
+          생성자는 빈 상태이며, 부모의 기본값(SightRadius 1500, LoseSightRadius 2000, HearingRange 2000, bLockOnFirstTarget false)을 그대로 사용합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - .cpp 실행 흐름</div>
+          CanChargeAttack과 CanMeleeAttack은 동일한 전방 검증 패턴을 공유합니다: (1) GetBull() null 체크, (2) IsStunned/IsCharging 상태 확인, (3) IsInPostAttackCooldown 쿨다운 체크, (4) GetChaseTarget null 체크.
+          이후 FVector::DistSquared로 제곱 거리를 계산하여 Sqrt 비용을 절약합니다.
+          CanChargeAttack은 범위 내 + HasPlayerInSight() 시야 체크를 추가하는 반면,
+          CanMeleeAttack은 MinChargeDistance 미만이면 시야 체크 없이 즉시 true를 반환합니다.
+          즉, 근접 거리에서는 시야 없이도 공격이 가능한 설계입니다.
+          OnPossess는 Super만 호출하며 Bull 고유 초기화가 없어, 향후 기절 쿨다운 타이머 등을 추가할 수 있는 확장 포인트입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="bull-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">MinChargeDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>돌진 최소 거리 (기본값 500). 이 거리보다 가까우면 근접 공격으로 전환. 제곱 비교에 사용되므로 내부적으로 500*500=250000으로 비교됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MaxChargeDistance</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>돌진 최대 거리 (기본값 2000). 이 범위 초과 시 돌진 불가. DistSq &gt; 2000*2000=4000000이면 false입니다.</td>
+          </tr>
+        </table>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 상속 변수 (부모 체인)</div>
+          AggressiveAICtrl에서 상속: ChaseTarget(TWeakObjectPtr), LastKnownTargetLocation, SearchTimerHandle, bLockOnFirstTarget(false).
+          AIControllerBase에서 상속: AIPerceptionComponent, SightConfig, HearingConfig, StateTreeComponent, PlayersInSight, TeamId(1), SightRadius(1500), LoseSightRadius(2000), PeripheralVisionAngleDegrees(90), HearingRange(2000), bCanTargetDeadPlayer(false), bFilterUnreachablePlayers(true).
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="bull-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AAO_BullController() [생성자]</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>빈 생성자. 부모 클래스(AggressiveAICtrl)의 기본 생성자가 Perception 설정값(SightRadius, HearingRange 등)을 초기화합니다. Bull은 추가 설정 없이 부모 기본값을 그대로 사용합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">설계 의도</div>다른 컨트롤러(Crab 등)는 생성자에서 SightRadius 등을 커스텀하지만, Bull은 기본값으로 충분하다는 판단입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetBull() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Cast&lt;AAO_Bull&gt;(GetPawn())을 수행하여 소유 Pawn을 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>매 호출마다 Cast를 수행하므로 CanChargeAttack/CanMeleeAttack에서 반복 호출 시 불필요한 RTTI 비용이 발생합니다. CrabController처럼 OnPossess에서 TWeakObjectPtr로 캐시하면 성능이 개선될 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanChargeAttack() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>돌진 공격 가능 여부를 판정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312; GetBull() &rarr; null이면 false<br>
+                &#9313; Bull-&gt;IsStunned() || Bull-&gt;IsCharging() &rarr; true이면 false<br>
+                &#9314; Bull-&gt;IsInPostAttackCooldown() &rarr; true이면 false<br>
+                &#9315; GetChaseTarget() &rarr; null이면 false<br>
+                &#9316; FVector::DistSquared(Bull위치, Target위치) 계산<br>
+                &#9317; DistSq &lt; Min*Min || DistSq &gt; Max*Max &rarr; 범위 밖이면 false<br>
+                &#9318; HasPlayerInSight() &rarr; false이면 false<br>
+                &#9319; 모든 조건 통과 시 true
+              </div>
+              <div class="fn-section"><div class="fn-section-title">성능 특성</div>FVector::DistSquared로 제곱 거리 비교하여 Sqrt 호출을 회피합니다. StateTree Condition에서 매 Tick 호출될 수 있으므로 이 최적화가 중요합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanMeleeAttack() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>근접 공격 가능 여부를 판정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312;~&#9315; CanChargeAttack과 동일한 전방 검증 (Stun/Charging/Cooldown/Target null)<br>
+                &#9316; DistSq &lt; MinChargeDistance * MinChargeDistance &rarr; true<br>
+                &#9317; 그 외 false
+              </div>
+              <div class="fn-section"><div class="fn-section-title">설계 차이점</div>CanChargeAttack과 달리 HasPlayerInSight() 시야 체크를 하지 않습니다. 근접 거리(500 이하)에서는 시야 없이도 공격이 가능합니다. 이는 Bull이 돌진으로 접근한 후 시야 밖 플레이어를 바로 근접 공격할 수 있게 하는 의도입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPossess(InPawn)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super::OnPossess(InPawn)만 호출합니다. 부모 체인: AggressiveAICtrl::OnPossess &rarr; AIControllerBase::OnPossess &rarr; AAIController::OnPossess. 부모에서 Perception 설정, StateTree 시작, Team 설정이 수행됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">확장 포인트</div>현재 Bull 고유 초기화 없음. LavaMonsterCtrl/TrollController처럼 Cast&lt;AAO_Bull&gt;(InPawn)으로 캐시할 여지가 있으나, GetBull()이 직접 Cast하므로 중복을 피한 것으로 보입니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="bull-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Bull</span></td><td>GetBull()로 Pawn 접근. IsStunned, IsCharging, IsInPostAttackCooldown 호출</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>추격/수색/대상 선택/StartChase/EndSearch 로직 상속. GetChaseTarget, HasPlayerInSight 활용</td></tr>
+          <tr><td>조부모</td><td><span class="rel-cls">AAO_AIControllerBase</span></td><td>Perception 설정(Sight/Hearing), StateTree 관리, PlayersInSight 배열, Team ID</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>GetChaseTarget()으로 추격 대상 조회. GetActorLocation으로 거리 비교</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">StateTree Conditions</span></td><td>AO_STCond_CanCharge/CanMelee가 CanChargeAttack/CanMeleeAttack 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_CrabController ==================== -->
+    <div class="class-card" id="crab-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_CrabController</div>
+        <div class="class-parent">부모: AAO_AIControllerBase &rarr; AAIController</div>
+        <div class="class-files">AO_CrabController.h (92줄) &middot; AO_CrabController.cpp (308줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'crab-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="crab-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">비선공형 Crab AI 컨트롤러. 플레이어 감지 시 도망, 아이템 감지/기억</div></div>
+          <div class="info-item"><div class="info-label">상속 계층</div><div class="info-value">AIControllerBase 직접 상속 (AggressiveAICtrl 미사용 &mdash; 추격 로직 불필요)</div></div>
+          <div class="info-item"><div class="info-label">Perception 설정</div><div class="info-value">시야 1200, 소실 1500, 시야각 120도, 청각 1500 (생성자에서 커스텀)</div></div>
+          <div class="info-item"><div class="info-label">고유 기능</div><div class="info-value">도망 위치 계산, 아이템 발견/기억, 소리 반응 도망</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AIControllerBase를 직접 상속하며 AggressiveAICtrl 계층을 사용하지 않습니다.
+          생성자에서 SightRadius(1200), LoseSightRadius(1500), PeripheralVisionAngleDegrees(120), HearingRange(1500)을 커스텀 설정합니다.
+          OnPossess에서 CachedCrab에 TWeakObjectPtr로 캐시하여 반복 Cast를 방지합니다.
+          OnPlayerDetected/OnPlayerLost에서 UpdateFleeState를 호출하여 Crab의 도망 모드를 실시간 동기화합니다.
+          OnActorDetected에서 AAO_MasterItem Cast에 성공하면 DiscoveredItems에 추가하며, 시야에서 사라져도 목록을 유지합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 도망 알고리즘 상세</div>
+          CalculateFleeLocation은 다단계 점수 채점 알고리즘입니다:
+          (1) GetNearestThreatLocation으로 위협 위치 확인 (시야 내 플레이어 &gt; 최근 30초 기억 &gt; ZeroVector),
+          (2) 위협 반대 방향 벡터 계산,
+          (3) 12방향 샘플링 &mdash; 기본 도망 방향에서 (i - 6) * 30도 오프셋 적용,
+          (4) DegreesToRadians 후 다시 RadiansToDegrees로 변환하는 이중 변환이 존재 (AngleOffset 계산에서),
+          (5) NavMesh 프로젝션으로 유효한 위치 필터링,
+          (6) 위협 거리 + 회피 위치 거리 * 0.3 가중치로 점수 계산.
+          AvoidLocations는 MemoryComponent의 최근 60초 LostLocation을 사용합니다.
+          ShouldFlee는 HasPlayerInSight()에 추가로 PlayersInSight 배열의 모든 플레이어 거리를 순회하여 PlayerProximityThreshold(500) 이내인지 체크합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="crab-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CachedCrab</span></td>
+            <td><span class="var-type">TWeakObjectPtr&lt;AAO_Crab&gt;</span></td>
+            <td>(UPROPERTY)</td>
+            <td>소유한 Crab 캐릭터 약한 참조. OnPossess에서 Cast 후 캐시. GetCrab()에서 .Get()으로 반환. TWeakObjectPtr이므로 Pawn 파괴 시 자동 null화.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FleeSearchRadius</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>도망 위치 탐색 반경 (기본값 1500). CalculateFleeLocation의 샘플링 거리 및 NavMesh 프로젝션 범위.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PlayerProximityThreshold</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>플레이어 근접 감지 거리 (기본값 500). ShouldFlee에서 시야 밖이어도 이 범위 안이면 도망 트리거. FVector::Dist(비제곱) 사용.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ItemSearchRadius</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>아이템 탐색 반경 (기본값 1500). .h에 선언되어 있으나 .cpp에서 직접 사용되지 않음 &mdash; StateTree Task에서 참조될 가능성.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DiscoveredItems</span></td>
+            <td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;AAO_MasterItem&gt;&gt;</span></td>
+            <td>(UPROPERTY)</td>
+            <td>발견한 아이템 목록. TWeakObjectPtr로 아이템 파괴 시 Dangling 방지. GetDiscoveredItems에서 IsValid() 필터 후 raw pointer TArray 반환. OnItemLost는 빈 구현 &mdash; 의도적으로 기억을 유지.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="crab-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ShouldFlee() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; HasPlayerInSight() true &rarr; 즉시 true 반환<br>
+                &#9313; GetPawn() null 체크<br>
+                &#9314; PlayersInSight 배열 순회 (TWeakObjectPtr IsValid 체크)<br>
+                &#9315; FVector::Dist(내 위치, 플레이어 위치) &lt; PlayerProximityThreshold(500) &rarr; true<br>
+                &#9316; 모든 플레이어가 범위 밖이면 false
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>HasPlayerInSight()가 true인데 PlayersInSight에 플레이어가 있는 경우를 이중 체크합니다. &#9314;에서 PlayersInSight를 순회하는데, 이 배열은 시야 내 플레이어뿐 아니라 근접 감지 플레이어도 포함할 수 있습니다. FVector::Dist는 Sqrt를 사용하므로 DistSquared로 최적화할 여지가 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetNearestThreatLocation() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; GetNearestPlayerInSight() &rarr; 유효하면 GetActorLocation 반환<br>
+                &#9313; GetCrab() &rarr; GetMemoryComponent() &rarr; GetRecentLostLocations(30초)<br>
+                &#9314; RecentLocations 중 가장 가까운 위치를 DistSquared로 탐색<br>
+                &#9315; 모두 없으면 FVector::ZeroVector 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>3단계 폴백(시야 &gt; 기억 &gt; Zero)으로 항상 유효한 위치를 반환합니다. 기억 검색 시 30초 윈도우를 사용하며, CalculateFleeLocation에서 AvoidLocations는 60초 윈도우를 사용 &mdash; 위협 감지는 짧게, 회피 기억은 길게 유지하는 설계입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CalculateFleeLocation() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">알고리즘 상세</div>
+                &#9312; GetNearestThreatLocation &rarr; ZeroVector이면 현재 위치 반환<br>
+                &#9313; FleeDirection = (MyLocation - ThreatLocation).GetSafeNormal()<br>
+                &#9314; AvoidLocations = Memory.GetRecentLostLocations(60초)<br>
+                &#9315; NavSys 없으면 FleeDirection * FleeSearchRadius 직선 폴백<br>
+                &#9316; 12방향 루프: AngleOffset = DegreesToRadians((i - 6) * 30도)<br>
+                &#9317; SampleDir = FleeDirection.RotateAngleAxis(RadiansToDegrees(AngleOffset), UpVector)<br>
+                &#9318; NavMesh 프로젝션 &rarr; Score = 위협거리 + Sum(회피거리 * 0.3)<br>
+                &#9319; BestScore 위치 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석 - 이중 변환</div>AngleOffset에서 DegreesToRadians로 변환 후 RotateAngleAxis에서 RadiansToDegrees로 다시 변환합니다. RotateAngleAxis의 인자는 Degree 단위이므로 직접 (i - 6) * 30.f를 전달해도 동일합니다. 이중 변환은 불필요하나 결과는 정확합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnNoiseHeard(NoiseInstigator, Location, Volume)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; Super::OnNoiseHeard 호출 (부모 MemoryComponent 기록)<br>
+                &#9313; GetCrab() &rarr; GetMemoryComponent() null 체크<br>
+                &#9314; Memory.SetLastHeardLocation(Location) &mdash; 소리 위치 기록<br>
+                &#9315; NoiseInstigator가 AAO_PlayerCharacter이면 Memory.SetLastKnownLocation(Player, Location)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>Crab은 소리에 반응하여 도망하는 유일한 비선공형 AI입니다. 소리 위치가 CalculateFleeLocation의 AvoidLocations에 간접적으로 반영됩니다 (MemoryComponent의 LostLocations 경유).</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnActorDetected / OnItemDetected / OnItemLost / UpdateFleeState</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                OnActorDetected: Actor가 AAO_MasterItem이면 OnItemDetected 호출. null Actor는 조기 반환.<br>
+                OnItemDetected: ensureMsgf로 null Item 검증. DiscoveredItems.Contains 중복 방지 후 Add.<br>
+                OnItemLost: 빈 구현 &mdash; 의도적으로 기억 유지 (시야에서 사라져도 목록 보존).<br>
+                UpdateFleeState: ShouldFlee() 결과를 Crab.SetFleeMode에 전달.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>GetDiscoveredItems는 TWeakObjectPtr를 raw AAO_MasterItem*로 변환하여 반환합니다. 파괴된 아이템은 IsValid() 필터로 제외되지만 DiscoveredItems 배열 자체는 정리되지 않아 점진적으로 무효 엔트리가 쌓일 수 있습니다. HasItemInSight는 "발견된 적 있는 아이템 중 유효한 것이 있는지"를 반환하며, 실제 시야 내 여부와는 다릅니다 &mdash; 함수명과 동작의 불일치가 있을 수 있습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="crab-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Crab</span></td><td>CachedCrab으로 캐시. SetFleeMode, GetMemoryComponent, GetItemCarryComponent 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_AIMemoryComponent</span></td><td>GetRecentLostLocations(30/60초), SetLastHeardLocation, SetLastKnownLocation</td></tr>
+          <tr><td>감지</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>OnActorDetected에서 Cast 후 DiscoveredItems에 추가. TWeakObjectPtr로 라이프사이클 안전</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">UNavigationSystemV1</span></td><td>CalculateFleeLocation에서 ProjectPointToNavigation으로 12지점 유효성 검증</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_AIControllerBase</span></td><td>Perception/StateTree/PlayersInSight 상속. AggressiveAICtrl 미사용</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_InsectController ==================== -->
+    <div class="class-card" id="insect-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_InsectController</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase</div>
+        <div class="class-files">AO_InsectController.h (29줄) &middot; AO_InsectController.cpp (116줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'insect-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="insect-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Insect 전용 컨트롤러. 납치 대상 필터링 (쿨다운/중복 방지)</div></div>
+          <div class="info-item"><div class="info-label">고유 특성</div><div class="info-value">bCanTargetDeadPlayer = true (시체 납치 가능 &mdash; AIControllerBase 변수)</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버에서만 AI 로직 실행. AISubsystem 조회로 글로벌 납치 상태 확인</div></div>
+          <div class="info-item"><div class="info-label">필터링 대상</div><div class="info-value">OnTargetPerceptionUpdated + OnPlayerDetected 이중 필터링</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AggressiveAICtrl을 상속하며 생성자에서 bCanTargetDeadPlayer를 true로 설정합니다.
+          OnTargetPerceptionUpdated를 완전히 오버라이드하여 Perception 이벤트 단계에서 쿨다운/중복 납치를 필터링합니다.
+          OnPlayerDetected에서도 동일한 필터를 적용하여 이중 안전장치를 제공합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 이중 필터링 설계</div>
+          OnTargetPerceptionUpdated는 모든 Perception 이벤트의 진입점이며, 여기서 필터링하면 PlayersInSight 배열에 아예 추가되지 않습니다.
+          OnPlayerDetected는 이미 PlayersInSight에 추가된 후 호출되므로, 타이밍 차이로 인한 누락을 방지하는 2차 안전장치입니다.
+          필터 조건: (1) IsPlayerRecentlyKidnapped &mdash; 최근 납치 후 쿨다운 (AISubsystem 글로벌 타이머),
+          (2) IsPlayerBeingKidnapped &mdash; 다른 Insect가 현재 납치 진행 중.
+          두 경우 모두 현재 추격 대상이면 ChaseTarget을 nullptr로 리셋하고 ChaseMode를 해제합니다.
+          BehaviorTree/BlackboardComponent.h 인클루드가 남아 있으나 StateTree 전환 이전 잔재로 보입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insect-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">Insect 고유 멤버 변수 없음 &mdash; 부모 클래스(AggressiveAICtrl, AIControllerBase)의 변수를 활용합니다.<br>생성자에서 bCanTargetDeadPlayer = true로 부모 변수를 변경합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="insect-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnTargetPerceptionUpdated(Actor, Stimulus)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312; Cast&lt;AAO_PlayerCharacter&gt;(Actor)<br>
+                &#9313; 플레이어이고 시야 감지(UAISense_Sight)인 경우만 필터 적용<br>
+                &#9314; WasSuccessfullySensed() true인 경우:<br>
+                &nbsp;&nbsp;&#9315; GetWorld() &rarr; GetSubsystem&lt;UAO_AISubsystem&gt;()<br>
+                &nbsp;&nbsp;&#9316; IsPlayerRecentlyKidnapped(Player) &rarr; true이면: GetChaseTarget() == Player면 SetChaseTarget(nullptr) + SetChaseMode(false), return<br>
+                &nbsp;&nbsp;&#9317; IsPlayerBeingKidnapped(Player) &rarr; true이면: 동일한 리셋 로직, return<br>
+                &#9318; 필터 통과 시 Super::OnTargetPerceptionUpdated(Actor, Stimulus) 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>Super를 호출하지 않고 return하면 AIControllerBase의 OnPlayerDetected/OnPlayerLost가 호출되지 않습니다. 즉 필터된 플레이어는 PlayersInSight에 추가/제거되지 않습니다. Stimulus.WasSuccessfullySensed() false인 경우(시야 소실)에는 필터 없이 Super가 호출되므로, 쿨다운 중인 플레이어가 시야에서 사라질 때의 OnPlayerLost는 정상 처리됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPlayerDetected(Player, Location)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; Player null 체크 &rarr; return<br>
+                &#9313; AISubsystem.IsPlayerRecentlyKidnapped &rarr; return<br>
+                &#9314; AISubsystem.IsPlayerBeingKidnapped &rarr; return<br>
+                &#9315; Super::OnPlayerDetected(Player, Location) 호출<br>
+                &#9316; 코멘트: 납치 이동 중 새 플레이어 경로 재탐색은 AO_STTask_Insect_Drag에서 처리
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>OnTargetPerceptionUpdated에서 이미 필터했으므로 여기까지 도달하는 쿨다운 플레이어는 거의 없지만, 타이밍 레이스(비동기 Perception과 동기 호출 차이) 방지를 위한 방어적 코딩입니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="insect-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Insect</span></td><td>GetAggressiveAI()로 AAO_AggressiveAIBase 접근. SetChaseMode 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_AISubsystem</span></td><td>IsPlayerRecentlyKidnapped, IsPlayerBeingKidnapped &mdash; 글로벌 납치 상태 조회</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">AO_STTask_Insect_Kidnap / Drag</span></td><td>납치/끌기 Task가 Controller의 GetChaseTarget, GetPlayersInSight 소비</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>추격/수색/대상 선택. ChaseTarget, StartChase, GetChaseTarget 활용</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_LavaMonsterCtrl ==================== -->
+    <div class="class-card" id="lava-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_LavaMonsterCtrl</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase</div>
+        <div class="class-files">AO_LavaMonsterCtrl.h (38줄) &middot; AO_LavaMonsterCtrl.cpp (45줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'lava-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="lava-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">용암 몬스터 AI 컨트롤러. 선공형 추격 + 공격 가능 여부 판정</div></div>
+          <div class="info-item"><div class="info-label">코드 규모</div><div class="info-value">45줄 &mdash; 14개 컨트롤러 중 가장 단순. 거의 모든 로직을 부모에 위임</div></div>
+          <div class="info-item"><div class="info-label">실행 위치</div><div class="info-value">서버에서만 AI 로직 실행</div></div>
+          <div class="info-item"><div class="info-label">StateTree 연동</div><div class="info-value">CanAttack()으로 공격 전이 조건 제공</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AggressiveAICtrl을 상속하여 선공형 AI의 추격/수색 로직을 재사용합니다.
+          고유 로직은 GetLavaMonster()와 CanAttack()뿐입니다.
+          생성자와 OnPossess 모두 빈 상태이며, 부모 기본값을 그대로 사용합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - OnPossess 미사용 캐시</div>
+          OnPossess에서 Cast&lt;AAO_LavaMonster&gt;(InPawn)을 수행하지만 결과를 로컬 변수에만 저장하고 멤버에 캐시하지 않습니다.
+          GetLavaMonster()는 매 호출마다 Cast&lt;AAO_LavaMonster&gt;(GetPawn())을 수행합니다.
+          CanAttack()에서 GetLavaMonster()를 호출하므로 StateTree Tick마다 불필요한 Cast가 발생합니다.
+          BullController와 동일한 패턴으로, CrabController의 CachedCrab 패턴이 더 효율적입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lava-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;color:#9ca3af;font-style:italic;">LavaMonster 고유 멤버 변수 없음 &mdash; 부모 클래스의 변수를 활용합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="lava-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLavaMonster() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Cast&lt;AAO_LavaMonster&gt;(GetPawn()) 수행. 매 호출마다 RTTI Cast 비용 발생.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanAttack() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312; GetLavaMonster() &rarr; null이면 false<br>
+                &#9313; LavaMonster-&gt;IsStunned() &rarr; true이면 false<br>
+                &#9314; LavaMonster-&gt;IsAttacking() &rarr; true이면 false<br>
+                &#9315; LavaMonster-&gt;IsTargetInAttackRange() 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>BullController의 CanMeleeAttack과 비교하면 Bull은 자체적으로 거리 계산을 수행하지만, LavaMonster는 IsTargetInAttackRange()를 캐릭터 클래스에 위임합니다. 이는 공격 범위가 캐릭터의 속성(무기 길이 등)에 따라 달라질 수 있기 때문입니다. 쿨다운 체크(IsInPostAttackCooldown)가 없어 Bull보다 공격 빈도가 높을 수 있습니다 &mdash; 캐릭터 내부에서 처리하거나 의도된 설계일 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPossess(InPawn)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Super::OnPossess 호출 후 Cast&lt;AAO_LavaMonster&gt;(InPawn)을 로컬 변수에만 저장. 멤버 캐시 없음 &mdash; TrollController.OnPossess와 동일한 패턴.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="lava-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_LavaMonster</span></td><td>GetLavaMonster()로 Pawn 접근. IsStunned, IsAttacking, IsTargetInAttackRange 호출</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_AggressiveAICtrl</span></td><td>추격/수색/대상 로직 상속</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">AO_STTask_LavaMonster_Attack</span></td><td>공격 Task에서 CanAttack() 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_StalkerController ==================== -->
+    <div class="class-card" id="stalker-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_StalkerController</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase</div>
+        <div class="class-files">AO_StalkerController.h (127줄) &middot; AO_StalkerController.cpp (666줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'stalker-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="stalker-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">14개 중 가장 복잡한 컨트롤러 (666줄). 은신 접근, 시야 분석, Hit &amp; Run, EQS 비동기</div></div>
+          <div class="info-item"><div class="info-label">OnPlayerLost 재정의</div><div class="info-value">AggressiveAICtrl 대신 AIControllerBase 레벨만 호출 &mdash; 즉시 Search 전환 방지</div></div>
+          <div class="info-item"><div class="info-label">Hysteresis 시스템</div><div class="info-value">LookingPlayer 안정적 유지 (최소 1.5초, 거리 비율 0.7 전환 조건)</div></div>
+          <div class="info-item"><div class="info-label">EQS 비동기 패턴</div><div class="info-value">Request &rarr; Controller 저장 &rarr; Task Tick에서 Consume (InstanceData 캡처 회피)</div></div>
+        </div>
+        <div class="desc-block">
+          AggressiveAICtrl을 상속하되 OnPlayerLost를 완전히 재정의합니다.
+          생성자에서 bLockOnFirstTarget = false로 설정하여 다중 플레이어 상황에서 가까운 대상으로 재설정합니다.
+          FindHideLocation(단일)/FindHideLocationFromMultiple(다중) 두 가지 엄폐 탐색 함수를 제공합니다.
+          32방향 샘플링 + LineTrace(ECC_Visibility) + NavMesh 프로젝션 + Stalker 분리 거리(200유닛)로 최적 위치를 선정합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 부모 호출 우회 패턴</div>
+          OnPlayerLost에서 AAO_AggressiveAICtrl::OnPlayerLost 대신 AAO_AIControllerBase::OnPlayerLost를 직접 호출합니다.
+          이는 AggressiveAICtrl의 Search 전환 로직을 의도적으로 건너뛰기 위함입니다.
+          C++에서 Super::Super 호출은 불가능하므로 AAO_AIControllerBase::OnPlayerLost(Player, LastKnownLocation)으로 명시적 호출합니다.
+          이 패턴은 상속 계층의 중간 클래스 로직을 선택적으로 우회하는 고급 기법이며, 유지보수 시 AggressiveAICtrl의 OnPlayerLost가 변경되면 Stalker에 영향을 주지 않는 장점이 있습니다.
+          TargetPersistenceSeconds(8초) 타이머가 만료되면 OnTargetPersistenceExpired에서 HasPlayerInSight() 재확인 후 타겟을 해제합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stalker-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">RetreatDuration</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>공격 후 후퇴 지속 시간 (기본값 5초). OnAttackFinished에서 타이머 설정, OnRetreatTimerExpired에서 해제.</td></tr>
+          <tr><td><span class="var-name">TargetPersistenceSeconds</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>시야 소실 후 타겟 유지 시간 (기본값 8초). 엄폐 접근 중 잠깐 시야를 잃는 것은 정상.</td></tr>
+          <tr><td><span class="var-name">LookingPlayerMinHoldTime</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>LookingPlayer 최소 유지 시간 (기본값 1.5초). Hysteresis &mdash; 빈번한 타겟 변경 방지.</td></tr>
+          <tr><td><span class="var-name">LookingPlayerSwitchDistanceRatio</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>타겟 전환 거리 비율 (기본값 0.7). 새 타겟이 현재보다 30% 이상 가까워야 전환.</td></tr>
+          <tr><td><span class="var-name">StableLookingPlayer</span></td><td><span class="var-type">TWeakObjectPtr&lt;AActor&gt;</span></td><td>(private)</td><td>Hysteresis 적용 안정적 LookingPlayer. GetStableLookingPlayer(), IsAnyPlayerLookingAtMe()로 접근.</td></tr>
+          <tr><td><span class="var-name">PendingHideLocation</span></td><td><span class="var-type">FVector</span></td><td>(private)</td><td>EQS 비동기 결과 저장. ConsumePendingHideLocation에서 소비 후 초기화.</td></tr>
+          <tr><td><span class="var-name">bHasPendingHideLocation</span></td><td><span class="var-type">bool</span></td><td>(private)</td><td>EQS 결과 유무 플래그. bHideQueryInFlight와 함께 상태 머신 형태로 관리.</td></tr>
+          <tr><td><span class="var-name">HideQuerySerial</span></td><td><span class="var-type">uint32</span></td><td>(private)</td><td>EQS 요청 직렬 번호. 오래된 결과 폐기에 사용. ++HideQuerySerial로 단조 증가.</td></tr>
+          <tr><td><span class="var-name">RetreatTimerHandle / TargetPersistenceTimerHandle</span></td><td><span class="var-type">FTimerHandle</span></td><td>(protected)</td><td>타이머 핸들. 후퇴 지속/타겟 유지 타이머 관리.</td></tr>
+          <tr><td><span class="var-name">LookingPlayerHoldTimer</span></td><td><span class="var-type">float</span></td><td>(private, 비UPROPERTY)</td><td>현재 타겟 유지 시간 누적. UPROPERTY가 아니므로 직렬화/GC 대상 아님.</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="stalker-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindHideLocation(Radius, TargetToHideFrom)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">알고리즘 (.cpp 완전 분석)</div>
+                &#9312; ControlledPawn/Stalker null 체크<br>
+                &#9313; AISubsystem.GetAllStalkerLocations(this) &mdash; 자신을 제외한 다른 Stalker 위치 수집<br>
+                &#9314; TargetLocation 결정: 인자 &gt; GetLastKnownTargetLocation &gt; GetChaseTarget 폴백<br>
+                &#9315; 32방향 샘플링: Angle = (2*PI*i)/32, Distance = RandRange(300, Radius)<br>
+                &#9316; SamplePoint = TargetLocation + SampleDir * Distance &mdash; 타겟 중심 샘플링<br>
+                &#9317; NavMesh 프로젝션 &rarr; LineTrace(TargetLocation &rarr; NavLocation, ECC_Visibility)<br>
+                &#9318; bIsHidden(장애물 있음) &rarr; Stalker 분리 거리 체크 (200유닛 최소)<br>
+                &#9319; Score = StalkerSeparationScore(0.5) + DistanceScore(0.5)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>RandRange로 거리를 랜덤화하여 같은 프레임에 여러 Stalker가 호출해도 서로 다른 결과를 얻습니다. StalkerSeparationScore는 500유닛 이상이면 1.0으로 cap됩니다. DistanceScore는 중간 거리((Min+Max)/2)에서 최대 1.0이며 양 끝에서 감소합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindHideLocationFromMultiple(Radius, PlayersToHideFrom)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>
+                다중 플레이어 중심점(CenterLocation)을 기준으로 32방향 샘플링.
+                각 샘플 위치에서 모든 플레이어로 LineTrace &rarr; HiddenFromCount 집계.
+                최소 1명 이상의 시야에서 숨을 수 있어야 후보로 인정.
+                가중치: HiddenRatio(0.5) + StalkerSeparation(0.3) + DistanceScore(0.2).
+                단일 버전(0.5+0.5)과 달리 "숨김 비율"이 최우선 가중치를 가집니다.
+                CollisionQueryParams에서 모든 플레이어를 IgnoredActor로 추가하여 플레이어 메시가 차단으로 오인되지 않게 합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RequestHideLocationEQS(Query) / ConsumePendingHideLocation(OutLocation)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">심층 분석 - 비동기 패턴</div>
+                Request: bHideQueryInFlight true이면 중복 방지 return. ++HideQuerySerial로 새 직렬 번호 발급.
+                FEnvQueryRequest를 생성하고 SingleResult 모드로 실행.
+                콜백은 CreateWeakLambda(this, ...)로 Controller 파괴 시 자동 해제.
+                콜백 내에서 RequestSerial != HideQuerySerial이면 오래된 결과 폐기.
+                Consume: bHasPendingHideLocation true이면 OutLocation에 복사 후 플래그 리셋.
+                이 패턴은 StateTree Task의 InstanceData에 비동기 콜백을 캡처하면 Task 재생성 시 댕글링이 발생하므로, Controller를 중간 저장소로 사용하는 우회 설계입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPlayerLost(Player, LastKnownLocation)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312; GetChaseTarget()이 Player와 동일한지 확인 (bIsCurrentTarget)<br>
+                &#9313; AAO_AIControllerBase::OnPlayerLost 호출 &mdash; AggressiveAICtrl 우회<br>
+                &#9314; bIsCurrentTarget이면: LastKnownTargetLocation 갱신<br>
+                &#9315; TargetPersistenceTimerHandle 클리어 후 재설정 (TargetPersistenceSeconds)<br>
+                &#9316; 타이머 만료 시 OnTargetPersistenceExpired: HasPlayerInSight() 재확인 &rarr; 없으면 SetChaseTarget(nullptr) + SearchMode/ChaseMode false + SearchTimer 클리어 + LastKnown 초기화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석 - Super 우회의 의미</div>AAO_AggressiveAICtrl::OnPlayerLost는 즉시 StartSearch를 호출하여 수색 모드로 전환합니다. Stalker는 "엄폐 접근" 특성상 타겟이 시야에서 잠깐 사라지는 것이 정상이므로 이를 건너뜁니다. 대신 8초 타이머로 "유예 기간"을 제공하며, 이 시간 내에 다시 감지하면 OnPlayerDetected에서 타이머를 클리어합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateLookingPlayerWithHysteresis(DeltaTime)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름 (.cpp 완전 분석)</div>
+                &#9312; GetAllLookingPlayers() &mdash; UGameplayStatics::GetAllActorsOfClass로 모든 플레이어 순회, IsPlayerLookingAtMe 체크<br>
+                &#9313; 0명이면: StableLookingPlayer null화, HoldTimer 리셋, 이전에 있었으면 true 반환<br>
+                &#9314; 가장 가까운 플레이어 선택 (FVector::Dist)<br>
+                &#9315; 현재 타겟 없으면: 즉시 설정, true 반환<br>
+                &#9316; 현재 타겟이 안 보면: 즉시 전환, true 반환<br>
+                &#9317; HoldTimer += DeltaTime. MinHoldTime(1.5초) 미만이면 false 반환<br>
+                &#9318; 가장 가까운 != 현재 타겟이고 ClosestDistance &lt; CurrentDistance * 0.7이면 전환, true 반환<br>
+                &#9319; 그 외 false 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>GetAllLookingPlayers에서 GetAllActorsOfClass를 사용하므로 매 호출마다 월드의 모든 PlayerCharacter를 순회합니다. 3인 코옵이므로 최대 3회 반복이라 성능 문제는 없지만, 플레이어 수가 증가하면 비효율적입니다. IsPlayerLookingAtMe의 Dot Product 계산은 O(1)이므로 병목은 아닙니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnAttackFinished() / FindRetreatLocation() / OnRetreatTimerExpired()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                OnAttackFinished: Stalker.SetRetreatMode(true) &rarr; RetreatDuration(5초) 타이머 설정. Retreat 상태는 Pawn이 단일 소스로 관리.<br>
+                FindRetreatLocation: 플레이어 반대 방향 800유닛 &rarr; NavMesh 프로젝션 &rarr; LineTrace로 시야 차단 확인. 차단 불가시에도 NavLocation 반환.<br>
+                OnRetreatTimerExpired: Stalker.SetRetreatMode(false)로 종료.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>FindRetreatLocation은 단일 방향만 시도하므로 해당 방향에 벽이 있으면 차선책 없이 벽 앞 위치를 반환합니다. FindHideLocation처럼 다방향 샘플링을 적용하면 개선될 수 있습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="stalker-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Stalker</span></td><td>SetRetreatMode/IsRetreating, GetCeilingMoveComponent. 상태는 Pawn에 위임</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_AISubsystem</span></td><td>GetAllStalkerLocations으로 다른 Stalker 분리 거리 계산</td></tr>
+          <tr><td>EQS</td><td><span class="rel-cls">UEnvQueryManager</span></td><td>FEnvQueryRequest로 비동기 엄폐 위치 탐색. CreateWeakLambda 콜백</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">StateTree Tasks</span></td><td>Hide/Approach/Ambush Task가 FindHideLocation, ConsumePendingHideLocation 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UNavigationSystemV1</span></td><td>NavMesh 프로젝션으로 32방향 샘플 + 후퇴 위치 검증</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_TrollController ==================== -->
+    <div class="class-card" id="troll-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_TrollController</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase</div>
+        <div class="class-files">AO_TrollController.h (63줄) &middot; AO_TrollController.cpp (207줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'troll-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="troll-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Troll AI 컨트롤러. 무기 감지/줍기 우선순위 + 공격 판정</div></div>
+          <div class="info-item"><div class="info-label">고유 기능</div><div class="info-value">TrollWeapon 감지/줍기, WeaponHolderComp 연동, 무기/맨손 분기</div></div>
+          <div class="info-item"><div class="info-label">StateTree 연동</div><div class="info-value">ShouldPrioritizeWeaponPickup, CanAttack, HasWeaponInSight</div></div>
+          <div class="info-item"><div class="info-label">Perception 확장</div><div class="info-value">OnActorDetected/Lost 오버라이드로 TrollWeapon 감지 파이프라인</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AggressiveAICtrl을 상속하여 추격/수색 로직을 재사용하면서 무기 관련 고유 로직을 추가합니다.
+          OnActorDetected/OnActorLost를 오버라이드하여 AAO_TrollWeapon을 감지하면 WeaponHolderComp에 전달합니다.
+          ShouldPrioritizeWeaponPickup은 무기 미보유 + 줍기 중 + 공격 범위 밖 + 시야 내 무기 존재를 종합 판단합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 무기 우선순위 의사결정 트리</div>
+          ShouldPrioritizeWeaponPickup의 판단 순서:
+          (1) 무기 보유 &rarr; false, (2) 줍기 진행 중 &rarr; true (중단하지 않음), (3) 플레이어가 공격 범위 내 &rarr; false (밟기 공격 가능), (4) 시야에 무기 있음 &rarr; true.
+          이 순서가 중요합니다: 줍기 중에는 공격 범위 체크를 건너뛰어 줍기를 우선합니다.
+          TryPickupWeapon은 시야 내 무기 &gt; 반경(1000) 내 무기 순으로 탐색하여 가장 가까운 것을 줍습니다.
+          OnPossess에서 Cast 결과를 로컬 변수에만 저장하는 LavaMonsterCtrl과 동일한 패턴이 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="troll-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">WeaponSearchRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td><td>무기 탐색 반경 (기본값 1000). 시야 밖에서도 FindNearestWeaponInRadius의 범위로 사용.</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="troll-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryPickupWeapon()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; GetTroll() &rarr; GetWeaponHolderComponent() null 체크<br>
+                &#9313; HasWeapon() true &rarr; false (이미 무장)<br>
+                &#9314; FindNearestWeaponInSight() 시도<br>
+                &#9315; null이면 FindNearestWeaponInRadius(WeaponSearchRadius) 시도<br>
+                &#9316; PickupWeapon(NearestWeapon) 결과 반환
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanAttack() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; GetTroll() null 체크<br>
+                &#9313; IsStunned() &rarr; false<br>
+                &#9314; IsAttacking() &rarr; false<br>
+                &#9315; IsPickingUpWeapon() &rarr; false<br>
+                &#9316; IsTargetInAttackRange() 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>LavaMonster와 비교 시 PickingUpWeapon 상태 체크가 추가됩니다. Bull처럼 쿨다운 체크는 없으며, 공격 범위 판정은 캐릭터에 위임합니다. 무기 보유 여부에 따라 공격 타입(밟기/무기)이 달라지지만 CanAttack에서는 구분하지 않습니다 &mdash; Ability에서 분기하는 설계.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnActorDetected(Actor, Location) / OnActorLost(Actor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                OnActorDetected: Super 호출 &rarr; Cast&lt;AAO_TrollWeapon&gt; &rarr; GetTroll() &rarr; GetWeaponHolderComponent() &rarr; OnWeaponDetected(Weapon).<br>
+                OnActorLost: 동일 체인으로 OnWeaponLost(Weapon) 호출.<br>
+                WeaponHolderComp이 시야 내 무기 목록(WeaponsInSight)을 관리합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="troll-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Troll</span></td><td>GetTroll()로 접근. HasWeapon, IsPickingUpWeapon, IsTargetInAttackRange 등 상태 조회</td></tr>
+          <tr><td>감지</td><td><span class="rel-cls">AAO_TrollWeapon</span></td><td>Perception에서 감지하여 WeaponHolderComp 파이프라인으로 전달</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_WeaponHolderComp</span></td><td>무기 시야 목록 관리, 탐색(FindNearest), 줍기(PickupWeapon)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_WerewolfController ==================== -->
+    <div class="class-card" id="wolf-ctrl">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_WerewolfController</div>
+        <div class="class-parent">부모: AAO_AggressiveAICtrl &rarr; AAO_AIControllerBase</div>
+        <div class="class-files">AO_WerewolfController.h (86줄) &middot; AO_WerewolfController.cpp (379줄)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'wolf-ctrl','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-ctrl','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-ctrl','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-ctrl','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="wolf-ctrl" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf 팩 AI 컨트롤러. Howl 연쇄, 포위 전술, 도주로 차단</div></div>
+          <div class="info-item"><div class="info-label">팩 연동</div><div class="info-value">UAO_PackCoordComp &mdash; OnHowlReceived / OnCoordinatedAttackStarted 델리게이트</div></div>
+          <div class="info-item"><div class="info-label">GAS 연동</div><div class="info-value">TriggerHowl에서 "Ability.Action.Howl" 태그로 ASC.TryActivateAbilitiesByTag</div></div>
+          <div class="info-item"><div class="info-label">도주 경로 분석</div><div class="info-value">4방향(기본) / N방향(개선) 샘플링 + NavMesh 프로젝션</div></div>
+        </div>
+        <div class="desc-block">
+          AAO_AggressiveAICtrl을 상속하며 Werewolf 팩 행동을 관리합니다.
+          OnPossess에서 PackCoordComp을 가져와 두 개의 다이내믹 델리게이트(OnHowlReceived, OnCoordinatedAttackStarted)를 바인딩합니다.
+          최초 플레이어 발견 시 SetChaseTarget만 설정하고 bHasHowledOrJoined가 false이면 Super::OnPlayerDetected를 호출하지 않습니다.
+          이미 Howl을 했거나 참여했으면 일반 추격 로직(Super)을 실행합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - Howl 상태 머신</div>
+          상태 전이: Roam(bHasHowledOrJoined=false) &rarr; 플레이어 발견 &rarr; SetChaseTarget만 설정 &rarr; StateTree Howl State 진입 &rarr; Howl Task가 TriggerHowl + MarkHowledOrJoined 호출 &rarr; PackCoordComp이 다른 늑대에 브로드캐스트 &rarr; HandleHowlReceived에서 StartChase 강제.
+          EndSearch/ResetHowlState에서 bHasHowledOrJoined를 false로 리셋하여 다음 발견 시 재Howl 가능.
+          OnPlayerDetected에서 bHasHowledOrJoined가 false일 때 Super를 호출하지 않으므로, AggressiveAICtrl의 StartChase/ChaseMode 설정이 건너뛰어집니다. 이는 Howl 전에는 추격하지 않고 대기하는 동작을 만듭니다.
+          FindPotentialEscapeRoutes(4방향)와 FindPotentialEscapeRoutesImproved(N방향)는 동일한 목적이지만 후자가 NavMesh 프로젝션을 추가합니다. 전자는 NavMesh 없이 Raycast 결과를 직접 반환하므로 AI가 도달 불가능한 위치를 반환할 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="wolf-ctrl" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">PackComp</span></td><td><span class="var-type">TObjectPtr&lt;UAO_PackCoordComp&gt;</span></td><td>(UPROPERTY)</td><td>팩 조율 컴포넌트. OnPossess에서 Werewolf.GetPackCoordComp()으로 설정. AddDynamic으로 2개 이벤트 바인딩.</td></tr>
+          <tr><td><span class="var-name">bHasHowledOrJoined</span></td><td><span class="var-type">bool</span></td><td>(protected, 비UPROPERTY)</td><td>Howl 실행/참여 여부. HasHowledOrJoined(BlueprintPure), MarkHowledOrJoined(BlueprintCallable), ResetHowlState로 접근. UPROPERTY가 아니므로 직렬화 안 됨.</td></tr>
+          <tr><td><span class="var-name">LastPlayerLocation</span></td><td><span class="var-type">FVector</span></td><td>(protected)</td><td>이동 방향 추적용 이전 위치. OnPlayerDetected에서 갱신. AnalyzePlayerMovementDirection의 폴백 2단계에서 사용.</td></tr>
+          <tr><td><span class="var-name">LastLocationUpdateTime</span></td><td><span class="var-type">float</span></td><td>(protected)</td><td>위치 갱신 시간. GetWorld()-&gt;GetTimeSeconds(). 현재 코드에서 직접 사용되지 않으나 시간 기반 필터링 확장 포인트.</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="wolf-ctrl" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TriggerHowl(Target)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">실행 흐름</div>
+                &#9312; Target/PackComp null 체크<br>
+                &#9313; Cast&lt;AAO_Werewolf&gt;(GetPawn()) &rarr; GetAbilitySystemComponent()<br>
+                &#9314; FGameplayTag::RequestGameplayTag("Ability.Action.Howl")<br>
+                &#9315; TagContainer에 추가 후 TryActivateAbilitiesByTag
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>Target 인자를 받지만 ASC에 전달하지 않습니다. Howl Ability는 자체적으로 PackCoordComp을 통해 타겟 정보를 브로드캐스트하는 것으로 추정됩니다. RequestGameplayTag는 런타임에 태그 테이블을 조회하므로 캐시된 FGameplayTag를 사용하면 성능이 개선됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AnalyzePlayerMovementDirection(Target)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">3단계 폴백</div>
+                &#9312; CharacterMovementComponent.Velocity &mdash; Z=0, SizeSquared &gt; 100 (속도 10 이상)<br>
+                &#9313; CurrentLocation - LastPlayerLocation &mdash; Z=0, SizeSquared &gt; 100<br>
+                &#9314; Target-&gt;GetActorForwardVector() &mdash; 최후 수단
+              </div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>Velocity 기반이 가장 정확하지만 플레이어가 순간 정지 시 0벡터가 될 수 있어 폴백이 필요합니다. SizeSquared &gt; 100은 속도 &gt; 10 UU/s(약 0.1 m/s)를 의미하며 매우 낮은 임계값입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindPotentialEscapeRoutes / FindPotentialEscapeRoutesImproved</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">기본 버전 (4방향)</div>MovementDir 기준 전/후/좌/우 4방향 Raycast. 장애물 없으면 End 위치, 있으면 Hit.Location - Dir*200 반환. NavMesh 프로젝션 없음.</div>
+              <div class="fn-section"><div class="fn-section-title">개선 버전 (N방향)</div>AngleStep = 2PI/NumSamples로 균등 분할. Forward+Right 기저 벡터로 Cos/Sin 방향 생성. NavMesh 프로젝션 적용 &mdash; 유효한 위치만 반환.</div>
+              <div class="fn-section"><div class="fn-section-title">심층 분석</div>두 버전이 공존하는 것은 리팩토링 과정을 보여줍니다. FindEscapeRouteBlockPosition은 기본 버전을 호출하므로, 개선 버전으로 교체하면 도주로 차단 정확도가 향상됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleHowlReceived / HandleCoordinatedAttackStarted / EndSearch</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">이벤트 체인</div>
+                HandleHowlReceived: Cast&lt;AAO_PlayerCharacter&gt; &rarr; bHasHowledOrJoined=true &rarr; StartChase(Target) 강제.<br>
+                HandleCoordinatedAttackStarted: SetSurroundMode(false) &rarr; SetChaseMode(true) &mdash; 포위에서 일제공격으로 전환.<br>
+                EndSearch: Super::EndSearch() &rarr; ResetHowlState() &mdash; bHasHowledOrJoined=false, SurroundMode=false. 배회 복귀 시 상태 초기화.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="wolf-ctrl" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>GetPackCoordComp, GetAbilitySystemComponent 접근</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_PackCoordComp</span></td><td>Howl/포위/일제공격 이벤트. AddDynamic으로 OnPossess에서 바인딩</td></tr>
+          <tr><td>GAS</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>TriggerHowl에서 Ability.Action.Howl 태그로 활성화</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UCharacterMovementComponent</span></td><td>AnalyzePlayerMovementDirection에서 Velocity 조회</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UNavigationSystemV1</span></td><td>FindPotentialEscapeRoutesImproved에서 NavMesh 프로젝션</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AnimInstance 섹션 ==================== -->
+
+    <!-- Bull_AnimInstance -->
+    <div class="class-card" id="bull-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Bull_AnimInstance</div>
+        <div class="class-parent">부모: UAO_AIAnimInstance &rarr; UAnimInstance</div>
+        <div class="class-files">AO_Bull_AnimInstance.h (73줄) &middot; AO_Bull_AnimInstance.cpp (40줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'bull-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'bull-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="bull-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Bull AI 애니메이션. 돌진/기절 상태 반영</div></div>
+          <div class="info-item"><div class="info-label">상속 계층</div><div class="info-value">AIAnimInstance 기반 &mdash; Velocity, GroundSpeed, bShouldMove, bIsFalling 상속</div></div>
+          <div class="info-item"><div class="info-label">상태 소스</div><div class="info-value">AAO_Bull.IsCharging(), AAO_Bull.IsStunned()</div></div>
+          <div class="info-item"><div class="info-label">캐릭터 참조</div><div class="info-value">TObjectPtr&lt;AAO_Bull&gt; (강한 참조 &mdash; Crab/Troll의 TWeakObjectPtr와 다름)</div></div>
+        </div>
+        <div class="desc-block">
+          UAO_AIAnimInstance를 상속하여 공통 이동 변수를 활용합니다.
+          NativeInitializeAnimation에서 부모의 Character(ACharacter*)를 AAO_Bull로 캐스팅합니다.
+          NativeUpdateAnimation에서 매 프레임 bIsCharging, bIsStunned를 동기화합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 참조 패턴 비교</div>
+          Bull/Insect/Stalker/Werewolf AnimInstance는 TObjectPtr(강한 참조)을 사용하며, Crab/Troll/LavaMonster AnimInstance는 TWeakObjectPtr(약한 참조)을 사용합니다.
+          AnimInstance는 Pawn의 SkeletalMeshComponent에 의해 소유되므로 Pawn 라이프사이클 내에서만 존재합니다. 따라서 TObjectPtr도 안전하지만, TWeakObjectPtr이 더 방어적입니다.
+          또한 Bull은 부모의 Character 변수를 통해 이미 ACharacter*를 가지고 있어 중복 참조가 됩니다.
+          PlayStunMontage는 Montage_IsPlaying 체크 없이 매번 Play를 호출하므로, 이미 재생 중인 몽타주를 처음부터 재시작합니다 (Crab/Troll은 중복 방지 적용).
+        </div>
+      </div>
+      <div class="tab-panel" data-class="bull-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">BullCharacter</span></td><td><span class="var-type">TObjectPtr&lt;AAO_Bull&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>소유 Bull 캐릭터. 부모의 Character 변수와 별개로 타입 캐스팅된 참조.</td></tr>
+          <tr><td><span class="var-name">bIsCharging</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>돌진 상태 플래그. ABP에서 돌진 블렌딩에 사용.</td></tr>
+          <tr><td><span class="var-name">bIsStunned</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>기절 상태 플래그.</td></tr>
+          <tr><td><span class="var-name">StunMontage</span></td><td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>기절 몽타주 에셋. 에디터에서 할당.</td></tr>
+          <tr><td><span class="var-name">StunMontagePlayRate</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td><td>기절 몽타주 재생 속도 (기본값 1.0).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="bull-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">NativeInitializeAnimation() / NativeUpdateAnimation()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Init: Super 호출 후 Cast&lt;AAO_Bull&gt;(Character). Update: Super 호출 후 bIsCharging/bIsStunned 동기화. 부모의 Super에서 Velocity, GroundSpeed, bShouldMove, bIsFalling이 이미 업데이트됩니다.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayStunMontage() / StopStunMontage(BlendOutTime)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Play: StunMontage null 체크 후 Montage_Play. 중복 재생 방지 없음 &mdash; 매 호출마다 처음부터 재시작.<br>Stop: StunMontage null 체크 후 Montage_Stop(BlendOutTime). Montage_IsPlaying 체크 없이 호출.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="bull-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Bull</span></td><td>IsCharging, IsStunned 상태 조회</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_AIAnimInstance</span></td><td>Character, MovementComponent, Velocity, GroundSpeed, bShouldMove, bIsFalling 상속</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_AICharacterBase (Multicast)</span></td><td>기절 몽타주 재생/중지 시 호출됨</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Crab_AnimInstance -->
+    <div class="class-card" id="crab-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Crab_AnimInstance</div>
+        <div class="class-parent">부모: UAnimInstance (직접 상속)</div>
+        <div class="class-files">AO_Crab_AnimInstance.h (113줄) &middot; AO_Crab_AnimInstance.cpp (109줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'crab-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'crab-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="crab-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Crab AI 애니메이션. 도망/아이템 운반/기절 상태 반영</div></div>
+          <div class="info-item"><div class="info-label">상속 계층</div><div class="info-value">UAnimInstance 직접 상속 &mdash; AIAnimInstance 미사용으로 공통 이동 변수 자체 관리</div></div>
+          <div class="info-item"><div class="info-label">기절 판정</div><div class="info-value">GAS Tag "Status.Debuff.Stunned" &mdash; 다른 AnimInstance의 IsStunned() 직접 호출과 다름</div></div>
+          <div class="info-item"><div class="info-label">몽타주 패턴</div><div class="info-value">Montage_IsPlaying 중복 방지 적용 (Bull/Insect/Stalker/Werewolf와 다름)</div></div>
+        </div>
+        <div class="desc-block">
+          UAnimInstance를 직접 상속하여 독자적으로 Speed, bIsMoving 등을 관리합니다.
+          기절 판정이 ASC GameplayTag 기반으로, 다른 AnimInstance의 캐릭터 함수 호출 방식과 다릅니다.
+          아이템 운반은 UAO_ItemCarryComponent.IsCarryingItem(), 도망은 Crab.IsInFleeMode()로 조회합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 상속 불일치</div>
+          Crab과 Troll만 UAnimInstance를 직접 상속하고, 나머지 5종은 UAO_AIAnimInstance를 상속합니다.
+          UAO_AIAnimInstance는 Character, MovementComponent, Velocity, GroundSpeed, bShouldMove, bIsFalling을 자동 관리합니다.
+          Crab/Troll은 이를 직접 구현하므로 코드 중복이 발생합니다. 특히 Speed 계산(Velocity.Size2D)은 부모의 GroundSpeed와 동일합니다.
+          이 불일치는 개발 초기에 Crab/Troll이 독립적으로 작성된 후 공통 부모가 추가된 것을 시사합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">OwningCrab</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_Crab&gt;</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>소유 Crab 약한 참조. NativeUpdateAnimation에서 IsValid 체크 후 재캐시.</td></tr>
+          <tr><td><span class="var-name">Speed / bIsMoving</span></td><td><span class="var-type">float / bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>수평 속도(CharacterMovementComponent). bIsMoving = Speed &gt; MovingThreshold(10).</td></tr>
+          <tr><td><span class="var-name">bIsStunned</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>GAS Tag "Status.Debuff.Stunned" 기반. ASC null이면 false.</td></tr>
+          <tr><td><span class="var-name">bIsCarryingItem / bIsFleeing</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>아이템 운반(ItemCarryComponent) / 도망(IsInFleeMode) 상태.</td></tr>
+          <tr><td><span class="var-name">StunMontage / StunMontagePlayRate</span></td><td><span class="var-type">UAnimMontage* / float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>기절 몽타주. PlayRate 기본값 2.0 &mdash; 다른 AnimInstance(1.0)보다 빠르게 반복.</td></tr>
+          <tr><td><span class="var-name">MovingThreshold</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>이동 판단 최소 속도 (기본값 10).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="crab-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateAnimationProperties()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>속도: CharacterMovementComponent.Velocity에서 XY만 Size. MovementComp null이면 GetVelocity().Size2D 폴백.<br>기절: ASC.HasMatchingGameplayTag("Status.Debuff.Stunned").<br>운반: ItemCarryComponent.IsCarryingItem(). Comp null이면 false.<br>도망: Crab.IsInFleeMode().</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayStunMontage() / StopStunMontage()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Play: Montage_IsPlaying 체크로 중복 방지. Stop: Montage_IsPlaying 체크 후 Stop. Bull/Insect와 달리 방어적 코딩.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="crab-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Crab</span></td><td>IsInFleeMode, GetItemCarryComponent, GetAbilitySystemComponent</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>GameplayTag 기반 기절 상태 조회</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_ItemCarryComponent</span></td><td>아이템 운반 여부 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Insect_AnimInstance -->
+    <div class="class-card" id="insect-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Insect_AnimInstance</div>
+        <div class="class-parent">부모: UAO_AIAnimInstance &rarr; UAnimInstance</div>
+        <div class="class-files">AO_Insect_AnimInstance.h (73줄) &middot; AO_Insect_AnimInstance.cpp (40줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'insect-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'insect-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="insect-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Insect AI 애니메이션. 납치/기절 상태 반영</div></div>
+          <div class="info-item"><div class="info-label">구조</div><div class="info-value">Bull_AnimInstance와 완전히 동일한 패턴 (40줄 .cpp)</div></div>
+          <div class="info-item"><div class="info-label">고유 상태</div><div class="info-value">bIsKidnapping &mdash; 납치 중 이동 애니메이션 블렌딩에 사용</div></div>
+          <div class="info-item"><div class="info-label">캐릭터 참조</div><div class="info-value">TObjectPtr&lt;AAO_Insect&gt; (강한 참조)</div></div>
+        </div>
+        <div class="desc-block">
+          Bull_AnimInstance와 구조적으로 동일합니다. Init에서 캐스팅, Update에서 2개 상태 동기화, 몽타주 Play/Stop.
+          납치 상태(bIsKidnapping)는 ABP에서 납치 중 이동 애니메이션(끌기/비행)을 블렌딩하는 데 사용됩니다.
+          PlayStunMontage도 Bull과 동일하게 중복 재생 방지 없이 매번 처음부터 재시작합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="insect-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">InsectCharacter</span></td><td><span class="var-type">TObjectPtr&lt;AAO_Insect&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>소유 Insect 캐릭터 참조.</td></tr>
+          <tr><td><span class="var-name">bIsKidnapping</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>납치 상태 플래그.</td></tr>
+          <tr><td><span class="var-name">bIsStunned</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>기절 상태 플래그.</td></tr>
+          <tr><td><span class="var-name">StunMontage / StunMontagePlayRate</span></td><td><span class="var-type">UAnimMontage* / float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>기절 몽타주 (기본값 1.0).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="insect-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">NativeInitializeAnimation() / NativeUpdateAnimation()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Init: Cast&lt;AAO_Insect&gt;(Character). Update: bIsKidnapping, bIsStunned 동기화.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayStunMontage() / StopStunMontage()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Bull과 동일 패턴. 중복 재생 방지 없음.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="insect-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Insect</span></td><td>IsKidnapping, IsStunned 조회</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_AIAnimInstance</span></td><td>Velocity, GroundSpeed, bShouldMove, bIsFalling 상속</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- LavaMonster_AnimInstance -->
+    <div class="class-card" id="lava-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_LavaMonster_AnimInstance</div>
+        <div class="class-parent">부모: UAO_AIAnimInstance &rarr; UAnimInstance</div>
+        <div class="class-files">AO_LavaMonster_AnimInstance.h (116줄) &middot; AO_LavaMonster_AnimInstance.cpp (147줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'lava-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'lava-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="lava-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">용암 몬스터 애니메이션. 기절/공격 + Idle 랜덤 몽타주 시스템</div></div>
+          <div class="info-item"><div class="info-label">고유 기능</div><div class="info-value">4종 Idle 몽타주 랜덤 재생 (FTimerManager 기반, 5+/-2초 간격)</div></div>
+          <div class="info-item"><div class="info-label">참조 패턴</div><div class="info-value">TWeakObjectPtr &mdash; AIAnimInstance 상속이지만 자체 참조 관리</div></div>
+          <div class="info-item"><div class="info-label">상태 소스</div><div class="info-value">AAO_LavaMonster.IsStunned(), IsAttacking() + CharacterMovementComponent.Velocity</div></div>
+        </div>
+        <div class="desc-block">
+          UAO_AIAnimInstance를 상속하되 TWeakObjectPtr로 별도 캐릭터 참조를 관리합니다.
+          이동/기절/공격 중이 아닐 때 IdleRandomTimerHandle을 설정하여 자동으로 Idle 몽타주를 랜덤 재생합니다.
+          PlayRandomIdleMontage는 이전 몽타주를 0.1초 블렌드로 중지하고 새 몽타주를 시작합니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - Idle 타이머 상태 관리</div>
+          UpdateAnimationProperties에서 매 프레임 Idle 타이머 상태를 체크합니다.
+          이동/기절/공격 중이면 타이머 클리어, Idle이면 타이머 설정.
+          PlayRandomIdleMontage 내부에서 다음 타이머를 자동 설정하므로 "자기 재귀" 타이머 패턴입니다.
+          UpdateAnimationProperties의 타이머 설정과 PlayRandomIdleMontage의 타이머 설정이 경합할 수 있으나,
+          IsValid() 체크로 이미 타이머가 있으면 재설정하지 않으므로 안전합니다.
+          NativeUpdateAnimation에서 매 프레임 UpdateCharacterReference를 호출하는데, 부모의 NativeUpdateAnimation도 Character를 업데이트하므로 중복이 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="lava-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">OwningLavaMonster</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_LavaMonster&gt;</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>약한 참조. UpdateCharacterReference에서 캐시.</td></tr>
+          <tr><td><span class="var-name">bIsStunned / bIsAttacking</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>기절/공격 상태 플래그.</td></tr>
+          <tr><td><span class="var-name">IdleMontages</span></td><td><span class="var-type">TArray&lt;TObjectPtr&lt;UAnimMontage&gt;&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>4종 Idle 몽타주. FMath::RandRange(0, Num-1)로 선택.</td></tr>
+          <tr><td><span class="var-name">IdleRandomInterval / IdleRandomIntervalDeviation</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>Idle 간격 5초 +/- 2초. Max(0.1)으로 최소값 보장.</td></tr>
+          <tr><td><span class="var-name">CurrentIdleMontage</span></td><td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td><td>(private)</td><td>현재 재생 중인 Idle. 다음 재생 시 Stop(0.1) 호출용.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="lava-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayRandomIdleMontage()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">실행 흐름</div>&#9312; IdleMontages 비어있으면 return. &#9313; CurrentIdleMontage 재생 중이면 Montage_Stop(0.1). &#9314; RandRange로 인덱스 선택 &rarr; CurrentIdleMontage 갱신. &#9315; Montage_Play &rarr; 다음 타이머 자동 설정.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateAnimationProperties()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>기절/공격 상태 동기화. Velocity.Size2D &gt; 10으로 이동 판정. Idle이면 타이머 설정, 비Idle이면 클리어.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="lava-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_LavaMonster</span></td><td>IsStunned, IsAttacking, GetCharacterMovement 조회</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_AIAnimInstance</span></td><td>공통 이동 변수 상속 (자체 속도 계산과 중복)</td></tr>
+          <tr><td>사용</td><td><span class="rel-cls">FTimerManager</span></td><td>Idle 랜덤 재생 타이머 관리</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stalker_AnimInstance -->
+    <div class="class-card" id="stalker-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Stalker_AnimInstance</div>
+        <div class="class-parent">부모: UAO_AIAnimInstance &rarr; UAnimInstance</div>
+        <div class="class-files">AO_Stalker_AnimInstance.h (96줄) &middot; AO_Stalker_AnimInstance.cpp (69줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'stalker-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'stalker-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="stalker-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Stalker 애니메이션. 로컬 좌표계 속도 + 천장 모드 + 공격 몽타주 선택</div></div>
+          <div class="info-item"><div class="info-label">고유 기능</div><div class="info-value">UnrotateVector로 월드 속도 &rarr; 로컬 변환. 2D BlendSpace(Forward/Right) 입력</div></div>
+          <div class="info-item"><div class="info-label">CeilingMove</div><div class="info-value">UAO_CeilingMoveComponent.IsInCeilingMode()로 천장 모드 확인</div></div>
+          <div class="info-item"><div class="info-label">공격 몽타주</div><div class="info-value">AttackMontages 배열에서 RandRange 랜덤 선택</div></div>
+        </div>
+        <div class="desc-block">
+          Stalker는 측면 이동(Strafe)이 중요하므로 월드 속도를 UnrotateVector로 로컬 좌표계로 변환합니다.
+          ForwardSpeed(X: 전진/후진)과 RightSpeed(Y: 좌/우)를 2D BlendSpace에 입력하여 8방향 이동 애니메이션을 블렌딩합니다.
+          GetAttackMontage()는 현재 랜덤이지만 주석에 "거리/방향 기반 고도화 가능"으로 확장 포인트를 명시합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalker-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">StalkerCharacter</span></td><td><span class="var-type">TObjectPtr&lt;AAO_Stalker&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>소유 Stalker. 강한 참조.</td></tr>
+          <tr><td><span class="var-name">bInCeiling</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>천장 모드 플래그. CeilingMoveComponent에서 조회.</td></tr>
+          <tr><td><span class="var-name">LocalVelocity</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>로컬 좌표계 속도. ActorRotation.UnrotateVector(WorldVelocity).</td></tr>
+          <tr><td><span class="var-name">ForwardSpeed / RightSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>LocalVelocity.X / .Y. 2D BlendSpace 입력용.</td></tr>
+          <tr><td><span class="var-name">AttackMontages</span></td><td><span class="var-type">TArray&lt;TObjectPtr&lt;UAnimMontage&gt;&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>공격 몽타주 목록. GetAttackMontage에서 랜덤 선택.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="stalker-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">NativeUpdateAnimation(DeltaSeconds)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">실행 흐름</div>&#9312; Super(AIAnimInstance가 Velocity/GroundSpeed 갱신). &#9313; CeilingMoveComponent &rarr; bInCeiling. &#9314; bIsStunned = IsStunned(). &#9315; WorldVelocity &rarr; ActorRotation.UnrotateVector &rarr; LocalVelocity. &#9316; ForwardSpeed = LocalVelocity.X, RightSpeed = LocalVelocity.Y.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">GetAttackMontage() const</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>AttackMontages 비어있으면 nullptr. RandRange(0, Num-1)로 랜덤 반환. const 함수이므로 상태 변경 없음.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="stalker-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Stalker</span></td><td>IsStunned, GetCeilingMoveComponent, GetVelocity, GetActorRotation</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_CeilingMoveComponent</span></td><td>IsInCeilingMode() 천장 상태 확인</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_AIAnimInstance</span></td><td>Character, Velocity, GroundSpeed 상속</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Troll_AnimInstance -->
+    <div class="class-card" id="troll-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Troll_AnimInstance</div>
+        <div class="class-parent">부모: UAnimInstance (직접 상속)</div>
+        <div class="class-files">AO_Troll_AnimInstance.h (126줄) &middot; AO_Troll_AnimInstance.cpp (92줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'troll-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'troll-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="troll-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Troll 애니메이션. 기절/공격/무기/줍기 상태 반영</div></div>
+          <div class="info-item"><div class="info-label">상속 계층</div><div class="info-value">UAnimInstance 직접 상속 (Crab과 동일 패턴 &mdash; AIAnimInstance 미사용)</div></div>
+          <div class="info-item"><div class="info-label">고유 기능</div><div class="info-value">무기 줍기 몽타주 (PickupWeaponMontage) &mdash; 7종 중 유일</div></div>
+          <div class="info-item"><div class="info-label">상태 수</div><div class="info-value">4가지 bool 플래그 (7종 AnimInstance 중 최다)</div></div>
+        </div>
+        <div class="desc-block">
+          UAnimInstance를 직접 상속하여 Crab과 동일한 독자 관리 패턴입니다.
+          4가지 상태 플래그(bIsStunned, bIsAttacking, bHasWeapon, bIsPickingUpWeapon)를 AAO_Troll에서 동기화합니다.
+          무기 줍기 몽타주는 Montage_IsPlaying 중복 방지를 적용합니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="troll-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">OwningTroll</span></td><td><span class="var-type">TWeakObjectPtr&lt;AAO_Troll&gt;</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>약한 참조. NativeUpdateAnimation에서 IsValid 체크 후 재캐시.</td></tr>
+          <tr><td><span class="var-name">Speed / bIsMoving</span></td><td><span class="var-type">float / bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>Velocity.Size2D. bIsMoving = Speed &gt; 10.</td></tr>
+          <tr><td><span class="var-name">bIsStunned / bIsAttacking / bHasWeapon / bIsPickingUpWeapon</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>4가지 상태 플래그. ABP에서 무장 포즈, 공격, 줍기 애니메이션 분기에 사용.</td></tr>
+          <tr><td><span class="var-name">StunMontage / PickupWeaponMontage</span></td><td><span class="var-type">TObjectPtr&lt;UAnimMontage&gt;</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>기절/줍기 몽타주. 각각 PlayRate 기본값 1.0.</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="troll-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateAnimationProperties()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>CharacterMovementComponent.Velocity.Size2D로 Speed 계산. Troll에서 IsStunned, IsAttacking, HasWeapon, IsPickingUpWeapon 4가지 동기화.</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayPickupWeaponMontage()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Montage_IsPlaying 중복 방지 후 Montage_Play. Crab의 PlayStunMontage와 동일 패턴.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="troll-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Troll</span></td><td>IsStunned, IsAttacking, HasWeapon, IsPickingUpWeapon, GetCharacterMovement</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Werewolf_AnimInstance -->
+    <div class="class-card" id="wolf-anim">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Werewolf_AnimInstance</div>
+        <div class="class-parent">부모: UAO_AIAnimInstance &rarr; UAnimInstance</div>
+        <div class="class-files">AO_Werewolf_AnimInstance.h (80줄) &middot; AO_Werewolf_AnimInstance.cpp (44줄)</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'wolf-anim','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-anim','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-anim','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'wolf-anim','rel')">호출 관계</button>
+      </div>
+      <div class="tab-panel active" data-class="wolf-anim" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">역할</div><div class="info-value">Werewolf 애니메이션. 속도/이동/기절 상태 반영</div></div>
+          <div class="info-item"><div class="info-label">구조</div><div class="info-value">가장 단순한 AnimInstance (44줄 .cpp)</div></div>
+          <div class="info-item"><div class="info-label">특성</div><div class="info-value">부모의 GroundSpeed/bShouldMove를 Speed/bIsMoving에 복사하는 브릿지 패턴</div></div>
+          <div class="info-item"><div class="info-label">Howl/공격 몽타주</div><div class="info-value">GAS Ability에서 직접 호출 &mdash; AnimInstance에서 미처리</div></div>
+        </div>
+        <div class="desc-block">
+          부모의 GroundSpeed와 bShouldMove를 블루프린트용 Speed/bIsMoving에 복사합니다.
+          이는 ABP에서 부모 변수 직접 접근보다 명시적 변수 사용을 선호하는 패턴입니다.
+          Howl이나 공격 몽타주는 GAS Ability 시스템에서 ASC를 통해 직접 AnimMontage_Play를 호출하므로
+          AnimInstance에서는 별도 함수를 제공하지 않습니다.
+        </div>
+        <div class="deep-block">
+          <div class="deep-label">심층 분석 - 변수 복사의 의미</div>
+          Speed = GroundSpeed, bIsMoving = bShouldMove는 의미적으로 동일합니다.
+          ABP에서 GroundSpeed/bShouldMove를 직접 사용해도 되지만, 다른 AnimInstance(Crab/Troll)가 Speed/bIsMoving이라는 이름을 사용하므로 ABP 레이아웃 일관성을 위한 복사로 보입니다.
+          이 패턴은 부모 클래스 변경 시 ABP 수정 없이 복사 로직만 변경하면 되는 장점이 있습니다.
+        </div>
+      </div>
+      <div class="tab-panel" data-class="wolf-anim" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr><td><span class="var-name">WerewolfCharacter</span></td><td><span class="var-type">TObjectPtr&lt;AAO_Werewolf&gt;</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>소유 Werewolf. 강한 참조.</td></tr>
+          <tr><td><span class="var-name">Speed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>= 부모 GroundSpeed. BlendSpace 입력용.</td></tr>
+          <tr><td><span class="var-name">bIsMoving</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag bp">BPReadOnly</span></td><td>= 부모 bShouldMove.</td></tr>
+          <tr><td><span class="var-name">bIsStunned</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>WerewolfCharacter.IsStunned() 동기화.</td></tr>
+          <tr><td><span class="var-name">StunMontage / StunMontagePlayRate</span></td><td><span class="var-type">UAnimMontage* / float</span></td><td><span class="prop-tag edit">EditDefaultsOnly</span></td><td>기절 몽타주 (기본값 1.0).</td></tr>
+        </table>
+      </div>
+      <div class="tab-panel" data-class="wolf-anim" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">NativeUpdateAnimation(DeltaSeconds)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Super(AIAnimInstance: Velocity/GroundSpeed/bShouldMove 갱신) &rarr; Speed = GroundSpeed, bIsMoving = bShouldMove &rarr; bIsStunned = WerewolfCharacter.IsStunned().</div></div></div>
+          <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">PlayStunMontage() / StopStunMontage()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>Bull/Insect와 동일 패턴. 중복 재생 방지 없음.</div></div></div>
+        </div>
+      </div>
+      <div class="tab-panel" data-class="wolf-anim" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_Werewolf</span></td><td>IsStunned 상태 조회</td></tr>
+          <tr><td>부모</td><td><span class="rel-cls">UAO_AIAnimInstance</span></td><td>GroundSpeed, bShouldMove 등 공통 변수 상속</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 심층 분석 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector('.tab-panel[data-class="' + classId + '"][data-tab="' + tabId + '"]').classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = [
+  'bull-ctrl','crab-ctrl','insect-ctrl','lava-ctrl','stalker-ctrl','troll-ctrl','wolf-ctrl',
+  'bull-anim','crab-anim','insect-anim','lava-anim','stalker-anim','troll-anim','wolf-anim'
+];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector('.toc-item[href="#' + id + '"]'); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+    const targetId = this.getAttribute('href').substring(1);
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 퍼즐 시스템 심층 분석</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#0891b2;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+.nav-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:600;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#ecfeff;color:#0891b2;border-left-color:#0891b2;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#0891b2;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#0891b2;border-bottom-color:#0891b2;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #0891b2;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#ecfeff;border-color:#a5f3fc;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #a5f3fc;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0891b2;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#0891b2;font-weight:600;}
+
+.flow-box{background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+.deep-note{background:#fffbeb;border:1px solid #fef3c7;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;line-height:1.7;margin-top:8px;}
+.deep-note strong{color:#78350f;}
+
+.bug-note{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;color:#991b1b;line-height:1.7;margin-top:8px;}
+.bug-note strong{color:#7f1d1d;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">Puzzle System</div>
+  <div class="nav-sub">퍼즐 시스템 심층 분석</div>
+  <span class="nav-badge">.h + .cpp 전체 분석</span>
+</div>
+
+<div class="hero">
+  <div class="hero-title">퍼즐 시스템 심층 분석</div>
+  <div class="hero-sub">태그 기반 조건 검사 &middot; 상태 머신 &middot; 네트워크 동기화 &middot; Transform 보간 &mdash; 21개 클래스</div>
+  <div class="badges">
+    <span class="badge">AO_PuzzleElement</span>
+    <span class="badge">AO_PuzzleReactionActor</span>
+    <span class="badge">AO_PuzzleConditionChecker</span>
+    <span class="badge">AO_PuzzleResetElement</span>
+    <span class="badge">AO_BallTrigger</span>
+    <span class="badge">AO_CannonElement</span>
+    <span class="badge">AO_CannonProjectile</span>
+    <span class="badge">AO_CannonProjectilePool</span>
+    <span class="badge">AO_DecayHoldElement</span>
+    <span class="badge">AO_GasRoomPuzzle</span>
+    <span class="badge">AO_GridManager</span>
+    <span class="badge">AO_GridWall</span>
+    <span class="badge">AO_PinballBall</span>
+    <span class="badge">AO_PinballTrigger</span>
+    <span class="badge">AO_PressurePlate</span>
+    <span class="badge">AO_PushableRockElement</span>
+    <span class="badge">AO_RollingBall</span>
+    <span class="badge">AO_RotationPuzzleElement</span>
+    <span class="badge">AO_TorchPuzzleElement</span>
+    <span class="badge">AO_InspectionPuzzle</span>
+    <span class="badge">AO_OverwatchInspectionPuzzle</span>
+    <span class="badge">AO_Valve</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#checker">AO_PuzzleConditionChecker</a>
+      <a class="toc-item" href="#puzzleelem">AO_PuzzleElement</a>
+      <a class="toc-item" href="#reaction">AO_PuzzleReactionActor</a>
+      <a class="toc-item" href="#reset">AO_PuzzleResetElement</a>
+      <a class="toc-item" href="#rotation">AO_RotationPuzzleElement</a>
+      <a class="toc-item" href="#torch">AO_TorchPuzzleElement</a>
+      <a class="toc-item" href="#pressure">AO_PressurePlate</a>
+      <a class="toc-item" href="#decayhold">AO_DecayHoldElement</a>
+      <a class="toc-item" href="#pushrock">AO_PushableRockElement</a>
+      <a class="toc-item" href="#gridmgr">AO_GridManager</a>
+      <a class="toc-item" href="#gridwall">AO_GridWall</a>
+      <a class="toc-item" href="#cannon">AO_CannonElement</a>
+      <a class="toc-item" href="#projectile">AO_CannonProjectile</a>
+      <a class="toc-item" href="#pool">AO_CannonProjectilePool</a>
+      <a class="toc-item" href="#inspection">AO_InspectionPuzzle</a>
+      <a class="toc-item" href="#overwatch">AO_OverwatchInspectionPuzzle</a>
+      <a class="toc-item" href="#gasroom">AO_GasRoomPuzzle</a>
+      <a class="toc-item" href="#rolling">AO_RollingBall</a>
+      <a class="toc-item" href="#balltrigger">AO_BallTrigger</a>
+      <a class="toc-item" href="#pinball">AO_PinballBall</a>
+      <a class="toc-item" href="#pinballtrig">AO_PinballTrigger</a>
+      <a class="toc-item" href="#valve">AO_Valve</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+<!-- ==================== AO_PuzzleConditionChecker ==================== -->
+<div class="class-card" id="checker">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PuzzleConditionChecker</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'checker','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'checker','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'checker','funcs')">함수</button>
+    <button class="tab-btn" onclick="switchTab(this,'checker','rel')">호출 관계</button>
+  </div>
+  <div class="tab-panel active" data-class="checker" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">퍼즐 시스템의 중앙 조건 검사기. FGameplayTagContainer 기반으로 이벤트를 수집하고, FPuzzleCondition 배열의 AND/OR 조합을 평가합니다.</div></div>
+      <div class="info-item"><div class="info-label">조건 모드</div><div class="info-value">RequiredTags(필수), BlockingTags(차단), OrderedTags(순서 검증), TimeLimit(시간 제한) 4가지 축을 FPuzzleCondition 구조체로 조합</div></div>
+      <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">ActiveEvents/bIsCompleted 복제. CompletionTag를 TargetActors의 ASC에 AddLooseGameplayTag로 부여. MulticastPuzzleFailed로 실패 브로드캐스트</div></div>
+      <div class="info-item"><div class="info-label">연결 구조</div><div class="info-value">LinkedElements를 IAO_Interface_PuzzleElement로 캐스팅하여 ResetToInitialState/SetInteractionEnabled 호출. bDisableElementsOnComplete=true 시 완료 후 잠금</div></div>
+    </div>
+    <div class="desc-block">
+      퍼즐 시스템의 <strong>허브</strong> 역할입니다. PuzzleElement, TorchPuzzleElement, PinballTrigger 등 다양한 소스에서 OnPuzzleEvent(FGameplayTag)를 수신하면 ActiveEvents에 태그를 추가하고, CheckAllConditions()로 조건을 평가합니다.<br><br>
+      <strong>조건 평가 로직 (CheckSingleCondition):</strong><br>
+      1) BlockingTags &mdash; ActiveEvents에 하나라도 있으면 즉시 false<br>
+      2) bRequiresOrder &amp; OrderedTags &mdash; ConditionOrderHistory[index]의 최근 N개 태그가 순서와 정확히 일치하는지 확인<br>
+      3) RequiredTags &mdash; ActiveEvents.HasAll()로 모든 필수 태그 존재 확인<br><br>
+      <strong>실패 판정 (ShouldFailPuzzle):</strong> AND 모드에서는 순서 조건의 모든 태그를 받았는데 순서가 틀린 경우 즉시 실패. OR 모드에서는 모든 조건이 필요한 태그를 모두 수신했으나 전부 불충족일 때 실패합니다.<br><br>
+      <strong>완료 시:</strong> CompletionTag를 TargetActors의 ASC에 부여 &rarr; PuzzleReactionActor의 OnTriggerTagChanged 콜백이 발동하여 물리적 반응(문 열림 등)을 트리거합니다.
+    </div>
+    <div class="deep-note"><strong>심층 분석:</strong> StartConditionTimer는 매 OnPuzzleEvent마다 호출되어, 이미 실행 중인 타이머를 덮어씁니다(SetTimer가 기존 핸들을 자동 클리어). 따라서 시간 제한은 "마지막 이벤트 수신 후 N초"가 아닌 "첫 이벤트 이후 매번 리셋"되는 구조입니다. 이는 의도적 설계일 수 있지만, 퍼즐 디자인 시 주의가 필요합니다.</div>
+  </div>
+  <div class="tab-panel" data-class="checker" data-tab="vars">
+    <div class="struct-box">
+      <div class="struct-title">FPuzzleCondition</div>
+      <div class="struct-field"><span class="sf-name">RequiredTags</span><span class="sf-desc">FGameplayTagContainer &mdash; 모든 태그가 ActiveEvents에 있어야 조건 충족</span></div>
+      <div class="struct-field"><span class="sf-name">BlockingTags</span><span class="sf-desc">FGameplayTagContainer &mdash; 하나라도 ActiveEvents에 있으면 조건 실패 (적대 태그)</span></div>
+      <div class="struct-field"><span class="sf-name">bRequiresOrder</span><span class="sf-desc">bool &mdash; true면 OrderedTags 순서 검증 활성화</span></div>
+      <div class="struct-field"><span class="sf-name">OrderedTags</span><span class="sf-desc">TArray&lt;FGameplayTag&gt; &mdash; 정확한 순서로 수신되어야 하는 태그 배열</span></div>
+      <div class="struct-field"><span class="sf-name">TimeLimit</span><span class="sf-desc">float &mdash; 0 초과 시 타이머 시작, 만료 시 FailPuzzle() 호출</span></div>
+    </div>
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">bRequireAllConditions</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>true=AND(모든 조건 충족), false=OR(하나라도 충족). 기본값 true.</td></tr>
+      <tr><td><span class="var-name">Conditions</span></td><td><span class="var-type">TArray&lt;FPuzzleCondition&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>퍼즐 조건 목록. 각 조건은 RequiredTags/BlockingTags/OrderedTags/TimeLimit 조합.</td></tr>
+      <tr><td><span class="var-name">TargetActors</span></td><td><span class="var-type">TArray&lt;AActor*&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>완료 시 CompletionTag를 ASC에 부여할 대상 액터들 (주로 PuzzleReactionActor).</td></tr>
+      <tr><td><span class="var-name">CompletionTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>완료 시 TargetActors에 AddLooseGameplayTag로 부여할 태그.</td></tr>
+      <tr><td><span class="var-name">ActiveEvents</span></td><td><span class="var-type">FGameplayTagContainer</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_ActiveEvents</span></td><td>현재 수집된 이벤트 태그들. 클라이언트 복제 시 OnPuzzleProgress 브로드캐스트.</td></tr>
+      <tr><td><span class="var-name">bIsCompleted</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsCompleted</span></td><td>완료 여부. bOneTimeCompletion=true면 재완료 불가.</td></tr>
+      <tr><td><span class="var-name">LinkedElements</span></td><td><span class="var-type">TArray&lt;AActor*&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>연결된 퍼즐 요소들. IAO_Interface_PuzzleElement로 캐스팅하여 리셋/잠금 제어.</td></tr>
+      <tr><td><span class="var-name">ConditionOrderHistory</span></td><td><span class="var-type">TMap&lt;int32, TArray&lt;FGameplayTag&gt;&gt;</span></td><td>&mdash;</td><td>조건 인덱스별 태그 수신 히스토리. 순서 검증에 사용.</td></tr>
+      <tr><td><span class="var-name">ConditionTimerHandles</span></td><td><span class="var-type">TMap&lt;int32, FTimerHandle&gt;</span></td><td>&mdash;</td><td>조건별 TimeLimit 타이머. 만료 시 OnConditionTimeout &rarr; FailPuzzle.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="checker" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnPuzzleEvent(FGameplayTag EventTag, AActor* EventInstigator)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>서버 전용. 중복 태그 무시 후 ActiveEvents에 추가. 모든 순서 조건의 ConditionOrderHistory에 기록. TimeLimit 있는 조건마다 StartConditionTimer 호출. CheckAllConditions() 성공 시 CompletePuzzle(), 실패 조건 충족 시 FailPuzzle().</div><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>ActiveEvents.HasTag()로 중복 체크 &rarr; AddTag &rarr; Conditions 순회하며 bRequiresOrder 조건에만 히스토리 추가. TimeLimit>0이면 SetTimer로 FindOrAdd 패턴 사용 (기존 타이머 자동 덮어쓰기).</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">RemovePuzzleEvent(FGameplayTag EventTag)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>ActiveEvents에서 태그 제거. Toggle 타입 PuzzleElement의 비활성화 시 호출됩니다.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CheckAllConditions() / CheckSingleCondition()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>CheckAllConditions: AND면 모든 조건 충족, OR면 하나라도 충족. CheckSingleCondition: BlockingTags 확인 &rarr; 순서 조건이면 히스토리 마지막 N개 비교 &rarr; RequiredTags 전체 존재 확인. 조건이 아예 없으면 false 반환.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CompletePuzzle()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>bIsCompleted=true, 타이머 전체 클리어. TargetActors를 IAbilitySystemInterface로 캐스팅하여 ASC->AddLooseGameplayTag(CompletionTag). bDisableElementsOnComplete이면 DisableLinkedElements(). OnPuzzleCompleted 델리게이트 브로드캐스트.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ResetPuzzle()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>ActiveEvents.Reset(), ConditionOrderHistory.Reset(), bIsCompleted=false. ClearAllTimers 후 ResetLinkedElements()로 연결된 모든 요소를 초기 상태로 복원.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ShouldFailPuzzle()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">하는 일</div>AND 모드: 순서 조건의 모든 태그를 수신했지만 CheckSingleCondition이 false면 순서가 틀린 것이므로 즉시 true 반환. OR 모드: 모든 조건이 필요한 태그를 전부 수신했는데 전부 실패면 true.</div></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" data-class="checker" data-tab="rel">
+    <table class="rel-table">
+      <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+      <tr><td>이벤트 수신</td><td><span class="rel-cls">AAO_PuzzleElement &rarr; BroadcastPuzzleEvent</span></td><td>OnPuzzleEvent/RemovePuzzleEvent로 태그 수집</td></tr>
+      <tr><td>이벤트 수신</td><td><span class="rel-cls">AAO_PinballTrigger / AAO_GasRoomPuzzle</span></td><td>직접 OnPuzzleEvent 호출</td></tr>
+      <tr><td>완료 알림</td><td><span class="rel-cls">AAO_PuzzleReactionActor (ASC)</span></td><td>CompletionTag를 ASC에 AddLooseGameplayTag &rarr; OnTriggerTagChanged 발동</td></tr>
+      <tr><td>요소 제어</td><td><span class="rel-cls">IAO_Interface_PuzzleElement 구현체들</span></td><td>LinkedElements를 통해 ResetToInitialState/SetInteractionEnabled 호출</td></tr>
+    </table>
+    <div class="flow-box">
+      <strong>전체 퍼즐 흐름:</strong><br>
+      플레이어 상호작용 &rarr; PuzzleElement.OnInteractionSuccess &rarr; BroadcastPuzzleEvent &rarr; Checker.OnPuzzleEvent &rarr; ActiveEvents에 태그 추가 &rarr; CheckAllConditions &rarr; 성공 시 CompletePuzzle &rarr; CompletionTag를 ReactionActor ASC에 부여 &rarr; OnTriggerTagChanged &rarr; ActivateReaction &rarr; UpdateTransform (문 열림/플랫폼 이동)
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_PuzzleElement ==================== -->
+<div class="class-card" id="puzzleelem">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PuzzleElement</div>
+    <div class="class-parent">부모: AAO_WorldInteractable &middot; IAO_Interface_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'puzzleelem','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'puzzleelem','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'puzzleelem','funcs')">함수</button>
+    <button class="tab-btn" onclick="switchTab(this,'puzzleelem','rel')">호출 관계</button>
+  </div>
+  <div class="tab-panel active" data-class="puzzleelem" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">Abstract 베이스 클래스. EPuzzleElementType(OneTime/Toggle/HoldToggle)에 따른 상태 전환과 LinkedChecker로의 태그 브로드캐스트를 담당</div></div>
+      <div class="info-item"><div class="info-label">상호작용</div><div class="info-value">AAO_WorldInteractable의 Transform 애니메이션과 MotionWarping을 상속. InteractionDataAsset 또는 PuzzleInteractionInfo로 상호작용 정보 제공</div></div>
+      <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">bIsActivated(ReplicatedUsing=OnRep_IsActivated) + bInteractionEnabled(Replicated). MulticastPlayInteractionEffect로 VFX/SFX 전 클라이언트 동기화</div></div>
+      <div class="info-item"><div class="info-label">이펙트</div><div class="info-value">FAO_InteractionEffectSettings로 Niagara/Cascade VFX + SFX 재생. VFXSpawnDelay/SoundSpawnDelay로 지연 재생. Socket 기반 Attach 지원</div></div>
+    </div>
+    <div class="desc-block">
+      퍼즐 시스템의 <strong>추상 베이스</strong>입니다. 생성자에서 MeshComponent(루트, QueryAndPhysics)와 InteractableMeshComponent(하이라이트용, QueryOnly)를 세팅합니다. AO_TraceChannel_Interaction에 Block으로 응답하여 상호작용 트레이스에 반응합니다.<br><br>
+      <strong>상태 전환 로직 (OnInteractionSuccess):</strong><br>
+      &bull; bHandleToggleInOnInteractionSuccess=false면 부모의 로직만 실행 (PuzzleResetElement가 사용)<br>
+      &bull; OneTime: !bIsActivated일 때만 true로 전환, BroadcastPuzzleEvent(true)<br>
+      &bull; Toggle/HoldToggle: bIsActivated를 반전 후 BroadcastPuzzleEvent(bIsActivated)<br><br>
+      <strong>이펙트 결정 타이밍:</strong> cpp 117행에서 <code>const FAO_InteractionEffectSettings&amp; EffectToPlay = bIsActivated ? ActivateEffect : DeactivateEffect;</code>를 <em>상태 전환 전에</em> 캐시합니다. Toggle/HoldToggle에서는 이 값이 이전 상태의 이펙트를 가리킵니다.
+    </div>
+    <div class="bug-note"><strong>QA 포인트:</strong> Toggle 분기에서 EffectToPlay는 bIsActivated 반전 <em>전</em>에 결정되므로, 활성화할 때 DeactivateEffect가, 비활성화할 때 ActivateEffect가 재생됩니다. 이펙트 설정이 올바르게 매핑되어 있는지 확인하세요.</div>
+  </div>
+  <div class="tab-panel" data-class="puzzleelem" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">MeshComponent</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>루트 메시. QueryAndPhysics, AO_TraceChannel_Interaction에 Block.</td></tr>
+      <tr><td><span class="var-name">InteractableMeshComponent</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td><td>하이라이트용 메시. MeshComponent에 Attach, QueryOnly.</td></tr>
+      <tr><td><span class="var-name">ElementType</span></td><td><span class="var-type">EPuzzleElementType</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>OneTime/Toggle/HoldToggle. 상태 전환 방식 결정.</td></tr>
+      <tr><td><span class="var-name">ActivatedEventTag / DeactivatedEventTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>활성화/비활성화 시 Checker에 전송할 태그. Toggle/HoldToggle만 Deactivated 사용.</td></tr>
+      <tr><td><span class="var-name">LinkedChecker</span></td><td><span class="var-type">AAO_PuzzleConditionChecker*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>이벤트 전달 대상 Checker. nullptr이면 BroadcastPuzzleEvent가 무시됨.</td></tr>
+      <tr><td><span class="var-name">bIsActivated</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsActivated</span></td><td>현재 활성화 상태. 복제 시 클라이언트에서 StartInteractionAnimation(bIsActivated) 호출.</td></tr>
+      <tr><td><span class="var-name">bInteractionEnabled</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">Replicated</span></td><td>상호작용 가능 여부. CanInteraction에서 체크. Checker 완료 시 false로 설정 가능.</td></tr>
+      <tr><td><span class="var-name">bHandleToggleInOnInteractionSuccess</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>false면 OnInteractionSuccess에서 상태 전환 스킵. PuzzleResetElement/PushableRock이 사용.</td></tr>
+      <tr><td><span class="var-name">InteractionSocketName / WarpTargetName</span></td><td><span class="var-type">FName</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>MotionWarping 대상 소켓명. GetInteractionTransform()에서 Socket 기반 Transform 탐색에 사용.</td></tr>
+      <tr><td><span class="var-name">ActivateEffect / DeactivateEffect</span></td><td><span class="var-type">FAO_InteractionEffectSettings</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Niagara/Cascade VFX + SFX + Delay 설정. Toggle/HoldToggle만 Deactivate 에디터에 노출.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="puzzleelem" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>HasAuthority() 체크 &rarr; bHandleToggleInOnInteractionSuccess 체크 &rarr; EffectToPlay를 현재 bIsActivated 기준으로 선택(반전 전!) &rarr; switch(ElementType)로 OneTime/Toggle/HoldToggle 분기. 각 분기에서 bIsActivated 설정 &rarr; BroadcastPuzzleEvent &rarr; StartInteractionAnimation &rarr; Effect 유효 시 MulticastPlayInteractionEffect.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">BroadcastPuzzleEvent(bool bActivate)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용 + LinkedChecker null 체크. bActivate=true: ActivatedEventTag를 OnPuzzleEvent, DeactivatedEventTag를 RemovePuzzleEvent. bActivate=false: 반대로 동작. 양쪽 태그를 교차 처리하여 Checker의 ActiveEvents 정합성 보장.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">MulticastPlayInteractionEffect(EffectSettings, SpawnTransform)</span><span class="fn-spec multicast">NetMulticast, Reliable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>HasVFX() &rarr; VFXSpawnDelay>0이면 TWeakObjectPtr+CreateWeakLambda로 타이머 지연 후 SpawnVFXInternal 호출. HasSFX()도 동일 패턴. SpawnVFXInternal은 bAttachVFXToActor에 따라 SpawnSystemAttached/SpawnSystemAtLocation 분기. EAttachmentRule을 EAttachLocation으로 수동 변환.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ResetToInitialState()</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>checkf(HasAuthority()). bIsActivated=false, bInteractionEnabled=true, CurrentHolder=nullptr, bWasConsumed=false. TransformAnimationTimerHandle 클리어. bUseTransformAnimation이면 InteractableMeshComponent를 InitialInteractableLocation/Rotation으로 복원. OnRep_IsActivated() 수동 호출로 클라이언트 동기화.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">GetInteractionTransform()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>MeshComponent의 InteractionSocketName 소켓 탐색 &rarr; 없으면 자식 MeshComponent들을 재귀 탐색 &rarr; 그래도 없으면 GetActorTransform() 폴백. MotionWarping 대상 위치를 제공합니다.</div></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" data-class="puzzleelem" data-tab="rel">
+    <table class="rel-table">
+      <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+      <tr><td>이벤트 전달</td><td><span class="rel-cls">AAO_PuzzleConditionChecker</span></td><td>LinkedChecker-&gt;OnPuzzleEvent/RemovePuzzleEvent로 태그 전달</td></tr>
+      <tr><td>부모</td><td><span class="rel-cls">AAO_WorldInteractable</span></td><td>상호작용 정보, Transform 애니메이션, 콜리전 설정 상속</td></tr>
+      <tr><td>파생 (6종)</td><td><span class="rel-cls">PressurePlate, RotationPuzzle, Torch, DecayHold, PushableRock, PuzzleReset</span></td><td>각 퍼즐별 고유 동작을 OnInteractionSuccess/CanInteraction 오버라이드로 구현</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== AO_PuzzleReactionActor ==================== -->
+<div class="class-card" id="reaction">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PuzzleReactionActor</div>
+    <div class="class-parent">부모: AActor &middot; IAbilitySystemInterface</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'reaction','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'reaction','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'reaction','funcs')">함수</button>
+    <button class="tab-btn" onclick="switchTab(this,'reaction','rel')">호출 관계</button>
+  </div>
+  <div class="tab-panel active" data-class="reaction" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">퍼즐 완료/진행에 물리적으로 반응하는 액터. 문 열림, 플랫폼 이동 등 Transform 변환을 담당</div></div>
+      <div class="info-item"><div class="info-label">트리거 방식</div><div class="info-value">ASC의 RegisterGameplayTagEvent로 TriggerTag 변경을 NewOrRemoved 이벤트로 감시. Checker가 CompletionTag를 부여하면 자동 발동</div></div>
+      <div class="info-item"><div class="info-label">반응 모드</div><div class="info-value">OneTime(한 번만, 비활성화 불가), Toggle(태그 추가/제거에 따라 양방향), HoldActive(0~1 진행도에 비례하여 실시간 보간)</div></div>
+      <div class="info-item"><div class="info-label">Transform 보간</div><div class="info-value">16ms 타이머로 VInterpTo/RInterpTo 사용. InitialLocation&rarr;TargetRelativeLocation, InitialRotation&rarr;TargetRelativeRotation을 CurrentProgress(0~1)로 Lerp 후 보간</div></div>
+    </div>
+    <div class="desc-block">
+      <strong>핵심 메커니즘:</strong> BeginPlay에서 ASC를 InitAbilityActorInfo(this, this)로 초기화하고, TriggerTag에 대해 RegisterGameplayTagEvent(NewOrRemoved)를 등록합니다. Checker가 TargetActors의 ASC에 CompletionTag를 부여하면 OnTriggerTagChanged 콜백이 호출됩니다.<br><br>
+      <strong>AttachedActors 시스템:</strong> BeginPlay에서 각 AttachedActor의 MeshComponent 기준 상대 Transform을 AttachedActorOffsets에 저장합니다. UpdateTransform마다 UpdateAttachedActors()로 MeshComponent의 월드 Transform에 상대 오프셋을 적용하여 함께 이동시킵니다.<br><br>
+      <strong>서버/클라이언트 분리:</strong> 서버에서 ActivateReaction/SetProgress로 상태 변경 &rarr; bIsActivated/TargetProgress 복제 &rarr; 클라이언트 OnRep에서 동일한 UpdateTransform 타이머 시작. 양쪽 모두 16ms 타이머로 부드러운 보간을 수행합니다.
+    </div>
+    <div class="deep-note"><strong>심층 분석:</strong> HoldActive 모드에서 UpdateTransform은 목표 도달 시 타이머를 정지하지 않습니다(bReachedTarget 체크에서 HoldActive 제외). 이는 TargetProgress가 외부에서 계속 변경될 수 있기 때문에 타이머가 항상 활성 상태를 유지하는 설계입니다. SetProgress()에서도 이미 실행 중인 타이머는 시작하지 않습니다.</div>
+  </div>
+  <div class="tab-panel" data-class="reaction" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">AbilitySystemComponent</span></td><td><span class="var-type">UAbilitySystemComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>TriggerTag 감지용. Minimal 복제 모드. BeginPlay에서 InitAbilityActorInfo(this, this).</td></tr>
+      <tr><td><span class="var-name">ReactionMode</span></td><td><span class="var-type">EPuzzleReactionMode</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>OneTime/Toggle/HoldActive. OnTriggerTagChanged에서 HoldActive는 무시(SetProgress 전용).</td></tr>
+      <tr><td><span class="var-name">TriggerTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>감시할 태그. Checker의 CompletionTag와 일치시켜야 합니다.</td></tr>
+      <tr><td><span class="var-name">bIsActivated</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsActivated</span></td><td>OneTime/Toggle의 활성 상태. 클라이언트 OnRep에서 사운드 재생 + Transform 타이머 시작.</td></tr>
+      <tr><td><span class="var-name">TargetProgress</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_TargetProgress</span></td><td>HoldActive의 0~1 진행도. SetProgress()에서 Clamp 후 설정.</td></tr>
+      <tr><td><span class="var-name">TargetRelativeLocation / TargetRelativeRotation</span></td><td><span class="var-type">FVector / FRotator</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>활성화 시 목표 상대 위치/회전. bUseLocation/bUseRotation=false면 해당 축 무시.</td></tr>
+      <tr><td><span class="var-name">AttachedActors</span></td><td><span class="var-type">TArray&lt;AActor*&gt;</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>MeshComponent와 함께 이동할 액터 목록. BeginPlay에서 상대 Transform을 AttachedActorOffsets에 저장.</td></tr>
+      <tr><td><span class="var-name">TransformSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>VInterpTo/RInterpTo의 속도 파라미터. 기본 2.0f. ClampMin=0.1.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="reaction" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnTriggerTagChanged(FGameplayTag Tag, int32 NewCount)</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. HoldActive 모드면 무시(return). NewCount>0이면 ActivateReaction(), 0이면 DeactivateReaction(). ASC의 RegisterGameplayTagEvent 콜백으로 등록됩니다.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ActivateReaction() / DeactivateReaction()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>ActivateReaction: OneTime(미활성 시만 true), Toggle(무조건 true). 사운드 재생 후 16ms looping 타이머로 UpdateTransform 시작. DeactivateReaction: OneTime은 무시, Toggle만 false+타이머 시작.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateTransform()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>HoldActive: TargetProgress 사용. OneTime/Toggle: bIsActivated ? 1.0 : 0.0. DesiredLocation = Lerp(Initial, Target, Progress). VInterpTo(Current, Desired, 0.016, Speed)로 부드러운 보간. 목표 도달 시(Dist&lt;0.1 &amp;&amp; RotatorNearlyEqual) HoldActive가 아니면 타이머 정지. UpdateAttachedActors()로 부착 액터도 이동.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">SetProgress(float Progress)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>checkf(HasAuthority()). HoldActive 전용. TargetProgress를 0~1로 Clamp. 타이머가 비활성이면 16ms looping 타이머 시작. DecayHoldElement/PressurePlate에서 호출.</div></div></div>
+    </div>
+  </div>
+  <div class="tab-panel" data-class="reaction" data-tab="rel">
+    <table class="rel-table">
+      <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+      <tr><td>트리거 수신</td><td><span class="rel-cls">AAO_PuzzleConditionChecker</span></td><td>CompletionTag를 ASC에 부여 &rarr; RegisterGameplayTagEvent 콜백 &rarr; ActivateReaction</td></tr>
+      <tr><td>진행도 수신</td><td><span class="rel-cls">AAO_DecayHoldElement / AAO_PressurePlate</span></td><td>SetProgress(0~1)로 HoldActive 모드 실시간 제어</td></tr>
+      <tr><td>동반 이동</td><td><span class="rel-cls">AttachedActors</span></td><td>MeshComponent의 월드 Transform + 저장된 상대 오프셋으로 SetActorTransform</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== AO_PuzzleResetElement ==================== -->
+<div class="class-card" id="reset">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PuzzleResetElement</div>
+    <div class="class-parent">부모: AAO_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'reset','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'reset','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="reset" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">퍼즐 리셋 버튼. 상호작용 시 LinkedChecker-&gt;ResetPuzzle()을 호출하여 모든 연결 요소를 초기화</div></div>
+      <div class="info-item"><div class="info-label">구현 패턴</div><div class="info-value">생성자에서 ElementType=OneTime, bHandleToggleInOnInteractionSuccess=false. 부모의 상태 전환을 완전히 우회</div></div>
+    </div>
+    <div class="desc-block">가장 단순한 파생 클래스입니다. OnInteractionSuccess에서 Super 호출(bHandleToggleInOnInteractionSuccess=false이므로 상태 전환 스킵) 후 LinkedChecker->ResetPuzzle()만 호출합니다. 추가 변수가 없습니다.</div>
+  </div>
+  <div class="tab-panel" data-class="reset" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Super::OnInteractionSuccess (상태 전환 스킵됨) &rarr; HasAuthority() 체크 &rarr; LinkedChecker null 체크 &rarr; LinkedChecker-&gt;ResetPuzzle(). ResetPuzzle은 ActiveEvents/OrderHistory 초기화 + ResetLinkedElements()를 호출하여 전체 퍼즐을 초기 상태로 복원합니다.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_RotationPuzzleElement ==================== -->
+<div class="class-card" id="rotation">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_RotationPuzzleElement</div>
+    <div class="class-parent">부모: AAO_PuzzleElement &middot; IAO_Interface_Inspectable</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'rotation','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'rotation','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'rotation','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="rotation" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">N단계 회전 퍼즐. 상호작용 또는 Inspection 클릭으로 한 단계씩 회전하며, 정답 인덱스에 도달하면 성공 태그 전송</div></div>
+      <div class="info-item"><div class="info-label">회전 계산</div><div class="info-value">AnglePerStep = 360/NumRotationSteps. RotationAxisPerStep(기본 Yaw=90)을 정규화 후 축별로 AnglePerStep*Index/90 적용</div></div>
+      <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">CurrentRotationIndex(ReplicatedUsing) + bIsRotating(Replicated). 클라이언트 OnRep에서 동일한 TargetRotation 계산 후 RInterpTo 타이머 시작</div></div>
+    </div>
+    <div class="desc-block">
+      IAO_Interface_Inspectable을 구현하여 Inspection 모드에서 메시 클릭 시에도 RotateToNext()가 호출됩니다. bIsRotating이 true인 동안 추가 상호작용/클릭을 차단합니다.<br><br>
+      <strong>정답 판정 (CheckCorrectRotation):</strong> CurrentRotationIndex == CorrectRotationIndex이면 bIsActivated=true + ActivatedEventTag를 OnPuzzleEvent. 오답이면 bIsActivated=false + RemovePuzzleEvent(ActivatedEventTag) + OnPuzzleEvent(DeactivatedEventTag). 부모의 BroadcastPuzzleEvent를 사용하지 않고 직접 LinkedChecker를 호출하는 독자적 구현입니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="rotation" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">NumRotationSteps</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>회전 단계 수 (2~12). 4=90도씩, 6=60도씩.</td></tr>
+      <tr><td><span class="var-name">CorrectRotationIndex</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>정답 회전 인덱스. 이 인덱스에서만 성공 태그 전송.</td></tr>
+      <tr><td><span class="var-name">RotationAxisPerStep</span></td><td><span class="var-type">FRotator</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>한 단계 회전 방향. 기본 (0,90,0) = Y축 회전. 정규화 후 축별 비율로 계산.</td></tr>
+      <tr><td><span class="var-name">CurrentRotationIndex</span></td><td><span class="var-type">int32</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_CurrentRotationIndex</span></td><td>현재 회전 단계. (Index+1) % NumRotationSteps로 순환.</td></tr>
+      <tr><td><span class="var-name">bIsRotating</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">Replicated</span></td><td>회전 애니메이션 중 여부. true면 상호작용/클릭 차단.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="rotation" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">RotateToNext()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>bIsRotating=true. CurrentRotationIndex를 (Index+1)%N으로 갱신. CheckCorrectRotation()으로 정답 판정. Index==0이면 TargetRotation=InitialRotation, 아니면 RotationAxisPerStep 기반 계산. 16ms RInterpTo 타이머 시작.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CheckCorrectRotation()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>bWasCorrect(=bIsActivated)와 bIsCorrect(=CurrentIndex==CorrectIndex)를 비교. 상태 변화 없으면 스킵. 정답&rarr;오답 전환 시 ActivatedEventTag 제거 + DeactivatedEventTag 추가, 오답&rarr;정답은 반대. 부모의 BroadcastPuzzleEvent 대신 LinkedChecker 직접 호출.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_TorchPuzzleElement ==================== -->
+<div class="class-card" id="torch">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_TorchPuzzleElement</div>
+    <div class="class-parent">부모: AAO_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'torch','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'torch','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'torch','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="torch" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">횃불 켜기/끄기 퍼즐. bIsTorchLit를 토글하며, bCorrectStateIsLit와 일치할 때 TorchCorrectTag를 Checker에 전송</div></div>
+      <div class="info-item"><div class="info-label">구조</div><div class="info-value">ElementType=Toggle, bHandleToggleInOnInteractionSuccess=true. 부모의 상태 전환(bIsActivated 토글)과 별도로 bIsTorchLit를 자체 관리</div></div>
+    </div>
+    <div class="desc-block">
+      부모의 Toggle 로직(bIsActivated 반전 + ActivatedEventTag/DeactivatedEventTag)이 먼저 실행된 후, bIsTorchLit를 토글하고 CheckAndBroadcastCorrectState()로 TorchCorrectTag를 처리합니다. BeginPlay에서도 초기 상태의 정답 여부를 체크합니다.<br><br>
+      <strong>이중 태그 시스템:</strong> 부모의 ActivatedEventTag/DeactivatedEventTag는 "상호작용 발생" 알림용, TorchCorrectTag는 "현재 상태가 정답인지" 알림용으로 역할이 분리되어 있습니다. 레벨 디자이너가 두 시스템을 혼용하면 Checker에 중복 태그가 발생할 수 있습니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="torch" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">bIsTorchLit</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span></td><td>횃불 점등 여부. 초기값 true. 상호작용마다 토글.</td></tr>
+      <tr><td><span class="var-name">bCorrectStateIsLit</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>정답 상태. true=불이 켜져 있어야 정답, false=꺼져 있어야 정답.</td></tr>
+      <tr><td><span class="var-name">TorchCorrectTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>정답일 때 OnPuzzleEvent, 오답일 때 RemovePuzzleEvent.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="torch" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Super::OnInteractionSuccess (Toggle 상태 전환 + 이펙트 재생) &rarr; HasAuthority() 체크 &rarr; bIsTorchLit = !bIsTorchLit &rarr; CheckAndBroadcastCorrectState().</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CheckAndBroadcastCorrectState()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>LinkedChecker/TorchCorrectTag null 체크. bIsCorrect = (bIsTorchLit == bCorrectStateIsLit). 정답이면 OnPuzzleEvent(TorchCorrectTag), 오답이면 RemovePuzzleEvent(TorchCorrectTag).</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_PressurePlate ==================== -->
+<div class="class-card" id="pressure">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PressurePlate</div>
+    <div class="class-parent">부모: AAO_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'pressure','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'pressure','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'pressure','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="pressure" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">Overlap 기반 압력판. F키 상호작용 비활성화(CanInteraction=false). 플레이어/아이템이 올라가면 활성화, 모두 나가면 비활성화</div></div>
+      <div class="info-item"><div class="info-label">진행도 연동</div><div class="info-value">LinkedReactionActors에 SetProgress(CurrentProgress)로 실시간 진행도 전달. ProgressSpeed로 증가/감소 속도 제어</div></div>
+      <div class="info-item"><div class="info-label">애니메이션</div><div class="info-value">PressDepth(기본 20.0f)만큼 Z축 하강. VInterpTo로 부드러운 눌림/복귀 애니메이션</div></div>
+    </div>
+    <div class="desc-block">
+      생성자에서 MeshComponent의 Interaction 트레이스를 ECR_Ignore로 설정하여 F키 상호작용을 원천 차단합니다. OverlapTrigger(BoxComponent)로 Pawn + WorldDynamic(MasterItem)을 감지합니다.<br><br>
+      <strong>활성화/비활성화 흐름:</strong> OnOverlapBegin에서 첫 액터 진입 시 bIsActivated=true + BroadcastPuzzleEvent(true) + OnRep_IsActivated() 수동 호출 + 눌림 애니메이션 + 진행도 타이머. OnOverlapEnd에서 모든 액터 퇴장 시 반대 동작. 진행도 타이머(0.1초 주기)로 CurrentProgress를 ProgressSpeed 비율로 증감하며 LinkedReactionActors에 전달합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="pressure" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">OverlapTrigger</span></td><td><span class="var-type">UBoxComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>Pawn+WorldDynamic 오버랩 트리거. QueryOnly.</td></tr>
+      <tr><td><span class="var-name">PressDepth</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Z축 하강 깊이. 기본 20.0f.</td></tr>
+      <tr><td><span class="var-name">LinkedReactionActors</span></td><td><span class="var-type">TArray&lt;AAO_PuzzleReactionActor*&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>진행도를 전달할 ReactionActor 목록. HoldActive 모드여야 합니다.</td></tr>
+      <tr><td><span class="var-name">CurrentProgress</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag rep">Replicated</span></td><td>0.0~1.0 진행도. ProgressSpeed*DeltaTime으로 증감.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="pressure" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnOverlapBegin / OnOverlapEnd</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Begin: APawn/AAO_MasterItem 캐스트 체크. 첫 액터 시 bIsActivated=true, BroadcastPuzzleEvent(true), OnRep_IsActivated() 수동 호출, TargetMeshLocation 설정, 애니메이션+진행도 타이머 시작, ActivateEffect 재생. End: 모든 액터 퇴장 시 반대 동작.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateProgress()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>0.1초 주기 타이머 콜백. bSomeoneOn이면 CurrentProgress += ProgressSpeed*0.1 (최대 1.0), 아니면 -= (최소 0.0). LinkedReactionActors 각각에 SetProgress(CurrentProgress). 목표 도달(1.0 또는 0.0) 시 타이머 정지.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_DecayHoldElement ==================== -->
+<div class="class-card" id="decayhold">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_DecayHoldElement</div>
+    <div class="class-parent">부모: AAO_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'decayhold','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'decayhold','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'decayhold','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="decayhold" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">홀딩하면 진행도 증가, 놓으면 DecayRate로 감소하는 레버형 퍼즐. LinkedReactionActor에 SetProgress로 전달</div></div>
+      <div class="info-item"><div class="info-label">몽타주 제어</div><div class="info-value">NotifyCount 기반 3단계: 1=레버 올림, 2=몽타주 일시정지+이동 잠금, 3=레버 내림. ANS에서 OnNotifyReceived 호출</div></div>
+      <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">CurrentHoldProgress + ManualHoldActors 복제. MulticastLeverAction/MontageControl/SetMovementForActor로 전 클라이언트 동기화</div></div>
+    </div>
+    <div class="desc-block">
+      ElementType=HoldToggle로 설정됩니다. OnInteractActiveStarted에서 ManualHoldActors에 추가하고 진행도 타이머(0.1초 주기) 시작 + 몽타주 재생. UpdateProgress에서 IsAnyoneHolding()이면 증가, 아니면 DecayRate*DeltaTime으로 감소.<br><br>
+      <strong>비정상 종료 처리:</strong> OnInteractActiveEnded에서 NotifyCount가 0&lt;N&lt;3이면 레버 복귀 + 이동 해제를 수행합니다. StopEarly()/ReleasePause()/CleanupAfterMontage()는 GAS AbilityTask에서 호출되는 생명주기 메서드입니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="decayhold" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">LinkedReactionActor</span></td><td><span class="var-type">AAO_PuzzleReactionActor*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>HoldActive 모드의 ReactionActor. SetProgress로 진행도 전달.</td></tr>
+      <tr><td><span class="var-name">DecayRate</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>비홀드 시 초당 감소량. 기본 1.0f.</td></tr>
+      <tr><td><span class="var-name">CurrentHoldProgress</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag rep">Replicated</span></td><td>현재 진행도. 0 ~ PuzzleInteractionInfo.Duration 범위.</td></tr>
+      <tr><td><span class="var-name">ManualHoldActors</span></td><td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;AActor&gt;&gt;</span></td><td><span class="prop-tag rep">Replicated</span></td><td>현재 홀드 중인 액터 목록. IsAnyoneHolding() 판정에 사용.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="decayhold" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateProgress()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>0.1초 주기. bHolding이면 CurrentHoldProgress += DeltaTime (최대 Duration), 아니면 -= DecayRate*DeltaTime (최소 0, 도달 시 타이머 정지). LinkedReactionActor->SetProgress(CurrentHoldProgress / Duration)로 0~1 정규화 전달.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnNotifyReceived()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>NotifyCount++ 후 switch: 1=MulticastLeverAction(true), 2=MulticastMontageControl(play, rate=0)+MulticastSetMovementForActor(false), 3=MulticastLeverAction(false). ANS(AnimNotifyState)에서 호출됩니다.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_PushableRockElement ==================== -->
+<div class="class-card" id="pushrock">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PushableRockElement</div>
+    <div class="class-parent">부모: AAO_PuzzleElement</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'pushrock','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'pushrock','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'pushrock','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="pushrock" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">격자 기반 밀기 퍼즐. GridManager와 연동하여 셀 단위 이동, 벽/바위 충돌 체크, GoalCell 정답 판정</div></div>
+      <div class="info-item"><div class="info-label">이동 로직</div><div class="info-value">TryPush: GridManager.CanRockMove(벽/바위 체크) + CheckWallsAtTarget(3면 막힘+캐릭터 감지=차단). 이동 중 캐릭터를 벽이 없는 방향으로 밀어냄</div></div>
+      <div class="info-item"><div class="info-label">네트워크</div><div class="info-value">CurrentGridCoord(ReplicatedUsing=OnRep_CurrentGridCoord). 서버에서 GridManager 먼저 갱신 후 좌표 변경 &rarr; 클라이언트 OnRep에서 이동 애니메이션</div></div>
+    </div>
+    <div class="desc-block">
+      ElementType=Toggle, bHandleToggleInOnInteractionSuccess=false. OnInteractionSuccess에서 GetPushDirectionFromInteractor(캐릭터&rarr;바위 방향을 EGridDirection으로 변환) 후 TryPush 호출.<br><br>
+      <strong>캐릭터 밀어내기:</strong> UpdateMoveAnimation에서 진행도 80% 이후 OverlapMultiplier/ForceMultiplier를 감소시켜 바위가 정지 직전에 밀어내는 힘을 줄입니다. 전방에 벽이 있으면 좌/우 중 벽이 없는 쪽으로 탈출 방향을 계산하고, 양쪽 다 비어있으면 캐릭터 위치에 따라 결정합니다.<br><br>
+      <strong>리셋:</strong> ResetToInitialState에서 초기 셀에 캐릭터가 있으면 ResetPushOffset만큼 텔레포트시킵니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="pushrock" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">GridManager</span></td><td><span class="var-type">AAO_GridManager*</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>격자 시스템 참조. WorldToGrid/GridToWorld/CanRockMove 호출.</td></tr>
+      <tr><td><span class="var-name">CurrentGridCoord</span></td><td><span class="var-type">FIntPoint</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_CurrentGridCoord</span></td><td>현재 격자 좌표. 클라이언트 OnRep에서 이동 애니메이션.</td></tr>
+      <tr><td><span class="var-name">GoalCells</span></td><td><span class="var-type">TArray&lt;FIntPoint&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>정답 셀 목록. 이동 완료 후 IsAtGoalCell()로 체크 &rarr; SetActivationState.</td></tr>
+      <tr><td><span class="var-name">MoveSpeed</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>VInterpTo 속도. 기본 5.0f. 캐릭터 밀어내기 힘에도 영향(MoveSpeed*500).</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="pushrock" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">TryPush(EGridDirection Direction)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>HasAuthority+GridManager+!bIsMoving 체크. CanRockMove(벽/경계/다른바위) &rarr; CheckWallsAtTarget(3면 막힘+캐릭터) &rarr; UpdateRockPosition(서버 즉시 갱신) &rarr; CurrentGridCoord 변경 &rarr; StartMoveAnimation. 매니저를 먼저 갱신하여 다른 바위의 동시 이동을 방지합니다.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">UpdateMoveAnimation()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>16ms 타이머. VInterpTo로 이동. 진행도 80% 이후 Overlap/Force 멀티플라이어 감소. 전방 캐릭터 감지 시 벽 정보(bWallForward/Left/Right)에 따라 탈출 방향 계산 &rarr; AddImpulse. 목표 도달(Dist&lt;1) 시 정확한 위치 설정 + bIsActivated=false 리셋 + GoalCell 판정.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_GridManager ==================== -->
+<div class="class-card" id="gridmgr">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_GridManager</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'gridmgr','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'gridmgr','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'gridmgr','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="gridmgr" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">격자 퍼즐의 관리자. 월드&harr;격자 좌표 변환, 바위/벽 등록, 이동 가능 여부 판정</div></div>
+      <div class="info-item"><div class="info-label">벽 판정</div><div class="info-value">HasWallBetween: 이동 방향에 따라 Vertical/Horizontal 벽의 셀 좌표를 비교. 2사분면 기반 좌표계(X+ = 서쪽 방향)</div></div>
+    </div>
+    <div class="desc-block">bReplicates=false인 서버/클라이언트 공용 유틸리티입니다. RockMap(TMap&lt;FIntPoint, Rock*&gt;)으로 바위 위치를 추적하고, Walls 배열로 벽 목록을 관리합니다. GetDirectionFromVector는 4방향 중 DotProduct가 최대인 방향을 반환합니다.</div>
+  </div>
+  <div class="tab-panel" data-class="gridmgr" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">CellSize</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>격자 셀 크기. 기본 200.0f.</td></tr>
+      <tr><td><span class="var-name">GridSize</span></td><td><span class="var-type">FIntPoint</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>격자 크기 (X, Y). 기본 (10, 10).</td></tr>
+      <tr><td><span class="var-name">GridOrigin</span></td><td><span class="var-type">FVector</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>격자 원점 월드 좌표.</td></tr>
+      <tr><td><span class="var-name">RockMap</span></td><td><span class="var-type">TMap&lt;FIntPoint, AAO_PushableRockElement*&gt;</span></td><td>&mdash;</td><td>격자 좌표별 바위 매핑.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="gridmgr" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">HasWallBetween(From, To)</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Delta = To - From. 4방향 분기: X+1이면 To.X에 Vertical 벽 확인, X-1이면 From.X에 확인, Y+1이면 To.Y에 Horizontal 확인, Y-1이면 From.Y에 확인. 벽의 셀 좌표와 비교하여 true/false 반환.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CanRockMove(RockCoord, Direction)</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>TargetCoord 계산 &rarr; IsValidGridCoord(경계 체크) &rarr; HasWallBetween(벽 체크) &rarr; IsRockAt(다른 바위 체크). 모두 통과해야 true.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_GridWall ==================== -->
+<div class="class-card" id="gridwall">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_GridWall</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'gridwall','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'gridwall','vars')">멤버 변수</button>
+  </div>
+  <div class="tab-panel active" data-class="gridwall" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">격자 셀 경계에 배치되는 벽. Horizontal(셀 하단)/Vertical(셀 우측) 방향. 에디터에서 드래그 시 자동 스냅</div></div>
+      <div class="info-item"><div class="info-label">에디터 지원</div><div class="info-value">PostEditMove에서 UpdateWallTransform 호출. Horizontal은 셀 중심 X + 경계 Y, Vertical은 경계 X + 셀 중심 Y로 스냅 + 자동 회전</div></div>
+    </div>
+    <div class="desc-block">bReplicates=false. BeginPlay에서 GridManager->RegisterWall(this). GetGridCell()은 FloorToInt로 벽이 속한 셀을 계산합니다. QueryAndPhysics 콜리전으로 물리적 벽 역할도 합니다.</div>
+  </div>
+  <div class="tab-panel" data-class="gridwall" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">WallOrientation</span></td><td><span class="var-type">EWallOrientation</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Horizontal/Vertical. HasWallBetween에서 방향별 매칭에 사용.</td></tr>
+      <tr><td><span class="var-name">GridManager</span></td><td><span class="var-type">AAO_GridManager*</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>소속 격자 매니저. RegisterWall/GetGridCell에 사용.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== AO_CannonElement ==================== -->
+<div class="class-card" id="cannon">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_CannonElement</div>
+    <div class="class-parent">부모: AAO_InspectionPuzzle</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'cannon','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'cannon','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'cannon','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="cannon" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">Inspection 모드에서 WASD로 조준(Yaw/Pitch), 클릭으로 투사체 발사하는 대포 퍼즐</div></div>
+      <div class="info-item"><div class="info-label">회전 분리</div><div class="info-value">BaseMesh(좌우 Yaw, InitialBaseRotation 기준) + BarrelMesh(상하 Pitch, InitialBarrelRotation 기준). MaxYawAngle/MinPitchAngle/MaxPitchAngle로 클램프</div></div>
+      <div class="info-item"><div class="info-label">네트워크 보간</div><div class="info-value">ServerYaw/Pitch(ReplicatedUsing). 조작자 로컬: 즉시 반영 + 5도 이상 차이 시 스냅 보정. 비조작자: TargetYaw/Pitch에 설정 후 FInterpTo 보간</div></div>
+      <div class="info-item"><div class="info-label">발사</div><div class="info-value">OnInspectionAction: 쿨다운(FireCooldown) 체크 &rarr; ProjectilePool->GetProjectile &rarr; Activate+Launch &rarr; MulticastPlayFireEffect</div></div>
+    </div>
+    <div class="desc-block">
+      InspectionPuzzle을 상속하여 F키로 Inspection 진입 시 대포 시점 카메라로 전환됩니다. 카메라는 BarrelMesh의 Transform에 InspectableComponent의 CameraRelativeLocation/Rotation을 적용하여 계산합니다.<br><br>
+      <strong>CurrentOperator 추적:</strong> OnInspectionInput/OnInspectionInputLocal에서 GetFirstPlayerController()->GetPawn()을 CurrentOperator에 저장(Replicated). 클라이언트에서 OnRep_CurrentOperator로 조작자 변경 감지 시 즉시 스냅 후 보간 타이머를 시작합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="cannon" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">BaseMesh / BarrelMesh</span></td><td><span class="var-type">UStaticMeshComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>대포 본체(Yaw) + 포신(Pitch). SetIsReplicated(false).</td></tr>
+      <tr><td><span class="var-name">ProjectilePool</span></td><td><span class="var-type">UAO_CannonProjectilePool*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>투사체 오브젝트 풀 컴포넌트.</td></tr>
+      <tr><td><span class="var-name">ServerYaw / ServerPitch</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag rep">ReplicatedUsing</span></td><td>서버 기준 회전값. 클라이언트 보간 대상.</td></tr>
+      <tr><td><span class="var-name">CurrentOperator</span></td><td><span class="var-type">TWeakObjectPtr&lt;AActor&gt;</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_CurrentOperator</span></td><td>현재 조작 중인 Pawn. 조작자 변경 시 스냅+보간 시작.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="cannon" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInspectionInput / OnInspectionInputLocal</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>OnInspectionInput(서버): ProcessRotation으로 ServerYaw/Pitch 갱신 &rarr; UpdateBarrelRotation &rarr; UpdateCameraTransform. OnInspectionInputLocal(클라이언트): HasAuthority면 리턴. LocalYaw/Pitch 갱신 &rarr; UpdateBarrelRotation &rarr; UpdateCameraTransform. 양쪽 모두 CurrentOperator 설정.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInspectionAction()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. 쿨다운(CurrentTime - LastFireTime &lt; FireCooldown) 체크 &rarr; ProjectilePool->GetProjectile() &rarr; MuzzlePoint의 Location/Rotation 가져오기 &rarr; Projectile->Activate + Launch(Direction*Speed) &rarr; MulticastPlayFireEffect(Niagara/Cascade + SFX).</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_CannonProjectile ==================== -->
+<div class="class-card" id="projectile">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_CannonProjectile</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'projectile','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'projectile','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'projectile','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="projectile" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">대포 투사체. 발사 후 충돌 시 폭발하여 광역 스턴 + 파괴 가능 액터 처리</div></div>
+      <div class="info-item"><div class="info-label">충돌</div><div class="info-value">CollisionSphere(QueryOnly): WorldStatic/WorldDynamic/Pawn에 Block. OnComponentHit로 서버에서 Explode 호출</div></div>
+      <div class="info-item"><div class="info-label">폭발 처리</div><div class="info-value">SweepMultiByChannel(ECC_WorldDynamic, ExplosionRadius 구체)로 주변 액터 검색. AI에 StunEventTag 이벤트, DestructibleCacheActor에 DestructionTriggerTag 부여</div></div>
+    </div>
+    <div class="desc-block">
+      UProjectileMovementComponent 사용(GravityScale=0.5). 오브젝트 풀 패턴으로 Activate/Deactivate로 재사용됩니다. Explode 후 ReturnToPool()로 풀에 반환합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="projectile" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">ExplosionRadius</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>폭발 반경. 기본 500.0f.</td></tr>
+      <tr><td><span class="var-name">StunEventTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Event.AI.Stunned. AI 스턴 이벤트.</td></tr>
+      <tr><td><span class="var-name">DestructionTriggerTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Effect.Destruction.Triggered. 파괴 가능 액터 트리거.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="projectile" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">Explode(FVector Location)</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. SweepMultiByChannel(ECC_WorldDynamic, Sphere(ExplosionRadius)). HitResults 순회: IAbilitySystemInterface 캐스트 &rarr; AI이면 HandleGameplayEvent(StunEventTag), DestructibleCacheActor이면 AddLooseGameplayTag(DestructionTriggerTag). MulticastExplode(VFX/SFX) &rarr; ReturnToPool().</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_CannonProjectilePool ==================== -->
+<div class="class-card" id="pool">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">UAO_CannonProjectilePool</div>
+    <div class="class-parent">부모: UActorComponent</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'pool','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'pool','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="pool" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">투사체 오브젝트 풀. PoolSize(기본 10)만큼 사전 스폰 후 Available/Active 리스트로 관리</div></div>
+      <div class="info-item"><div class="info-label">풀 고갈 처리</div><div class="info-value">GetProjectile에서 Available이 비면 ActiveProjectiles[0]을 강제 Deactivate 후 재사용 (재귀 호출)</div></div>
+    </div>
+    <div class="desc-block">서버에서만 InitializePool(BeginPlay시 HasAuthority 체크). ClearPool(EndPlay)에서 Available+Active 모두 Destroy. ReturnProjectile은 Deactivate 후 Active에서 제거, Available에 추가.</div>
+  </div>
+  <div class="tab-panel" data-class="pool" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">GetProjectile()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>AvailableProjectiles.Num()>0이면 Pop &rarr; Active에 추가. 비었으면 Active[0]을 Deactivate+Remove &rarr; Available에 추가 &rarr; 재귀 GetProjectile(). Active도 비었으면 nullptr.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_InspectionPuzzle ==================== -->
+<div class="class-card" id="inspection">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_InspectionPuzzle</div>
+    <div class="class-parent">부모: AActor &middot; 4개 인터페이스</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'inspection','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'inspection','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'inspection','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="inspection" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">F키로 Inspection 모드 진입 후 메시 클릭으로 퍼즐을 풀어가는 검사 퍼즐 액터</div></div>
+      <div class="info-item"><div class="info-label">인터페이스 4개</div><div class="info-value">IAO_Interface_Interactable(F키), IAO_Interface_Inspectable(메시 클릭), IAO_Interface_PuzzleElement(리셋/잠금), IAO_Interface_InspectionCameraProvider(카메라 설정)</div></div>
+      <div class="info-item"><div class="info-label">매핑 시스템</div><div class="info-value">FAO_InspectionElementMapping: MeshComponentName &rarr; ActivatedTag. 클릭된 컴포넌트 이름으로 태그를 찾아 LinkedChecker에 전달</div></div>
+    </div>
+    <div class="desc-block">
+      CanInteraction에서 InspectableComponent->IsLockedByOtherPlayer로 멀티플레이어 잠금 체크. OnInspectionMeshClicked에서 FindTagForComponent(컴포넌트 FName으로 ElementMappings 검색) 후 BroadcastTag(LinkedChecker->OnPuzzleEvent). ReplicatedMappings로 매핑 정보를 클라이언트에 복제합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="inspection" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">ElementMappings</span></td><td><span class="var-type">TArray&lt;FAO_InspectionElementMapping&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>MeshComponentName &harr; ActivatedTag 매핑 배열.</td></tr>
+      <tr><td><span class="var-name">LinkedChecker</span></td><td><span class="var-type">AAO_PuzzleConditionChecker*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>태그 전달 대상 Checker.</td></tr>
+      <tr><td><span class="var-name">InspectableComponent</span></td><td><span class="var-type">UAO_InspectableComponent*</span></td><td><span class="prop-tag">VisibleAnywhere</span></td><td>카메라 상대 위치/회전 설정. IsLockedByOtherPlayer 멀티플레이어 잠금.</td></tr>
+      <tr><td><span class="var-name">bInteractionEnabled</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">Replicated</span></td><td>IAO_Interface_PuzzleElement의 상호작용 활성화 상태.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="inspection" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInspectionMeshClicked(UPrimitiveComponent*)</span><span class="fn-spec override">Override</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. FindTagForComponent(컴포넌트 FName으로 ElementMappings 선형 검색) &rarr; 태그 유효하면 BroadcastTag(LinkedChecker->OnPuzzleEvent).</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_OverwatchInspectionPuzzle ==================== -->
+<div class="class-card" id="overwatch">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_OverwatchInspectionPuzzle</div>
+    <div class="class-parent">부모: AAO_InspectionPuzzle</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'overwatch','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'overwatch','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'overwatch','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="overwatch" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">하늘에서 내려다보는 오버워치 시점 퍼즐. WASD 카메라 이동, 외부 액터 메시 클릭, 스페이스바 일괄 활성화 지원</div></div>
+      <div class="info-item"><div class="info-label">카메라</div><div class="info-value">WorldAbsolute/RelativeToActor 모드. Planar 이동(XY만). MovementBoundsExtent로 이동 범위 제한</div></div>
+      <div class="info-item"><div class="info-label">외부 메시</div><div class="info-value">FAO_ExternalMeshMapping으로 다른 액터의 메시를 클릭 대상으로 등록. IAO_Interface_Inspectable 구현 액터면 OnInspectionMeshClicked 위임</div></div>
+    </div>
+    <div class="desc-block">
+      OnInspectionMeshClicked를 오버라이드하여: bUseSpacebar면 클릭 무시 &rarr; 스페이스바 시 ActiveAllLinkedElements(모든 ExternalMeshMapping 일괄 활성화). 아니면 자기 메시/외부 메시를 구분하여 태그 검색 후 BroadcastTag. IAO_Interface_Inspectable을 구현한 외부 액터(예: RotationPuzzleElement)는 직접 OnInspectionMeshClicked를 위임합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="overwatch" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">CameraMode</span></td><td><span class="var-type">EInspectionCameraMode</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>WorldAbsolute(월드 절대좌표) / RelativeToActor(액터 상대).</td></tr>
+      <tr><td><span class="var-name">ExternalMeshMappings</span></td><td><span class="var-type">TArray&lt;FAO_ExternalMeshMapping&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>외부 액터 메시 &harr; 태그 매핑. TargetActor + ComponentName + ActivatedTag.</td></tr>
+      <tr><td><span class="var-name">bUseSpacebar</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>true면 클릭 비활성화, 스페이스바로 일괄 활성화.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="overwatch" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">ActiveAllLinkedElements()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. ExternalMeshMappings 순회. TargetActor가 IAO_Interface_Inspectable을 구현하면 컴포넌트를 찾아 OnInspectionMeshClicked를 위임 호출. bUseSpacebar=true일 때 OnInspectionAction에서 호출됩니다.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">HighlightAllExternalMeshes() / ClearAllExternalHighlights()</span><span class="fn-spec bp-call">BlueprintCallable</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Highlight: bUseSpacebar 전용. ExternalMeshMappings에서 MeshComponent를 찾아 SetRenderCustomDepth(true, StencilValue=250). Clear: HighlightedComponents 배열을 순회하며 SetRenderCustomDepth(false).</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_GasRoomPuzzle ==================== -->
+<div class="class-card" id="gasroom">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_GasRoomPuzzle</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'gasroom','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'gasroom','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'gasroom','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="gasroom" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">가스 방 퍼즐. 플레이어 입장 &rarr; 대기 &rarr; 문 잠금+가스 방출+비밀번호 힌트 &rarr; 비밀번호 패널로 풀기 &rarr; 완료</div></div>
+      <div class="info-item"><div class="info-label">상태 머신</div><div class="info-value">EGasRoomState: Idle &rarr; WaitingToStart(DelayBeforeStart) &rarr; Active(CountdownDuration) &rarr; Completed. 시간 초과/전원 사망 시 ResetPuzzle</div></div>
+      <div class="info-item"><div class="info-label">비밀번호 힌트</div><div class="info-value">CandidateDecals에서 4개 랜덤 선택 후 NumberTextures+TintColor(4색)로 Dynamic Material 생성. MulticastUpdatePasswordHints로 전 클라이언트 동기화</div></div>
+      <div class="info-item"><div class="info-label">데미지 존</div><div class="info-value">DamageZoneClass를 TriggerBox 위치에 스폰. BoxExtent를 TriggerBox와 동일하게 설정. 완료/리셋 시 파괴</div></div>
+    </div>
+    <div class="desc-block">
+      PostInitializeComponents에서 CandidateDecalPrefix/VFXPointPrefix로 시작하는 컴포넌트를 자동 수집합니다. BeginPlay에서 PasswordPanel->OnPasswordCorrectEvent에 바인딩합니다.<br><br>
+      <strong>리셋 가능:</strong> bHasEverStarted를 false로 리셋하여 다시 시작할 수 있습니다. 시간 초과나 전원 사망 시 자동 리셋됩니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="gasroom" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">CurrentState</span></td><td><span class="var-type">EGasRoomState</span></td><td><span class="prop-tag rep">Replicated</span></td><td>Idle/WaitingToStart/Active/Completed 상태.</td></tr>
+      <tr><td><span class="var-name">RemainingTime</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag rep">Replicated</span></td><td>Active 상태의 남은 시간. CountdownTickInterval마다 감소.</td></tr>
+      <tr><td><span class="var-name">BunkerDoors</span></td><td><span class="var-type">TArray&lt;AAO_BunkerDoor*&gt;</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>잠금/열기 제어 대상 문 목록.</td></tr>
+      <tr><td><span class="var-name">PasswordPanel</span></td><td><span class="var-type">AAO_PasswordPanelInspectable*</span></td><td><span class="prop-tag edit">EditInstanceOnly</span></td><td>비밀번호 패널. GenerateRandomPassword, OnPasswordCorrectEvent 연동.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="gasroom" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">StartPuzzle()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>WaitingToStart &rarr; Active. PasswordPanel->GenerateRandomPassword + GetPasswordDigits &rarr; SelectRandomCandidates(4개) &rarr; MulticastUpdatePasswordHints(숫자+인덱스). LockDoors + ActivateDamageZone. MulticastCloseDoors + MulticastSpawnGasEffects. 캐릭터 체크 타이머 + 카운트다운 타이머 시작.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">CompletePuzzle() / ResetPuzzle()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Complete: Completed 상태. OpenDoors+CleanupGas+ClearHints. DeactivateDamageZone+UnlockDoors. LinkedChecker에 CompletionTag 전달. Reset: Idle로 복귀. bHasEverStarted=false. 동일 정리 후 재시작 가능.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_RollingBall ==================== -->
+<div class="class-card" id="rolling">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_RollingBall</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'rolling','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'rolling','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'rolling','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="rolling" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">물리 기반 구르는 공. BallTrigger의 PlayerDetection으로 물리 활성화, Reset 트리거로 초기화</div></div>
+      <div class="info-item"><div class="info-label">데미지</div><div class="info-value">Overlap으로 플레이어 감지 &rarr; DamageEffectClass(GAS Effect) 적용 + 넉백(LaunchCharacter) + KnockdownHitReactTag 이벤트</div></div>
+      <div class="info-item"><div class="info-label">보호 체크</div><div class="info-value">Death/Invulnerable 태그 체크 + HitCooldown으로 중복 데미지 방지(PlayerHitCooldowns TMap)</div></div>
+    </div>
+    <div class="desc-block">
+      BallMesh는 기본 SimulatePhysics=false. SetShouldMove(true) 시에만 물리 활성화. Pawn에만 Overlap, WorldStatic/Destructible에 Block으로 설정됩니다. LinkedDestructible이 파괴되었으면 ResetToStart에서 자신도 Destroy합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="rolling" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">Damage</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>데미지 수치. 기본 -30.0f (음수=피해). SetByCallerMagnitude로 적용.</td></tr>
+      <tr><td><span class="var-name">KnockbackStrength</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>넉백 힘. 기본 1500.0f. Z=0.3 추가 후 정규화.</td></tr>
+      <tr><td><span class="var-name">bShouldMove</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">Replicated</span></td><td>물리 활성화 여부. BallTrigger에서 제어.</td></tr>
+      <tr><td><span class="var-name">LinkedDestructible</span></td><td><span class="var-type">AAO_DestructibleCacheActor*</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>연결된 파괴 가능 액터. 파괴 시 공도 함께 파괴.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="rolling" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnBallBeginOverlap</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버+bIsActive+Physics활성 체크. PlayerCharacter 캐스트 &rarr; ASC에서 Death/Invulnerable 태그 체크 &rarr; HitCooldown(PlayerHitCooldowns TMap) 체크. DamageEffectClass로 GE 생성(SetSetByCallerMagnitude) &rarr; ApplyToSelf. 넉백: 방향=(Player-Ball).Normalize, Z=0.3 추가 &rarr; LaunchCharacter. KnockdownHitReactTag 이벤트.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_BallTrigger ==================== -->
+<div class="class-card" id="balltrigger">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_BallTrigger</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'balltrigger','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'balltrigger','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'balltrigger','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="balltrigger" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">RollingBall 퍼즐의 트리거 존. Reset(공 리셋) 또는 PlayerDetection(살아있는 플레이어 감지로 공 활성화) 모드</div></div>
+      <div class="info-item"><div class="info-label">생존 체크</div><div class="info-value">GetAlivePlayerCount: OverlappingPlayers에서 ASC의 Status.Death 태그 없는 플레이어 수 카운트. AliveCheckInterval(기본 1초) 주기로 타이머 체크</div></div>
+    </div>
+    <div class="desc-block">
+      TriggerBox는 Pawn+PhysicsBody에 Overlap. Reset 모드에서는 RollingBall이 오버랩하면 ResetToStart() 호출. PlayerDetection에서는 살아있는 플레이어가 1명이라도 있으면 모든 TargetBalls에 SetShouldMove(true), 없으면 false. BeginPlay에서 이미 오버랩 중인 플레이어도 검사합니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="balltrigger" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">TriggerType</span></td><td><span class="var-type">EBallTriggerType</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Reset / PlayerDetection.</td></tr>
+      <tr><td><span class="var-name">TargetBalls</span></td><td><span class="var-type">TArray&lt;AAO_RollingBall*&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>제어 대상 RollingBall 목록.</td></tr>
+      <tr><td><span class="var-name">AliveCheckInterval</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>생존 체크 주기(초). 기본 1.0f.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="balltrigger" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnTriggerBeginOverlap / OnTriggerEndOverlap</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>Reset: RollingBall이 TargetBalls에 포함되면 ResetToStart(). PlayerDetection: OverlappingPlayers에 추가/제거 &rarr; GetAlivePlayerCount &rarr; 모든 Ball에 SetShouldMove. 첫 플레이어 입장 시 AliveCheck 루핑 타이머 시작. 모두 퇴장 시 타이머 클리어.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_PinballBall ==================== -->
+<div class="class-card" id="pinball">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PinballBall</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'pinball','overview')">개요</button>
+  </div>
+  <div class="tab-panel active" data-class="pinball" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">핀볼 공. 물리 시뮬레이션(SimulatePhysics=true, Gravity=true). StartPosition 복제. ResetToStart()로 초기화</div></div>
+      <div class="info-item"><div class="info-label">콜리전</div><div class="info-value">ECC_PhysicsBody, 모든 채널 Block. PinballTrigger와 PhysicsBody-Overlap으로 감지</div></div>
+    </div>
+    <div class="desc-block">매우 단순한 물리 공입니다. BeginPlay에서 StartPosition 저장(서버). ResetToStart에서 선형/각속도 0으로 설정 후 StartPosition으로 텔레포트합니다.</div>
+  </div>
+</div>
+
+<!-- ==================== AO_PinballTrigger ==================== -->
+<div class="class-card" id="pinballtrig">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_PinballTrigger</div>
+    <div class="class-parent">부모: AActor</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'pinballtrig','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'pinballtrig','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'pinballtrig','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="pinballtrig" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">핀볼 오버랩 영역. Success: 성공 태그를 Checker에 전달. Fail: 공 리셋 + 실패 태그 전달</div></div>
+      <div class="info-item"><div class="info-label">콜리전</div><div class="info-value">TriggerBox: QueryOnly, PhysicsBody에만 Overlap. AAO_PinballBall 캐스트로 필터링</div></div>
+    </div>
+    <div class="desc-block">Success/Fail 모두 LinkedChecker에 EventTag를 전달합니다. Fail 모드에서는 추가로 PinballBall->ResetToStart()를 호출합니다. Checker의 조건 설계에 따라 실패 태그가 BlockingTag로 작용할 수 있습니다.</div>
+  </div>
+  <div class="tab-panel" data-class="pinballtrig" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">TriggerMode</span></td><td><span class="var-type">EPinballTriggerMode</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Success / Fail.</td></tr>
+      <tr><td><span class="var-name">EventTag</span></td><td><span class="var-type">FGameplayTag</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>Checker에 전달할 태그.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="pinballtrig" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnTriggerOverlap</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. PinballBall 캐스트 체크. Success: LinkedChecker->OnPuzzleEvent(EventTag). Fail: PinballBall->ResetToStart() + LinkedChecker->OnPuzzleEvent(EventTag). 양쪽 모두 태그를 전달하므로 Checker에서 BlockingTags로 실패 처리 가능.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AO_Valve ==================== -->
+<div class="class-card" id="valve">
+  <div class="class-header">
+    <div class="class-dot"></div>
+    <div class="class-name">AAO_Valve</div>
+    <div class="class-parent">부모: AAO_BaseInteractable</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'valve','overview')">개요</button>
+    <button class="tab-btn" onclick="switchTab(this,'valve','vars')">멤버 변수</button>
+    <button class="tab-btn" onclick="switchTab(this,'valve','funcs')">함수</button>
+  </div>
+  <div class="tab-panel active" data-class="valve" data-tab="overview">
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">역할</div><div class="info-value">밸브 토글 상호작용. 열기/닫기에 따라 데미지 존과 VFX를 교대로 활성화</div></div>
+      <div class="info-item"><div class="info-label">교대 패턴</div><div class="info-value">DamageZoneBoxes/VFXPoints를 인덱스 기준으로 짝수(bIsValveOpen)/홀수(!bIsValveOpen)로 교대 스폰</div></div>
+      <div class="info-item"><div class="info-label">쿨다운</div><div class="info-value">InteractionLockDuration(기본 2초) 동안 bInteractionEnabled=false로 연속 상호작용 방지</div></div>
+    </div>
+    <div class="desc-block">
+      AAO_BaseInteractable을 상속하여 bIsToggleable=true. PostInitializeComponents에서 VFXPointPrefix/DamageZonePrefix로 시작하는 컴포넌트를 자동 수집합니다.<br><br>
+      <strong>Open/Close의 동일 패턴:</strong> 둘 다 DestroyDamageZones+CleanupEffects 후 SpawnDamageZones+SpawnEffects를 호출합니다. 차이는 bIsValveOpen 상태에 따라 짝수/홀수 인덱스의 스폰 여부가 달라지는 것뿐입니다.
+    </div>
+  </div>
+  <div class="tab-panel" data-class="valve" data-tab="vars">
+    <table class="var-table">
+      <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+      <tr><td><span class="var-name">bIsValveOpen</span></td><td><span class="var-type">bool</span></td><td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsValveOpen</span><span class="prop-tag edit">EditAnywhere</span></td><td>밸브 열림 상태. 토글마다 반전.</td></tr>
+      <tr><td><span class="var-name">DamageZoneBoxes</span></td><td><span class="var-type">TArray&lt;UBoxComponent*&gt;</span></td><td><span class="prop-tag">VisibleInstanceOnly</span></td><td>DamageZonePrefix로 수집된 박스. 스폰 위치/크기 템플릿.</td></tr>
+      <tr><td><span class="var-name">EffectInfoArray</span></td><td><span class="var-type">TArray&lt;FAO_ValveEffectSpawnInfo&gt;</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>VFX/SFX 스폰 정보 배열. VFXPoints와 1:1 매핑.</td></tr>
+      <tr><td><span class="var-name">InteractionLockDuration</span></td><td><span class="var-type">float</span></td><td><span class="prop-tag edit">EditAnywhere</span></td><td>상호작용 잠금 시간(초). 기본 2.0f.</td></tr>
+    </table>
+  </div>
+  <div class="tab-panel" data-class="valve" data-tab="funcs">
+    <div class="fn-list">
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">OnInteractionSuccess_BP_Implementation(AActor*)</span><span class="fn-spec bp-impl">BlueprintNativeEvent</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>서버 전용. bInteractionEnabled=false + InteractionLockDuration 타이머(복귀). bIsValveOpen 반전. Open/Close 분기 호출.</div></div></div>
+      <div class="fn-item"><div class="fn-header" onclick="toggleFn(this)"><span class="fn-name">SpawnDamageZones() / SpawnEffects()</span><span class="fn-arrow">&#9654;</span></div><div class="fn-body"><div class="fn-section"><div class="fn-section-title">cpp 구현 상세</div>DamageZoneBoxes/VFXPoints 순회. i%2==0이면 bIsValveOpen 시 스폰, 아니면 !bIsValveOpen 시 스폰. DamageZone은 DamageZoneClass를 Box 위치에 스폰 후 BoxExtent 복사. Effects는 Niagara/Cascade/Sound를 VFXPoint 위치에 스폰.</div></div></div>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 심층 분석 &mdash; .h + .cpp 전체 분석 &mdash; 학습 목적 전용<br>
+  Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['checker','puzzleelem','reaction','reset','rotation','torch','pressure','decayhold','pushrock','gridmgr','gridwall','cannon','projectile','pool','inspection','overwatch','gasroom','rolling','balltrigger','pinball','pinballtrig','valve'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click handler
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

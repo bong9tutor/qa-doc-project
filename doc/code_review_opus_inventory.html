@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut &mdash; 인벤토리 &amp; 아이템 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#ea580c;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#fff7ed;color:#ea580c;border-left-color:#ea580c;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#ea580c;border-bottom-color:#ea580c;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #ea580c;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#fff7ed;border-color:#fed7aa;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #fed7aa;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#ea580c;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#ea580c;font-weight:600;}
+
+.flow-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+.footer{text-align:center;padding:18px 16px 24px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;margin-top:8px;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">Inventory &amp; Items &mdash; Opus</div>
+  <div class="nav-sub">인벤토리 &amp; 아이템 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">인벤토리 &amp; 아이템 클래스</div>
+  <div class="hero-sub">인벤토리&middot;아이템&middot;픽업&middot;운반&middot;연료 시스템 9개 클래스 &mdash; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">AO_InventoryComponent</span>
+    <span class="badge">AO_InventorySubsystem</span>
+    <span class="badge">AO_ItemDataAsset</span>
+    <span class="badge">AO_MasterItem</span>
+    <span class="badge">AO_PickupComponent</span>
+    <span class="badge">AO_ItemCarryComponent</span>
+    <span class="badge">AO_Fuel_AttributeSet</span>
+    <span class="badge">AO_AddFuel_GameplayAbility</span>
+    <span class="badge">AO_RemoveFuel_GameplayAbility</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#inv">AO_InventoryComponent</a>
+      <a class="toc-item" href="#invsub">AO_InventorySubsystem</a>
+      <a class="toc-item" href="#itemdata">AO_ItemDataAsset</a>
+      <a class="toc-item" href="#master">AO_MasterItem</a>
+      <a class="toc-item" href="#pickup">AO_PickupComponent</a>
+      <a class="toc-item" href="#carry">AO_ItemCarryComponent</a>
+      <a class="toc-item" href="#fuelattr">AO_Fuel_AttributeSet</a>
+      <a class="toc-item" href="#addfuel">AO_AddFuel_GameplayAbility</a>
+      <a class="toc-item" href="#rmfuel">AO_RemoveFuel_GameplayAbility</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_InventoryComponent ==================== -->
+    <div class="class-card" id="inv">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InventoryComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'inv','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'inv','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'inv','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'inv','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="inv" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 캐릭터에 부착되는 인벤토리 컴포넌트 &mdash; 슬롯 기반 아이템 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 아이템 픽업&middot;사용&middot;드롭 처리, 클라이언트에는 Slots/SelectedSlotIndex 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">5슬롯 인벤토리 관리, 아이템 픽업/드롭/사용, 입력 바인딩, 리스너 알림</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          플레이어 캐릭터에 부착되어 5개 슬롯으로 구성된 인벤토리를 관리합니다.
+          슬롯 배열(Slots)과 선택 인덱스(SelectedSlotIndex)는 ReplicatedUsing으로 복제되어 클라이언트와 동기화됩니다.
+          Enhanced Input을 통해 슬롯 선택, 아이템 사용(좌클릭), 아이템 드롭(우클릭) 입력을 바인딩합니다.<br><br>
+          <strong>소모품(Consumable) 사용 GAS 파이프라인:</strong> UseInventoryItem_Server에서 ItemDataTable의 PassiveAmount를 조회 &rarr; ASC에서 AddHealthClass GameplayEffect Spec 생성 &rarr; SetSetByCallerMagnitude("Data.Item", PassiveAmount) 설정 &rarr; ApplyGameplayEffectSpecToSelf로 체력 회복 적용 &rarr; ClearSlot()으로 슬롯 비움.<br><br>
+          <strong>무기(Weapon) 사용:</strong> 캐릭터 위치에서 전방 10,000 유닛으로 LineTraceSingleByChannel(ECC_Visibility) &rarr; ApplyPointDamage(1.0f)로 대미지 적용 &rarr; DrawDebugLine으로 시각화.<br><br>
+          <strong>네트워크 복제 흐름:</strong> 생성자에서 SetIsReplicatedByDefault(true). GetLifetimeReplicatedProps에서 DOREPLIFETIME으로 Slots, SelectedSlotIndex, ItemDataTable을 복제 등록. Slots는 OnRep_Slots에서 NotifyListeners + OnInventoryUpdated.Broadcast, SelectedSlotIndex는 OnRep_SelectedIndex에서 NotifyListeners를 호출하여 클라이언트 UI를 동기화합니다.<br><br>
+          FInventorySlot 구조체에 ItemID, Quantity, FuelAmount, ItemType 정보를 저장합니다.
+          IAO_InventoryListener 인터페이스를 구현한 리스너에게 슬롯 변경과 선택 변경을 통보합니다.
+          사망 시 CharDead()로 모든 아이템을 월드에 드롭하며, PlayerState에 인벤토리를 영속 저장할 수 있습니다.<br><br>
+          <strong>CanInventoryAction 검사:</strong> Owner의 ASC에서 "Status.Action.Inspecting" GameplayTag가 있으면 false를 반환하여 검사 중 인벤토리 조작을 차단합니다. 다만 이 함수가 OnLeftClick/OnRightClick에서 호출되지 않아 실제로는 차단이 작동하지 않을 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="inv" data-tab="vars">
+        <div class="struct-box">
+          <div class="struct-title">FInventorySlot</div>
+          <div class="struct-field"><span class="sf-name">ItemID (FName)</span><span class="sf-desc">아이템 식별자. 기본값 "empty"이면 빈 슬롯. DataTable 조회 키로 사용</span></div>
+          <div class="struct-field"><span class="sf-name">Quantity (int32)</span><span class="sf-desc">아이템 수량. 기본값 0. Server_HandleInteraction에서 1로 설정</span></div>
+          <div class="struct-field"><span class="sf-name">FuelAmount (float)</span><span class="sf-desc">연료 아이템일 때 연료량. 기본값 0.f. MasterItem의 FuelAmount에서 복사</span></div>
+          <div class="struct-field"><span class="sf-name">ItemType (EItemType)</span><span class="sf-desc">아이템 종류 (None, Fuel, Consumable, Weapon, Passive, RevivalChip). UseInventoryItem_Server에서 분기 조건</span></div>
+        </div>
+        <div class="struct-box">
+          <div class="struct-title">EItemType (열거형)</div>
+          <div class="struct-field"><span class="sf-name">None = 0</span><span class="sf-desc">기본값, 미분류 아이템</span></div>
+          <div class="struct-field"><span class="sf-name">Fuel = 1</span><span class="sf-desc">기차 연료 아이템</span></div>
+          <div class="struct-field"><span class="sf-name">Consumable = 2</span><span class="sf-desc">소모품 &mdash; GAS GE로 체력 회복</span></div>
+          <div class="struct-field"><span class="sf-name">Weapon = 3</span><span class="sf-desc">무기 &mdash; 라인 트레이스 대미지</span></div>
+          <div class="struct-field"><span class="sf-name">Passive = 4</span><span class="sf-desc">패시브 아이템</span></div>
+          <div class="struct-field"><span class="sf-name">RevivalChip = 5</span><span class="sf-desc">부활 칩</span></div>
+        </div>
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Slots</span></td>
+            <td><span class="var-type">TArray&lt;FInventorySlot&gt;</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_Slots</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>5개 슬롯으로 초기화되는 인벤토리 배열. 생성자에서 Slots.SetNum(5)로 크기 고정. 서버에서 변경 시 클라이언트에 복제되며 OnRep_Slots에서 NotifyListeners + OnInventoryUpdated.Broadcast 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SelectedSlotIndex</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_SelectedIndex</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재 선택된 슬롯 인덱스. 기본값 1 (인덱스 0이 아님에 주의). SelectInventorySlot에서 FInputActionValue를 RoundToInt하여 설정. 사용/드롭 대상 슬롯을 결정.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DroppableItemClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;AAO_MasterItem&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>아이템 드롭 시 스폰할 MasterItem 서브클래스. PickupItem에서는 null이면 AAO_MasterItem::StaticClass() 대체 사용하지만, DropInventoryItem_Server에서는 null 체크 없이 직접 사용하므로 미설정 시 크래시 가능.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnInventoryUpdated</span></td>
+            <td><span class="var-type">FOnInventoryUpdated</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>슬롯 배열이 변경될 때 브로드캐스트되는 델리게이트. TArray&lt;FInventorySlot&gt; 파라미터 전달.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnSelectSlotUpdated</span></td>
+            <td><span class="var-type">FOnSelectSlotUpdated</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>선택 슬롯 인덱스가 변경될 때 브로드캐스트. SelectInventorySlot에서 클라이언트 로컬로 호출됨 (서버 RPC 전).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">IA_Select_inventory_Slot</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UInputAction&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>슬롯 선택 입력 액션 에셋. SetupInputBinding에서 ETriggerEvent::Started로 SelectInventorySlot에 바인딩.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">IA_UseItem</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UInputAction&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>아이템 사용(좌클릭) 입력 액션 에셋. OnLeftClick &rarr; UseInventoryItem_Server RPC 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">IA_DropItem</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UInputAction&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>아이템 드롭(우클릭) 입력 액션 에셋. OnRightClick &rarr; DropInventoryItem_Server RPC 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ItemDataTable</span></td>
+            <td><span class="var-type">UDataTable*</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>FAO_struct_FItemBase 행을 저장하는 데이터 테이블. 소모품 사용 시 FindRow로 PassiveAmount를 조회. Replicated이므로 서버에서 클라이언트로 복제됨.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AddHealthClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>소모품 사용 시 적용할 체력 회복 GameplayEffect 클래스. MakeOutgoingSpec으로 Spec 생성 후 SetByCallerMagnitude("Data.Item")로 회복량 전달.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PickupSound / DropSound / UseSound</span></td>
+            <td><span class="var-type">TObjectPtr&lt;USoundBase&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>픽업(ActionType=0), 드롭(1), 사용(2) 시 재생할 사운드. Multicast_PlayInventorySound에서 switch로 분기. PlaySoundAtLocation으로 Owner 위치에서 재생.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InvenCompListeners</span></td>
+            <td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;UObject&gt;&gt;</span></td>
+            <td>(UPROPERTY)</td>
+            <td>IAO_InventoryListener 인터페이스를 구현한 리스너 목록. 역순 순회하며 유효하지 않은 리스너는 자동 제거(RemoveAt). Execute_OnSelectChanged와 Execute_OnSlotChanged를 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bDroppedOnDeath</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(멤버)</td>
+            <td>사망 시 드롭이 이미 수행되었는지 추적. CharDead() 진입 시 true이면 조기 반환하여 중복 드롭 방지. 생성자에서 false 초기화.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="inv" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_InventoryComponent() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PrimaryComponentTick.bCanEverTick = false &mdash; Tick 비활성화<br>
+                &bull; SetIsReplicatedByDefault(true) &mdash; 컴포넌트 복제 활성화<br>
+                &bull; Slots.SetNum(5) &rarr; 전체 슬롯 FInventorySlot() 기본값으로 초기화<br>
+                &bull; SelectedSlotIndex = 1 &mdash; 0번이 아닌 1번 슬롯이 기본 선택<br>
+                &bull; bDroppedOnDeath = false
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &mdash; 서브시스템 등록</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::BeginPlay() 호출<br>
+                &bull; GetOwner()를 APawn으로 캐스트 &mdash; 실패 시 return<br>
+                &bull; Pawn->GetController()를 APlayerController로 캐스트<br>
+                &bull; PC가 null이거나 !IsLocalController()이면 return (원격 클라이언트의 Pawn에서는 등록하지 않음)<br>
+                &bull; PC->GetLocalPlayer()로 ULocalPlayer 획득<br>
+                &bull; LP->GetSubsystem&lt;UAO_InventorySubsystem&gt;()로 서브시스템 획득<br>
+                &bull; Subsystem->RegisterInventory(this)로 자신을 등록
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 의미</div>
+                로컬 플레이어에서만 실행되므로, 데디케이티드 서버에서는 이 경로를 타지 않습니다. 서브시스템 등록은 순수히 클라이언트측 UI 연동 용도입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RegisterToSubsystem() &mdash; 수동 재등록</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                BeginPlay와 동일한 로직으로 UAO_InventorySubsystem에 자신을 등록합니다. HandlePossessedPawnChanged에서 Pawn 교체 시 명시적으로 호출됩니다. 중복 등록이 발생할 수 있으나 RegisterInventory는 단순 대입이므로 문제 없습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetupInputBinding(UInputComponent*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Slots.Num() == 0이면 조기 반환 (방어 코드)<br>
+                &bull; PlayerInputComponent null 체크<br>
+                &bull; UEnhancedInputComponent로 캐스트 &mdash; 실패 시 return<br>
+                &bull; IA_Select_inventory_Slot이 유효하면 ETriggerEvent::Started로 SelectInventorySlot 바인딩<br>
+                &bull; IA_UseItem이 유효하면 ETriggerEvent::Started로 OnLeftClick 바인딩<br>
+                &bull; IA_DropItem이 유효하면 ETriggerEvent::Started로 OnRightClick 바인딩
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>
+                외부(PlayerCharacter의 SetupPlayerInputComponent)에서 호출됩니다. Enhanced Input 시스템 의존.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SelectInventorySlot(const FInputActionValue&amp; Value)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Value.Get&lt;float&gt;()를 FMath::RoundToInt로 정수 변환하여 SlotIndex 산출<br>
+                &bull; IsValidSlotIndex(SlotIndex) 확인 (0 &le; Index &lt; Slots.Num())<br>
+                &bull; ServerSetSelectedSlot(SlotIndex) RPC 호출 &mdash; 서버에서 실제 인덱스 변경<br>
+                &bull; OnSelectSlotUpdated.Broadcast(SlotIndex) &mdash; 클라이언트 로컬에서 즉시 UI 통보 (서버 응답 기다리지 않는 낙관적 갱신)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerSetSelectedSlot(int32 NewIndex)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp: _Implementation)</div>
+                &bull; IsValidSlotIndex(NewIndex) 검증 &mdash; 실패 시 return<br>
+                &bull; SelectedSlotIndex = NewIndex 대입<br>
+                &bull; NotifyListeners() &mdash; 모든 InvenCompListeners에 OnSelectChanged/OnSlotChanged 통보<br>
+                &bull; OnInventoryUpdated.IsBound() 확인 후 Broadcast(Slots) &mdash; 슬롯 변경 없이도 Broadcast 호출됨
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindEmptySlotIndex() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>주의:</strong> for 루프가 i = 1부터 시작합니다 (i = 0이 아님). 슬롯 0은 항상 건너뜁니다.<br>
+                &bull; Slots[i].ItemID == "empty"인 첫 번째 인덱스를 반환<br>
+                &bull; 빈 슬롯이 없으면 INDEX_NONE(-1) 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">분석</div>
+                인덱스 0번 슬롯은 빈 슬롯 검색에서 제외됩니다. SelectedSlotIndex 기본값도 1이므로 0번 슬롯은 특수 용도(예: 장비 슬롯)로 의도된 것으로 보이지만, CharDead()에서는 i = 0부터 드롭하므로 0번에도 아이템이 존재할 수 있습니다. PickupItem에서 빈 슬롯이 없을 때 SelectedSlotIndex 위치에 교체하는데, 이때만 0번 슬롯에 아이템이 들어갈 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PickupItem(const FInventorySlot&amp;, AActor* Instigator)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwnerRole() != ROLE_Authority이면 return &mdash; 서버 전용<br>
+                &bull; FindEmptySlotIndex()로 빈 슬롯 검색<br>
+                &bull; <strong>빈 슬롯 있을 때:</strong> Slots[TargetIndex] = IncomingItem 직접 대입<br>
+                &bull; <strong>빈 슬롯 없을 때 (교체 로직):</strong><br>
+                &nbsp;&nbsp;- 현재 SelectedSlotIndex의 OldSlot 백업<br>
+                &nbsp;&nbsp;- Slots[SelectedSlotIndex] = IncomingItem으로 교체<br>
+                &nbsp;&nbsp;- Owner 전방 60 유닛 위치에 FTransform 생성<br>
+                &nbsp;&nbsp;- SpawnActorDeferred&lt;AAO_MasterItem&gt;(DroppableItemClass ? DroppableItemClass.Get() : StaticClass())<br>
+                &nbsp;&nbsp;- DropItem->ItemID = OldSlot.ItemID 설정 후 FinishSpawningActor<br>
+                &bull; bPickupSuccess 시 Instigator 처리:<br>
+                &nbsp;&nbsp;- Multicast_PlayInventorySound(0) &mdash; 픽업 사운드<br>
+                &nbsp;&nbsp;- Instigator에서 IAbilitySystemInterface로 ASC 획득<br>
+                &nbsp;&nbsp;- <strong>모든 Activatable Abilities를 CancelAbilityHandle + ClearAbility로 제거</strong><br>
+                &nbsp;&nbsp;- Instigator->SetActorHiddenInGame(true), SetActorEnableCollision(false)<br>
+                &nbsp;&nbsp;- SetLifeSpan(0.1f)로 0.1초 후 파괴 예약<br>
+                &bull; NotifyListeners() + OnInventoryUpdated.Broadcast(Slots)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">Instigator 처리 분석</div>
+                Instigator는 MasterItem 액터 자체입니다 (Server_HandleInteraction에서 Inventory->PickupItem(ItemToAdd, this)로 호출). 따라서 MasterItem의 모든 GAS 어빌리티를 취소&middot;제거하고, 숨긴 후 0.1초 후 파괴합니다. MasterItem이 GAS를 사용하지 않는 경우 ASI 캐스트가 실패하여 어빌리티 정리 블록은 건너뜁니다. 그러나 MasterItem에 Server_HandleInteraction 끝에서 Destroy()도 호출하므로, SetLifeSpan(0.1f)과 Destroy()가 이중으로 호출됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UseInventoryItem_Server()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp: _Implementation)</div>
+                &bull; IsValidSlotIndex(SelectedSlotIndex) &amp;&amp; ItemID != "empty" 검증<br>
+                &bull; <strong>Consumable 분기:</strong><br>
+                &nbsp;&nbsp;- static FString Context로 "Inventory Item Use" 설정<br>
+                &nbsp;&nbsp;- ItemDataTable->FindRow&lt;FAO_struct_FItemBase&gt;(ItemID, Context)로 행 조회<br>
+                &nbsp;&nbsp;- ItemData->PassiveAmount를 AddAmount로 저장 (int32 &rarr; float 암시적 변환)<br>
+                &nbsp;&nbsp;- Owner->FindComponentByClass&lt;UAbilitySystemComponent&gt;()로 ASC 획득<br>
+                &nbsp;&nbsp;- static FGameplayTag "Data.Item"을 RequestGameplayTag로 생성<br>
+                &nbsp;&nbsp;- ASC->MakeEffectContext() &rarr; MakeOutgoingSpec(AddHealthClass, 1.f, Context)<br>
+                &nbsp;&nbsp;- SpecHandle.Data->SetSetByCallerMagnitude(PassiveAmountTag, AddAmount)<br>
+                &nbsp;&nbsp;- ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get())<br>
+                &nbsp;&nbsp;- Multicast_PlayInventorySound(2) &rarr; ClearSlot()<br>
+                &bull; <strong>Weapon 분기:</strong><br>
+                &nbsp;&nbsp;- Start = Owner 위치, End = Start + ForwardVector * 10,000<br>
+                &nbsp;&nbsp;- FCollisionQueryParams에 Owner를 IgnoredActor로 추가<br>
+                &nbsp;&nbsp;- LineTraceSingleByChannel(ECC_Visibility) 실행<br>
+                &nbsp;&nbsp;- 적중 시 ApplyPointDamage(HitActor, 1.0f, Direction, Hit, OwnerController, Owner, UDamageType::StaticClass())<br>
+                &nbsp;&nbsp;- DrawDebugLine(Red, 1초 지속)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">주의 사항</div>
+                &bull; Weapon 사용 시 아이템이 소모되지 않습니다 (ClearSlot 미호출)<br>
+                &bull; ItemDataTable이 null일 때 FindRow 호출로 크래시 가능<br>
+                &bull; Consumable 사용 시 AddHealthClass가 null이면 MakeOutgoingSpec가 실패하지만 SpecHandle.IsValid() 체크로 방어됨<br>
+                &bull; Fuel, Passive, RevivalChip, None 타입은 UseInventoryItem에서 아무 처리도 하지 않습니다
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">DropInventoryItem_Server()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp: _Implementation)</div>
+                &bull; IsValidSlotIndex 확인<br>
+                &bull; Slots[SelectedSlotIndex].ItemID != "empty" 확인<br>
+                &bull; Owner 전방 50 유닛 위치에 SpawnTransform 생성<br>
+                &bull; SpawnActorDeferred&lt;AAO_MasterItem&gt;(DroppableItemClass) &mdash; <strong>null 체크 없음</strong><br>
+                &bull; DropItem->ItemID = CurrentSlot.ItemID 설정 후 FinishSpawningActor<br>
+                &bull; Multicast_PlayInventorySound(1) &rarr; ClearSlot()
+              </div>
+              <div class="fn-section"><div class="fn-section-title">PickupItem과의 차이</div>
+                PickupItem에서는 DroppableItemClass가 null이면 AAO_MasterItem::StaticClass()로 대체하지만, DropInventoryItem_Server에서는 대체 없이 바로 사용합니다. 블루프린트에서 DroppableItemClass를 설정하지 않으면 SpawnActorDeferred가 nullptr 클래스로 호출되어 크래시할 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ClearSlot()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; IsValidSlotIndex(SelectedSlotIndex) 확인<br>
+                &bull; Slots[SelectedSlotIndex] = FInventorySlot() &mdash; 기본값으로 리셋 (ItemID="empty", Quantity=0, FuelAmount=0, ItemType=None)<br>
+                &bull; NotifyListeners() + OnInventoryUpdated.IsBound() 시 Broadcast(Slots)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CharDead() &mdash; 사망 시 전체 드롭</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; bDroppedOnDeath || GetOwnerRole() != ROLE_Authority이면 return<br>
+                &bull; bDroppedOnDeath = true 설정<br>
+                &bull; <strong>i = 0부터</strong> 모든 슬롯 순회 (FindEmptySlotIndex와 달리 0번 포함)<br>
+                &bull; ItemID가 "empty"인 슬롯은 skip<br>
+                &bull; 스폰 위치: Owner 전방 50 유닛 + FVector(0, i * 20, 0) &mdash; Y축 오프셋으로 겹침 방지<br>
+                &bull; SpawnActorDeferred&lt;AAO_MasterItem&gt;(DroppableItemClass) &mdash; <strong>null 체크 없음</strong><br>
+                &bull; DropItem->ItemID 설정 &rarr; FinishSpawningActor &rarr; 해당 슬롯 FInventorySlot()로 리셋<br>
+                &bull; 루프 완료 후 NotifyListeners() (OnInventoryUpdated는 Broadcast하지 않음)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Multicast_PlayInventorySound(uint8 ActionType)</span>
+              <span class="fn-spec multicast">NetMulticast, Unreliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp: _Implementation)</div>
+                &bull; switch(ActionType): 0 = PickupSound, 1 = DropSound, 2 = UseSound<br>
+                &bull; SoundToPlay가 유효하면 PlayInventorySound(SoundToPlay) 호출<br>
+                &bull; PlayInventorySound: UGameplayStatics::PlaySoundAtLocation(this, Sound, Owner->GetActorLocation())
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 의미</div>
+                NetMulticast + Unreliable이므로 모든 클라이언트에서 실행되지만 패킷 유실 시 사운드가 재생되지 않을 수 있습니다. 사운드이므로 Unreliable이 적절합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BindInvenCompListener / UnBindInvenCompListener</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>Bind:</strong> Listener 유효성 + ImplementsInterface(UAO_InventoryListener) 확인 &rarr; InvenCompListeners.AddUnique &rarr; 즉시 Execute_OnSelectChanged와 Execute_OnSlotChanged 호출하여 현재 상태 통보<br>
+                &bull; <strong>UnBind:</strong> 동일 유효성 확인 후 InvenCompListeners.Remove
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyListeners()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; InvenCompListeners를 <strong>역순 (Num()-1 &rarr; 0)</strong>으로 순회<br>
+                &bull; TWeakObjectPtr가 Valid이면 Execute_OnSelectChanged + Execute_OnSlotChanged 호출<br>
+                &bull; 유효하지 않으면 RemoveAt(i) &mdash; 역순이므로 인덱스 밀림 없이 안전하게 제거
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StoreToPlayerState() / ApplySlotsFromSave()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">StoreToPlayerState (.cpp)</div>
+                &bull; ROLE_Authority 확인<br>
+                &bull; Owner를 ACharacter &rarr; GetPlayerState&lt;AAO_PlayerState&gt;() 캐스트<br>
+                &bull; AO_PS->PersistentInventory = Slots 대입
+              </div>
+              <div class="fn-section"><div class="fn-section-title">ApplySlotsFromSave (.cpp)</div>
+                &bull; NewSlots.Num() == 0이면 return (빈 배열 무시)<br>
+                &bull; Slots = NewSlots 직접 대입<br>
+                &bull; NotifyListeners() + OnInventoryUpdated.Broadcast(Slots)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">사용 시점</div>맵 전환 시 인벤토리를 PlayerState에 보존하고, 새 맵 로드 후 복원하는 데 사용됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanInventoryAction() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Owner->FindComponentByClass&lt;UAbilitySystemComponent&gt;()로 ASC 획득<br>
+                &bull; ASC->HasMatchingGameplayTag("Status.Action.Inspecting")이면 false 반환<br>
+                &bull; 그 외 true 반환
+              </div>
+              <div class="fn-section"><div class="fn-section-title">분석</div>
+                이 함수는 private으로 선언되어 있으나, OnLeftClick/OnRightClick에서 호출되지 않습니다. 선언만 존재하고 실제 사용되지 않아 검사 중 인벤토리 조작 차단이 작동하지 않습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLifetimeReplicatedProps()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; DOREPLIFETIME(UAO_InventoryComponent, Slots) &mdash; 조건 없이 모든 클라이언트에 복제<br>
+                &bull; DOREPLIFETIME(UAO_InventoryComponent, SelectedSlotIndex) &mdash; 조건 없이 모든 클라이언트에 복제<br>
+                &bull; ItemDataTable도 Replicated 지정자가 있으나 여기에 DOREPLIFETIME이 <strong>누락</strong>되어 있습니다. 헤더의 Replicated 선언과 불일치.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="inv" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>등록됨</td><td><span class="rel-cls">UAO_InventorySubsystem</span></td><td>BeginPlay/RegisterToSubsystem에서 RegisterInventory()로 자신을 등록</td></tr>
+          <tr><td>수신</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>Server_HandleInteraction에서 PickupItem(ItemToAdd, this) 호출</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>드롭/교체 시 DroppableItemClass를 SpawnActorDeferred로 생성</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UDataTable (FAO_struct_FItemBase)</span></td><td>소모품 사용 시 FindRow로 PassiveAmount 조회</td></tr>
+          <tr><td>적용</td><td><span class="rel-cls">UAbilitySystemComponent</span></td><td>AddHealthClass GameplayEffect 적용 (소모품 사용), Instigator ASC 어빌리티 정리</td></tr>
+          <tr><td>알림</td><td><span class="rel-cls">IAO_InventoryListener</span></td><td>NotifyListeners로 OnSlotChanged, OnSelectChanged 통보</td></tr>
+          <tr><td>저장</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>StoreToPlayerState()로 PersistentInventory에 저장</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_MasterItem.h, AO_InventorySubsystem.h, AO_InventoryListener.h, AO_PlayerState.h</span></td><td>cpp에서 #include로 참조하는 헤더 목록</td></tr>
+        </table>
+        <div class="section-title">인벤토리 복제 흐름</div>
+        <div class="flow-box">
+          &#9312; 클라이언트: OnLeftClick() &rarr; UseInventoryItem_Server() RPC 전송<br>
+          &#9313; 서버: _Implementation 실행 &rarr; Slots 배열 수정 (ClearSlot 등)<br>
+          &#9314; 서버: Slots가 ReplicatedUsing이므로 변경 사항이 Unreal 복제 시스템에 의해 클라이언트로 전파<br>
+          &#9315; 클라이언트: OnRep_Slots() 자동 호출 &rarr; NotifyListeners() + OnInventoryUpdated.Broadcast()<br>
+          &#9316; UI Widget: IAO_InventoryListener::OnSlotChanged 또는 OnInventoryUpdated 델리게이트로 슬롯 표시 갱신
+        </div>
+      </div>
+    </div><!-- /AO_InventoryComponent -->
+
+    <!-- ==================== AO_InventorySubsystem ==================== -->
+    <div class="class-card" id="invsub">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_InventorySubsystem</div>
+        <div class="class-parent">부모: ULocalPlayerSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'invsub','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsub','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsub','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'invsub','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="invsub" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">로컬 플레이어의 인벤토리 컴포넌트를 전역에서 접근 가능하게 캐시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">ULocalPlayerSubsystem</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">클라이언트 전용 (ULocalPlayerSubsystem은 각 로컬 플레이어에 하나씩 존재)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">인벤토리 컴포넌트 참조 캐시, Pawn 변경 시 자동 재등록, 등록 완료 델리게이트 브로드캐스트</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          ULocalPlayerSubsystem을 상속하여 각 로컬 플레이어에 자동으로 인스턴스화됩니다.
+          Initialize()에서 OnPossessedPawnChanged 델리게이트에 바인딩하여 Pawn이 교체될 때마다 새 Pawn의 인벤토리를 자동으로 재등록합니다.<br><br>
+          <strong>헤더 선언 주의:</strong> 헤더에서는 UWorldSubsystem.h를 include하고 있으나 실제 부모 클래스는 ULocalPlayerSubsystem입니다. 불필요한 include가 존재합니다.<br><br>
+          UI 위젯 등 외부 시스템은 GetInvenComp()로 현재 인벤토리 컴포넌트에 접근하고,
+          OnInvenRegistered 델리게이트로 등록 시점을 감지할 수 있습니다.
+          HandlePossessedPawnChanged에서 CachedInvenComp를 먼저 nullptr로 초기화한 후 새 Pawn에서 컴포넌트를 찾아 등록합니다. 이 과정에서 RegisterToSubsystem과 RegisterInventory가 순차 호출되어 이중 등록이 발생하지만, RegisterInventory가 단순 대입이므로 무해합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="invsub" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CachedInvenComp</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_InventoryComponent&gt;</span></td>
+            <td>(private UPROPERTY)</td>
+            <td>RegisterInventory()로 등록된 인벤토리 컴포넌트 포인터. GetInvenComp()이 .Get()으로 raw pointer 반환. Pawn 변경 시 nullptr로 리셋됨.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnInvenRegistered</span></td>
+            <td><span class="var-type">FOnInventoryRegistered</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>RegisterInventory() 호출 직후 UAO_InventoryComponent* 파라미터와 함께 브로드캐스트됩니다. 인벤토리 UI 초기화에 사용됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="invsub" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Initialize(FSubsystemCollectionBase&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::Initialize(Collection) 호출<br>
+                &bull; GetLocalPlayer()로 ULocalPlayer 획득<br>
+                &bull; LP->GetPlayerController(nullptr)로 PlayerController 획득<br>
+                &bull; !PC->IsLocalController()이면 return<br>
+                &bull; PC->OnPossessedPawnChanged.AddDynamic(this, &HandlePossessedPawnChanged)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">타이밍 문제</div>
+                Initialize 시점에 PlayerController가 아직 존재하지 않을 수 있습니다(서버 접속 전). 이 경우 HandlePossessedPawnChanged 바인딩이 실패하고, 이후 InventoryComponent::BeginPlay의 RegisterInventory로만 등록이 진행됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandlePossessedPawnChanged(APawn*, APawn*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; CachedInvenComp = nullptr &mdash; 이전 캐시 초기화<br>
+                &bull; NewPawn이 null이면 return (Unpossess 시)<br>
+                &bull; NewPawn->FindComponentByClass&lt;UAO_InventoryComponent&gt;()로 컴포넌트 검색<br>
+                &bull; 성공 시 Comp->RegisterToSubsystem() 호출 (내부에서 다시 RegisterInventory 호출)<br>
+                &bull; RegisterInventory(Comp) 직접 호출 &mdash; 이중 등록이지만 대입이므로 무해
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RegisterInventory(UAO_InventoryComponent*)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; InvenComp null 체크<br>
+                &bull; CachedInvenComp = InvenComp 대입<br>
+                &bull; OnInvenRegistered.Broadcast(InvenComp) &mdash; UI 초기화 신호
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInvenComp() const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                CachedInvenComp.Get()을 반환합니다. TObjectPtr의 .Get()이므로 GC에 의해 컴포넌트가 파괴된 경우 nullptr이 반환됩니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="invsub" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>CachedInvenComp로 참조를 캐시</td></tr>
+          <tr><td>수신</td><td><span class="rel-cls">APlayerController</span></td><td>OnPossessedPawnChanged 델리게이트에 바인딩</td></tr>
+          <tr><td>조회됨</td><td><span class="rel-cls">인벤토리 UI Widget</span></td><td>GetInvenComp()로 인벤토리 참조 획득</td></tr>
+          <tr><td>자동 생성</td><td><span class="rel-cls">ULocalPlayer</span></td><td>ULocalPlayerSubsystem이므로 로컬 플레이어 생성 시 자동 인스턴스화</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_Log.h, AO_InventoryComponent.h</span></td><td>cpp에서 참조하는 헤더 목록</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_InventorySubsystem -->
+
+    <!-- ==================== AO_ItemDataAsset ==================== -->
+    <div class="class-card" id="itemdata">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_ItemDataAsset</div>
+        <div class="class-parent">부모: UDataAsset</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'itemdata','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemdata','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemdata','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'itemdata','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="itemdata" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">아이템 데이터 테이블 참조를 보관하는 데이터 에셋</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UDataAsset</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">에디터/런타임 모두 (데이터 전용, 로직 없음)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">ItemDataTable 소프트 참조를 에디터에서 설정하고 런타임에 로드</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UDataAsset을 상속한 최소한의 데이터 컨테이너입니다.
+          TSoftObjectPtr&lt;UDataTable&gt;로 아이템 데이터 테이블을 소프트 참조하여,
+          필요할 때만 비동기로 로드할 수 있습니다.
+          별도의 로직 없이 에디터에서 데이터 테이블 에셋을 지정하는 용도로 사용됩니다.<br><br>
+          <strong>.cpp 분석:</strong> cpp 파일에는 헤더 include만 존재하고 함수 구현이 전혀 없습니다. UDataAsset의 기본 직렬화/로드 기능만 사용하는 순수 데이터 클래스입니다.<br><br>
+          <strong>관련 구조체 FAO_struct_FItemBase:</strong> 이 DataTable의 행 타입으로 FTableRowBase를 상속합니다. ItemType(EItemType), ItemID(FName), ItemName(FString), ItemExplain(FString), FuelAmount(float), ItemIcon(TSoftObjectPtr&lt;UTexture2D&gt;), WorldMesh(TSoftObjectPtr&lt;UStaticMesh&gt;), ItemPrice(int32), PassiveAmount(int32), ItemTags(FGameplayTagContainer), HighlightStencilValue(uint8) 필드를 보유합니다. GetHighlightStencilValue()는 값이 0이면 ItemType에 따라 251~255 기본값을 반환합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="itemdata" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ItemDataTable</span></td>
+            <td><span class="var-type">TSoftObjectPtr&lt;UDataTable&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>FAO_struct_FItemBase 행을 포함하는 데이터 테이블의 소프트 참조. 에디터에서 에셋을 지정합니다. 런타임에 LoadSynchronous() 또는 비동기 로드로 UDataTable*를 획득합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="itemdata" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">(함수 없음)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">설명</div>이 클래스는 데이터 전용 에셋으로, cpp 파일에 별도의 함수 구현이 없습니다. UDataAsset의 기본 직렬화/로드 기능만 사용합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="itemdata" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UDataTable (FAO_struct_FItemBase)</span></td><td>TSoftObjectPtr로 아이템 데이터 테이블 소프트 참조</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">Blueprint / 에디터</span></td><td>Content Browser에서 DataAsset 에셋으로 생성&middot;편집</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_ItemDataAsset -->
+
+    <!-- ==================== AO_MasterItem ==================== -->
+    <div class="class-card" id="master">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_MasterItem</div>
+        <div class="class-parent">부모: AAO_BaseInteractable</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'master','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'master','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'master','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'master','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="master" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">월드에 배치되는 아이템 액터 &mdash; 상호작용으로 인벤토리에 추가</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">AAO_BaseInteractable</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 상호작용 처리 및 파괴, 클라이언트에는 ItemID/FuelAmount/ItemTags/CachedItemName 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">아이템 데이터 적용, 상호작용 시 인벤토리 전달, 물리 시뮬레이션, AI 픽업 지원</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          AAO_BaseInteractable을 상속하여 플레이어가 상호작용할 수 있는 아이템 액터입니다.
+          ItemID를 기반으로 ItemDataTable에서 메시, 태그, 연료량, 하이라이트 스텐실값, 아이템 이름을 조회하여 자신에게 적용합니다.<br><br>
+          <strong>생성자 (.cpp) 상세:</strong> bReplicates = true, SetReplicateMovement(true)로 네트워크 복제 활성화. 부모의 MeshComponent에 물리 시뮬레이션(SimulatePhysics=true, QueryAndPhysics, ECR_Block, Gravity=true)을 설정합니다. 단, MeshComponent가 부모에서 이미 생성된 경우에만 if(MeshComponent) 블록이 실행되며, 이후 <strong>if 블록 외부에서 동일한 물리 설정을 중복 호출</strong>합니다 (MeshComponent null 체크 없이). InteractionSphere는 반지름 50, QueryOnly, Pawn만 Overlap으로 설정됩니다. PickupComponent는 헤더에 선언되어 있으나 생성자에서 CreateDefaultSubobject가 보이지 않으므로 Blueprint에서 추가하거나 부모에서 생성될 수 있습니다.<br><br>
+          <strong>복제 등록:</strong> GetLifetimeReplicatedProps에서 ItemTags, FuelAmount, ItemID, CachedItemName 4개 프로퍼티를 DOREPLIFETIME으로 등록. ItemDataTable은 헤더에 Replicated 선언이 있지만 DOREPLIFETIME에 등록되지 않았습니다.<br><br>
+          <strong>상호작용 흐름:</strong> OnInteractionSuccess_BP_Implementation에서 서버/클라이언트 모두 Server_HandleInteraction RPC를 호출합니다. 서버에서는 HasAuthority 확인 후에도 Server RPC를 호출하는데, Server RPC는 서버에서 호출 시 즉시 실행됩니다. 따라서 서버에서도 정상 동작하지만 불필요한 RPC 오버헤드가 존재합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="master" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ItemID</span></td>
+            <td><span class="var-type">FName</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_ItemID</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>아이템 식별자. DataTable 조회 키이자 인벤토리 슬롯에 저장되는 ID. meta=(ExposeOnSpawn="true")로 SpawnActorDeferred 시 외부에서 설정 가능. 복제 시 OnRep_ItemID에서 HasActorBegunPlay 확인 후 ApplyItemData 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ItemDataTable</span></td>
+            <td><span class="var-type">UDataTable*</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>FAO_struct_FItemBase 행이 저장된 데이터 테이블. ApplyItemData()에서 아이템 정보를 조회. Replicated 선언이 있으나 GetLifetimeReplicatedProps에 등록 누락.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FuelAmount</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>연료 아이템일 경우의 연료량. ApplyItemData에서 Row->FuelAmount로 설정. Server_HandleInteraction에서 인벤토리 슬롯의 FuelAmount로 복사됨.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ItemTags</span></td>
+            <td><span class="var-type">FGameplayTagContainer</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>아이템 태그 컨테이너. DataTable의 Row->ItemTags에서 로드. GetOwnedGameplayTags()로 IGameplayTagAssetInterface에 노출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedItemName</span></td>
+            <td><span class="var-type">FString</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>DataTable의 Row->ItemName에서 캐시. GetInteractionInfo에서 FText::FromString으로 상호작용 UI 타이틀로 사용. 빈 문자열이면 부모의 기본 타이틀 유지.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionSphere</span></td>
+            <td><span class="var-type">USphereComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>반지름 50의 구체 콜리전. MeshComponent에 Attachment. QueryOnly로 Pawn만 Overlap 응답. 상호작용 범위 정의.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PickupComponent</span></td>
+            <td><span class="var-type">UAO_PickupComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>AI 픽업/드롭을 위한 컴포넌트. 물리 제어와 부착 로직을 담당. 헤더에 선언되어 있으나 생성자 .cpp에서 CreateDefaultSubobject 호출이 보이지 않음.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="master" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AAO_MasterItem() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PrimaryActorTick.bCanEverTick = false<br>
+                &bull; bReplicates = true, SetReplicateMovement(true)<br>
+                &bull; if(MeshComponent) 블록: SetIsReplicated(true), SimulatePhysics(true), QueryAndPhysics, ECR_Block 전채널, Gravity(true)<br>
+                &bull; InteractionSphere CreateDefaultSubobject &rarr; MeshComponent에 Attachment &rarr; 반지름 50, QueryOnly, ECR_Ignore 전채널, ECR_Overlap(Pawn)<br>
+                &bull; <strong>if 블록 외부에서 MeshComponent 물리 설정을 다시 호출 (중복, null 미체크)</strong>
+              </div>
+              <div class="fn-section"><div class="fn-section-title">잠재적 문제</div>
+                MeshComponent가 부모 생성자에서 생성되지 않는 경우, if 블록 외부의 MeshComponent->SetSimulatePhysics(true) 등에서 nullptr 역참조로 크래시할 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &mdash; 아이템 데이터 적용</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::BeginPlay() 호출 (부모의 상호작용 설정 포함)<br>
+                &bull; HasAuthority() &amp;&amp; !ItemID.IsNone()이면 ApplyItemData() 호출<br>
+                &bull; 클라이언트에서는 OnRep_ItemID에서 ApplyItemData가 호출됨
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnConstruction(const FTransform&amp;)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::OnConstruction(Transform) 호출<br>
+                &bull; #if WITH_EDITOR 블록 내에서만: HasAuthority() 확인, ItemID 유효하면 ApplyItemData()<br>
+                &bull; 에디터 뷰포트에서 아이템 배치 시 메시가 바로 반영되도록 하는 에디터 편의 기능
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ApplyItemData()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; ItemDataTable null 체크 &rarr; ItemID.IsNone() 체크<br>
+                &bull; static FString Context("Item Lookup")<br>
+                &bull; ItemDataTable->FindRow&lt;FAO_struct_FItemBase&gt;(ItemID, Context)로 행 조회<br>
+                &bull; Row가 유효하면:<br>
+                &nbsp;&nbsp;- ItemTags = Row->ItemTags<br>
+                &nbsp;&nbsp;- FuelAmount = Row->FuelAmount<br>
+                &nbsp;&nbsp;- HighlightStencilValue = Row->GetHighlightStencilValue() &mdash; 0이면 ItemType 기반 기본값(251~255)<br>
+                &nbsp;&nbsp;- CachedItemName = Row->ItemName<br>
+                &nbsp;&nbsp;- Row->WorldMesh가 유효하면 LoadSynchronous()로 메시 로드<br>
+                &nbsp;&nbsp;- MeshComponent의 현재 메시와 다르면 SetStaticMesh(Mesh) 설정
+              </div>
+              <div class="fn-section"><div class="fn-section-title">성능 참고</div>
+                WorldMesh를 TSoftObjectPtr::LoadSynchronous()로 동기 로드합니다. 게임 스레드를 블로킹하므로 많은 아이템이 동시에 생성되면 히치가 발생할 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInteractionInfo(const FAO_InteractionQuery&amp;) const</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::GetInteractionInfo(InteractionQuery)로 부모의 기본 Info 획득<br>
+                &bull; CachedItemName이 비어있지 않으면 Info.Title = FText::FromString(CachedItemName)으로 교체<br>
+                &bull; Info 반환
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess_BP_Implementation(AActor*)</span>
+              <span class="fn-spec bp-impl">BlueprintNativeEvent</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Super::OnInteractionSuccess_BP_Implementation(Interactor) 호출<br>
+                &bull; !HasAuthority()이면 Server_HandleInteraction(Interactor) RPC 호출 후 return<br>
+                &bull; 서버에서도 Server_HandleInteraction(Interactor) 호출 &mdash; Server RPC를 서버에서 호출하면 직접 _Implementation이 실행됨
+              </div>
+              <div class="fn-section"><div class="fn-section-title">분석</div>
+                서버/클라이언트 양쪽에서 동일하게 Server_HandleInteraction을 호출합니다. 서버에서 호출 시 RPC 없이 직접 실행되므로 기능적으로는 정상이지만, HasAuthority() 블록에서 직접 _Implementation을 호출하는 것이 더 명시적입니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_HandleInteraction(AActor* Interactor)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp: _Implementation)</div>
+                &bull; Interactor null 체크<br>
+                &bull; Interactor->FindComponentByClass&lt;UAO_InventoryComponent&gt;()로 인벤토리 획득<br>
+                &bull; FInventorySlot 구성:<br>
+                &nbsp;&nbsp;- ItemToAdd.ItemID = this->ItemID<br>
+                &nbsp;&nbsp;- ItemToAdd.Quantity = 1<br>
+                &nbsp;&nbsp;- ItemToAdd.FuelAmount = this->FuelAmount (서버에서의 값)<br>
+                &nbsp;&nbsp;- ItemDataTable에서 FindRow로 Row->ItemType 조회하여 ItemToAdd.ItemType 설정<br>
+                &bull; Inventory->PickupItem(ItemToAdd, this) &mdash; this(MasterItem)가 Instigator로 전달<br>
+                &bull; Destroy() &mdash; PickupItem 내부의 SetLifeSpan(0.1f)과 이중 파괴
+              </div>
+              <div class="fn-section"><div class="fn-section-title">이중 파괴 분석</div>
+                PickupItem에서 SetLifeSpan(0.1f)로 파괴를 예약하고, 이어서 Server_HandleInteraction에서 Destroy()를 즉시 호출합니다. Destroy()가 먼저 실행되므로 SetLifeSpan은 실질적으로 무효화됩니다. 단, SetActorHiddenInGame과 SetActorEnableCollision이 먼저 처리되므로 시각적 문제는 없습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_ItemID() / GetOwnedGameplayTags()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">OnRep_ItemID (.cpp)</div>
+                &bull; HasActorBegunPlay() false이면 return &mdash; BeginPlay 이전에는 ApplyItemData 호출 방지<br>
+                &bull; ItemID가 유효하면 ApplyItemData() 호출 &mdash; 클라이언트에서 메시/태그 동기화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">GetOwnedGameplayTags (.cpp)</div>
+                TagContainer = ItemTags 직접 대입. IGameplayTagAssetInterface 구현으로 EQS 등에서 태그 기반 필터링에 사용됩니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="master" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속</td><td><span class="rel-cls">AAO_BaseInteractable</span></td><td>상호작용 기반 클래스를 상속, MeshComponent는 부모에서 생성</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UDataTable (FAO_struct_FItemBase)</span></td><td>ItemID로 아이템 데이터 조회 (ApplyItemData, Server_HandleInteraction)</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>Server_HandleInteraction에서 PickupItem() 호출</td></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_PickupComponent</span></td><td>AI 픽업/드롭 기능을 위한 컴포넌트 보유</td></tr>
+          <tr><td>생성됨</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>드롭 시 SpawnActorDeferred로 생성됨</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_struct_FItemBase.h, AO_InventoryComponent.h</span></td><td>cpp에서 참조하는 핵심 헤더</td></tr>
+        </table>
+        <div class="section-title">아이템 픽업 전체 흐름</div>
+        <div class="flow-box">
+          &#9312; 플레이어가 MasterItem과 상호작용 &rarr; GAS AbilityTask에서 OnInteractionSuccess_BP 호출<br>
+          &#9313; OnInteractionSuccess_BP_Implementation &rarr; Server_HandleInteraction RPC 전송<br>
+          &#9314; 서버: Interactor의 UAO_InventoryComponent 획득<br>
+          &#9315; FInventorySlot 구성 (ItemID, Quantity=1, FuelAmount, ItemType from DataTable)<br>
+          &#9316; Inventory->PickupItem(Slot, this) &mdash; 빈 슬롯에 대입 또는 교체+기존 아이템 드롭<br>
+          &#9317; MasterItem: Instigator 어빌리티 정리 &rarr; Hidden &rarr; SetLifeSpan(0.1f)<br>
+          &#9318; Server_HandleInteraction 끝에서 Destroy() &rarr; 액터 즉시 파괴<br>
+          &#9319; Slots 변경이 클라이언트에 복제 &rarr; OnRep_Slots &rarr; UI 갱신
+        </div>
+      </div>
+    </div><!-- /AO_MasterItem -->
+
+    <!-- ==================== AO_PickupComponent ==================== -->
+    <div class="class-card" id="pickup">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PickupComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pickup','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pickup','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pickup','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pickup','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pickup" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">아이템 액터(MasterItem)에 부착되어 AI(Crab)의 줍기/드롭을 가능하게 하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 픽업/드롭 처리, bIsPickedUp과 ItemTags를 클라이언트에 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">물리 시뮬레이션 제어, 소유권/부착 관리, 픽업 쿨다운, 상태 태그 관리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          아이템 액터에 부착되어 AI가 해당 아이템을 줍거나 놓을 수 있게 합니다.
+          TryPickup()은 물리 시뮬레이션을 비활성화하고 지정된 소켓에 아이템을 부착하며,
+          TryDrop()은 부착을 해제하고 물리를 다시 활성화합니다.<br><br>
+          <strong>물리 제어 상세:</strong> ConfigurePhysics()는 최초 호출 시 Owner의 RootComponent를 UPrimitiveComponent로 캐스트하여 TargetPhysicsComp에 캐싱합니다. 이후 bEnablePhysics=true이면 SimulatePhysics(true) + QueryAndPhysics, false이면 SimulatePhysics(false) + NoCollision을 설정합니다. NoCollision은 부착 상태에서 다른 물체와 충돌하지 않도록 합니다.<br><br>
+          <strong>쿨다운 시스템:</strong> CooldownExpireTime은 World->GetTimeSeconds() + Duration으로 설정됩니다. TryDrop에서 5초, ItemCarryComponent의 DropItem에서 DropCooldownTime(기본 20초)으로 재설정됩니다. 후자가 더 길므로 SetIgnoreCooldown(DropCooldownTime)이 5초를 덮어씁니다.<br><br>
+          bIsPickedUp은 ReplicatedUsing=OnRep_IsPickedUp으로 복제되어 클라이언트에서 ConfigurePhysics(!bIsPickedUp)를 호출하여 물리 상태를 동기화합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pickup" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">bIsPickedUp</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsPickedUp</span><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 픽업된 상태인지. TryPickup 성공 시 true, TryDrop 시 false. OnRep에서 ConfigurePhysics(!bIsPickedUp) 호출.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ItemTags</span></td>
+            <td><span class="var-type">FGameplayTagContainer</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>아이템에 부여된 GameplayTag 컨테이너. HasTag/AddTag로 조작. DOREPLIFETIME으로 복제.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TargetPhysicsComp</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UPrimitiveComponent&gt;</span></td>
+            <td>(UPROPERTY)</td>
+            <td>물리 제어 대상 컴포넌트. ConfigurePhysics 첫 호출 시 Owner->GetRootComponent()를 Cast&lt;UPrimitiveComponent&gt;로 캐싱. 캐스트 실패 시 nullptr 유지되어 이후 물리 제어 무시.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CooldownExpireTime</span></td>
+            <td><span class="var-type">double</span></td>
+            <td>(멤버, 기본값 0.0)</td>
+            <td>쿨다운 만료 시각(World Time 기준). GetTimeSeconds()와 비교하여 IsInCooldown 판단. SetIgnoreCooldown으로 설정.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pickup" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_PickupComponent() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; PrimaryComponentTick.bCanEverTick = false<br>
+                &bull; SetIsReplicatedByDefault(true) &mdash; 네트워크 복제 활성화
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryPickup(USceneComponent* AttachTo, FName SocketName)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; ensureMsgf(AttachTo)로 null 체크 (에디터에서 어서트)<br>
+                &bull; bIsPickedUp이면 false 반환 (이미 픽업됨)<br>
+                &bull; IsInCooldown()이면 false 반환 (쿨다운 중)<br>
+                &bull; Owner(GetOwner()) null 체크<br>
+                &bull; ConfigurePhysics(false) &mdash; 물리 비활성화 (SimulatePhysics=false, NoCollision)<br>
+                &bull; Owner->AttachToComponent(AttachTo, SnapToTargetNotIncludingScale, SocketName)<br>
+                &bull; 부착 성공: bIsPickedUp = true, CooldownExpireTime = 0.0<br>
+                &bull; 부착 실패: ConfigurePhysics(true)로 물리 복구
+              </div>
+              <div class="fn-section"><div class="fn-section-title">서버 권한 체크 부재</div>
+                TryPickup 내부에 HasAuthority() 체크가 없습니다. 호출자(ItemCarryComponent)에서 권한을 확인하므로 기능적으로는 문제없지만, 방어적 코딩 관점에서는 부재합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryDrop()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; !bIsPickedUp이면 return (들고 있지 않음)<br>
+                &bull; Owner null 체크<br>
+                &bull; Owner->DetachFromActor(KeepWorldTransform) &mdash; 현재 월드 위치에서 분리<br>
+                &bull; ConfigurePhysics(true) &mdash; 물리 활성화 (SimulatePhysics=true, QueryAndPhysics)<br>
+                &bull; bIsPickedUp = false<br>
+                &bull; SetIgnoreCooldown(5.0f) &mdash; 5초 쿨다운 (ItemCarryComponent에서 20초로 덮어쓰기됨)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HasTag / AddTag</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; HasTag: ItemTags.HasTag(TagToCheck) 반환<br>
+                &bull; AddTag: TagToAdd.IsValid() 확인 후 ItemTags.AddTag(TagToAdd). 서버에서만 호출해야 복제가 정확히 됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ConfigurePhysics(bool bEnablePhysics)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; TargetPhysicsComp가 null이면 Owner->GetRootComponent()를 UPrimitiveComponent로 캐스트하여 캐싱<br>
+                &bull; TargetPhysicsComp 유효 시:<br>
+                &nbsp;&nbsp;- SetSimulatePhysics(bEnablePhysics)<br>
+                &nbsp;&nbsp;- bEnablePhysics=true &rarr; QueryAndPhysics (물리 충돌 활성)<br>
+                &nbsp;&nbsp;- bEnablePhysics=false &rarr; NoCollision (충돌 완전 비활성)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetIgnoreCooldown(float) / IsInCooldown() const</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; SetIgnoreCooldown: CooldownExpireTime = GetTimeSeconds() + Duration<br>
+                &bull; IsInCooldown: GetTimeSeconds() &lt; CooldownExpireTime 반환<br>
+                &bull; 두 함수 모두 GetWorld() null 체크 포함
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_IsPickedUp()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                ConfigurePhysics(!bIsPickedUp) &mdash; bIsPickedUp=true이면 물리 비활성화, false이면 물리 활성화. 클라이언트에서 서버의 물리 상태를 동기화합니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pickup" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부착됨</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>MasterItem에 컴포넌트로 부착, 물리 제어 대상은 MasterItem의 RootComponent</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">UAO_ItemCarryComponent</span></td><td>TryPickupItem에서 TryPickup, DropItem에서 TryDrop + SetIgnoreCooldown 호출</td></tr>
+          <tr><td>질의됨</td><td><span class="rel-cls">UAO_ItemCarryComponent</span></td><td>CanPickupItem에서 IsPickedUp/IsInCooldown 확인</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PickupComponent -->
+
+    <!-- ==================== AO_ItemCarryComponent ==================== -->
+    <div class="class-card" id="carry">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_ItemCarryComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'carry','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'carry','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'carry','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'carry','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="carry" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Crab AI 캐릭터에 부착되어 아이템 운반을 관리하는 컴포넌트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UActorComponent</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 픽업/드롭 처리, CarriedItem을 클라이언트에 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">아이템 줍기/드롭 로직, AISubsystem과 예약 연동, 주변 아이템 검색, 쿨다운 관리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Crab AI 캐릭터에 부착되어 아이템 운반 전체 흐름을 관리합니다.
+          TryPickupItem()은 AISubsystem에 아이템을 예약(TryReserveItem)한 뒤,
+          PickupComponent를 통해 SkeletalMesh의 지정 소켓에 아이템을 부착합니다.<br><br>
+          <strong>예약 시스템:</strong> AISubsystem의 TryReserveItem/ReleaseItem/MarkItemAsRecentlyDropped를 통해 여러 Crab AI 간 아이템 중복 줍기를 방지합니다. TryPickupItem 실패 시 ReleaseItem으로 예약을 해제합니다.<br><br>
+          <strong>DropItem 쿨다운 이중화:</strong> PickupComponent의 TryDrop()이 5초 쿨다운을 설정한 직후, SetIgnoreCooldown(DropCooldownTime=20초)으로 덮어쓰므로 실질적 쿨다운은 20초입니다. AISubsystem의 MarkItemAsRecentlyDropped도 20초를 사용합니다.<br><br>
+          <strong>GetAIController 의존성:</strong> GetAIController는 AAO_CrabController로만 캐스트합니다. 다른 AI 타입(Bull, Insect 등)에서는 이 컴포넌트를 사용할 수 없습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="carry" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CarriedItem</span></td>
+            <td><span class="var-type">TObjectPtr&lt;AAO_MasterItem&gt;</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_CarriedItem</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 운반 중인 아이템 참조. nullptr이면 운반 없음. TryPickupItem 성공 시 설정, DropItem에서 nullptr. OnRep_CarriedItem은 빈 구현 (향후 확장용).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PickupSocketName</span></td>
+            <td><span class="var-type">FName</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>아이템을 부착할 SkeletalMesh 소켓 이름. 기본값 "PickupSocket". Crab 캐릭터의 메시에 해당 소켓이 있어야 합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DropCooldownTime</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>아이템 드롭 후 쿨다운(초). 기본값 20. PickupComponent::SetIgnoreCooldown과 AISubsystem::MarkItemAsRecentlyDropped에 모두 전달.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnItemPickedUp</span></td>
+            <td><span class="var-type">FOnItemPickedUp</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>AAO_MasterItem* 파라미터로 픽업 성공 시 브로드캐스트.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnItemDropped</span></td>
+            <td><span class="var-type">FOnItemDropped</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>AAO_MasterItem* 파라미터로 드롭 시 브로드캐스트.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="carry" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryPickupItem(AAO_MasterItem* Item)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; ensureMsgf(Item) &mdash; null 체크<br>
+                &bull; Owner null 체크 &rarr; !Owner->HasAuthority()이면 return false (서버 전용)<br>
+                &bull; IsCarryingItem()이면 return false (이미 운반 중)<br>
+                &bull; !CanPickupItem(Item)이면 return false<br>
+                &bull; GetAISubsystem() &rarr; TryReserveItem(Item, GetOwner()) &mdash; 예약 실패 시 return false<br>
+                &bull; Item->FindComponentByClass&lt;UAO_PickupComponent&gt;()로 PickupComp 획득<br>
+                &bull; Owner->FindComponentByClass&lt;USkeletalMeshComponent&gt;()로 OwnerMesh 획득<br>
+                &bull; PickupComp->TryPickup(OwnerMesh, PickupSocketName) 호출<br>
+                &bull; 성공: CarriedItem = Item &rarr; OnItemPickedUp.Broadcast(Item) &rarr; return true<br>
+                &bull; 실패: AISubsystem->ReleaseItem(Item) &rarr; return false
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">DropItem()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; !CarriedItem이면 return<br>
+                &bull; Owner null 체크 &rarr; !HasAuthority()이면 return (서버 전용)<br>
+                &bull; DroppedItem = CarriedItem (nullptr 설정 전에 캐시)<br>
+                &bull; PickupComp->TryDrop() 호출 &mdash; 물리 활성화 + 5초 쿨다운<br>
+                &bull; PickupComp->SetIgnoreCooldown(DropCooldownTime) &mdash; 20초로 덮어쓰기<br>
+                &bull; AISubsystem->ReleaseItem(DroppedItem) &mdash; 예약 해제<br>
+                &bull; AISubsystem->MarkItemAsRecentlyDropped(DroppedItem, DropCooldownTime) &mdash; 20초 최근 드롭 마킹<br>
+                &bull; CarriedItem = nullptr &rarr; OnItemDropped.Broadcast(DroppedItem)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ForceDropItem()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                단순히 DropItem()을 호출합니다. 기절 등 강제 상황에서 사용. 별도의 추가 로직은 없습니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindNearbyItem(float SearchRadius) const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; Owner 위치 획득, NearestDistSq = SearchRadius^2 초기화<br>
+                &bull; GetAIController()로 AAO_CrabController 캐스트 &mdash; 실패 시 nullptr 반환<br>
+                &bull; CrabController->GetDiscoveredItems()로 감지 아이템 목록 획득<br>
+                &bull; 각 Item에 대해 CanPickupItem(Item) &amp;&amp; 거리^2 비교<br>
+                &bull; 가장 가까운 아이템 반환 (없으면 nullptr)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">특이사항</div>
+                전체 월드 검색이 아닌 CrabController의 Perception 시스템이 감지한 아이템만 검색합니다. SearchRadius는 추가 필터 역할을 합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanPickupItem(AAO_MasterItem* Item) const</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp) &mdash; 4단계 검증</div>
+                &#9312; ensureMsgf(Item) null 체크<br>
+                &#9313; PickupComponent->IsPickedUp() &mdash; 이미 다른 AI가 들고 있는지<br>
+                &#9314; PickupComponent->IsInCooldown() &mdash; 쿨다운 중인지<br>
+                &#9315; AISubsystem->IsItemReserved(Item) &mdash; 다른 AI가 예약했는지<br>
+                &#9316; AISubsystem->IsItemRecentlyDropped(Item) &mdash; 최근 드롭된 아이템인지<br>
+                모두 통과하면 true 반환
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="carry" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출</td><td><span class="rel-cls">UAO_PickupComponent</span></td><td>TryPickup/TryDrop/SetIgnoreCooldown으로 물리&middot;부착 제어</td></tr>
+          <tr><td>연동</td><td><span class="rel-cls">UAO_AISubsystem</span></td><td>TryReserveItem/ReleaseItem/MarkItemAsRecentlyDropped로 중복 방지</td></tr>
+          <tr><td>의존</td><td><span class="rel-cls">AAO_CrabController</span></td><td>GetDiscoveredItems()로 감지 아이템 목록 획득, GetAIController에서 CrabController로만 캐스트</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_MasterItem</span></td><td>CarriedItem으로 운반 중인 아이템 참조</td></tr>
+          <tr><td>부착됨</td><td><span class="rel-cls">Crab AI 캐릭터</span></td><td>Crab 캐릭터에 컴포넌트로 부착</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_AISubsystem.h, AO_PickupComponent.h, AO_CrabController.h, AO_MasterItem.h</span></td><td>cpp에서 참조하는 헤더 목록</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_ItemCarryComponent -->
+
+    <!-- ==================== AO_Fuel_AttributeSet ==================== -->
+    <div class="class-card" id="fuelattr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_Fuel_AttributeSet</div>
+        <div class="class-parent">부모: UAttributeSet (GAS)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'fuelattr','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuelattr','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuelattr','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'fuelattr','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="fuelattr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">기차의 연료 수치를 GAS AttributeSet으로 관리하는 클래스</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">부모 클래스</div>
+            <div class="info-value">UAttributeSet (Gameplay Ability System)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 연료 연산, Fuel 어트리뷰트는 REPNOTIFY_Always로 클라이언트에 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">Fuel 어트리뷰트 정의, GameInstance에서 초기값 복원, 어트리뷰트 복제</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GAS의 UAttributeSet을 상속하여 기차 연료(Fuel) 어트리뷰트를 정의합니다.
+          ATTRIBUTE_ACCESSORS_BASIC 매크로로 GetFuel/SetFuel/InitFuel 접근자를 자동 생성합니다.<br><br>
+          <strong>초기화 흐름:</strong> InitFromGameInstance()에서 GetOwningAbilitySystemComponent &rarr; GetOwnerActor &rarr; GetWorld &rarr; GetGameInstance를 순차 탐색하여 UAO_GameInstance의 SharedTrainFuel을 읽습니다. FMath::Max(30.0f, SharedTrainFuel)로 최솟값 30을 보장하며 BaseValue와 CurrentValue를 모두 설정합니다. 이 함수는 AAO_Train::BeginPlay에서 호출되지 않고, 외부(Blueprint 또는 다른 시스템)에서 명시적으로 호출해야 합니다.<br><br>
+          <strong>복제 설정:</strong> DOREPLIFETIME_CONDITION_NOTIFY(COND_None, REPNOTIFY_Always)로 등록되어, 값이 변경되지 않아도 복제 시마다 OnRep_Fuel이 호출됩니다. OnRep_Fuel에서 GAMEPLAYATTRIBUTE_REPNOTIFY 매크로로 GAS 내부 예측 시스템과 동기화합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="fuelattr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Fuel</span></td>
+            <td><span class="var-type">FGameplayAttributeData</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_Fuel</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>기차의 현재 연료 수치. GameplayEffect를 통해 증가/감소됩니다. ATTRIBUTE_ACCESSORS_BASIC 매크로로 GetFuel()/SetFuel()/InitFuel() 정적 접근자 자동 생성. BaseValue와 CurrentValue 구분: BaseValue는 영구적 기본값, CurrentValue는 임시 버프 포함 현재값.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="fuelattr" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_Fuel_AttributeSet() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                빈 생성자입니다. Fuel은 FGameplayAttributeData의 기본값(0)으로 초기화됩니다. 실제 초기값 설정은 InitFromGameInstance에서 수행합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InitFromGameInstance()</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; GetOwningAbilitySystemComponent()로 ASC 획득 &mdash; null이면 return<br>
+                &bull; ASC->GetOwnerActor()로 Owner 획득 &mdash; null이면 return<br>
+                &bull; OwnerActor->GetWorld() &mdash; null이면 return<br>
+                &bull; Cast&lt;UAO_GameInstance&gt;(World->GetGameInstance()) &mdash; 실패 시 아무것도 안 함<br>
+                &bull; const float LastFuel = FMath::Max(30.0f, GI->SharedTrainFuel)<br>
+                &bull; Fuel.SetBaseValue(LastFuel) &mdash; 영구 기본값 설정<br>
+                &bull; Fuel.SetCurrentValue(LastFuel) &mdash; 현재값 동기화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">분석</div>
+                SharedTrainFuel이 0이거나 음수여도 30.0f가 보장됩니다. 이전 스테이지에서 연료가 거의 고갈되었더라도 새 스테이지에서 최소 30의 연료로 시작합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_Fuel(const FGameplayAttributeData&amp; OldFuel)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                GAMEPLAYATTRIBUTE_REPNOTIFY(UAO_Fuel_AttributeSet, Fuel, OldFuel) &mdash; GAS의 예측 시스템이 서버 값을 클라이언트에 반영하고, 예측 불일치 시 롤백을 수행합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLifetimeReplicatedProps()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                DOREPLIFETIME_CONDITION_NOTIFY(UAO_Fuel_AttributeSet, Fuel, COND_None, REPNOTIFY_Always) &mdash; 조건 없이 모든 클라이언트에 복제, 값이 동일해도 항상 OnRep 호출.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="fuelattr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>보유됨</td><td><span class="rel-cls">AAO_Train</span></td><td>기차의 ASC에 CreateDefaultSubobject로 등록, 연료 어트리뷰트 보관</td></tr>
+          <tr><td>수정됨</td><td><span class="rel-cls">UAO_AddFuel_GameplayAbility</span></td><td>AddEnergyEffectClass GE로 Fuel 증가</td></tr>
+          <tr><td>수정됨</td><td><span class="rel-cls">UAO_RemoveFuel_GameplayAbility</span></td><td>DeleteEnergyEffectClass GE로 Fuel 감소</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>InitFromGameInstance()로 SharedTrainFuel 복원</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_GameInstance.h</span></td><td>GameInstance 캐스트를 위한 헤더 참조</td></tr>
+        </table>
+        <div class="section-title">GAS 연료 파이프라인 전체 흐름</div>
+        <div class="flow-box">
+          <strong>[충전]</strong> 플레이어가 기차와 상호작용 &rarr; AAO_Train::HandleInteractionSuccess &rarr; 인벤토리 슬롯의 FuelAmount 읽기 &rarr; FGameplayEventData(EventMagnitude=FuelAmount) 구성 &rarr; ASC->HandleGameplayEvent("Event.Interaction.AddFuel") &rarr; UAO_AddFuel_GameplayAbility 자동 활성화 &rarr; AddEnergyEffectClass GE 적용 &rarr; SetByCallerMagnitude("Data.EnergyAmount") &rarr; Fuel 어트리뷰트 증가 &rarr; OnFuelChanged 콜백<br><br>
+          <strong>[누수]</strong> Blueprint에서 FuelLeakSkillOn() 호출 &rarr; ASC->TryActivateAbility(LeakEnergyAbilityClass) &rarr; UAO_RemoveFuel_GameplayAbility 활성화 &rarr; DeleteEnergyEffectClass GE 적용 (PendingAmount=-5) &rarr; Fuel 감소 &rarr; Train->OnFuelChangedDelegate.Broadcast &rarr; UI 갱신<br><br>
+          <strong>[실패]</strong> AAO_Train::OnFuelChanged에서 OldFuel >= 0 &amp;&amp; NewFuel &lt; 0 감지 &rarr; GameMode_Stage->TriggerStageFailByTrainFuel()
+        </div>
+      </div>
+    </div><!-- /AO_Fuel_AttributeSet -->
+
+    <!-- ==================== AO_AddFuel_GameplayAbility ==================== -->
+    <div class="class-card" id="addfuel">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AddFuel_GameplayAbility</div>
+        <div class="class-parent">부모: UGameplayAbility (GAS)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'addfuel','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'addfuel','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'addfuel','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'addfuel','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="addfuel" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">기차에 연료를 충전하는 GAS GameplayAbility</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">트리거 방식</div>
+            <div class="info-value">GameplayEvent "Event.Interaction.AddFuel" 태그로 자동 활성화 (TryActivateAbility가 아닌 이벤트 기반)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (IsNetAuthority 확인). InstancedPerActor 인스턴싱 정책</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">TriggerEventData의 EventMagnitude만큼 연료 증가 GE 적용 후 즉시 EndAbility</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GAS의 UGameplayAbility를 상속하여 기차 연료 충전을 구현합니다.
+          생성자에서 AbilityTriggers에 FAbilityTriggerData를 추가하여 "Event.Interaction.AddFuel" 태그를 GameplayEvent 소스로 등록합니다. ASC->HandleGameplayEvent() 호출 시 이 태그가 매칭되면 자동으로 ActivateAbility가 호출됩니다.<br><br>
+          <strong>ActivateAbility 상세 흐름:</strong> IsNetAuthority 확인 + CommitAbility(리소스 확보) &rarr; ASC/AddEnergyEffectClass 유효성 검증 &rarr; TriggerEventData->EventMagnitude에서 FuelAmount 추출 &rarr; FuelAmount &le; 0이면 취소 &rarr; MakeOutgoingSpec으로 GE Spec 생성 &rarr; SetByCallerMagnitude("Data.EnergyAmount", FuelAmount) &rarr; ApplyGameplayEffectSpecToSelf &rarr; EndAbility(false, false).<br><br>
+          <strong>PendingAmount 변수:</strong> Transient로 선언되어 직렬화되지 않습니다. 코드에서 사용되지 않으며 (실제 값은 EventMagnitude에서 가져옴), 향후 확장 또는 디버깅 목적으로 존재할 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="addfuel" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AddEnergyEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>연료 증가에 사용할 GameplayEffect 클래스. 에디터에서 SetByCallerMagnitude를 사용하는 Instant/Periodic GE를 지정. "Data.EnergyAmount" 태그로 충전량을 전달.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PendingAmount</span></td>
+            <td><span class="var-type">float</span></td>
+            <td>(Transient, 기본값 0)</td>
+            <td>코드에서 직접 사용되지 않음. ActivateAbility에서 TriggerEventData->EventMagnitude를 직접 사용.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="addfuel" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_AddFuel_GameplayAbility() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; InstancingPolicy = InstancedPerActor &mdash; 기차 액터당 하나의 인스턴스<br>
+                &bull; FAbilityTriggerData 생성:<br>
+                &nbsp;&nbsp;- TriggerTag = RequestGameplayTag("Event.Interaction.AddFuel")<br>
+                &nbsp;&nbsp;- TriggerSource = GameplayEvent<br>
+                &bull; AbilityTriggers.Add(TriggerData) &mdash; 이벤트 기반 자동 활성화 등록
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; !ActorInfo->IsNetAuthority() || !CommitAbility(...) &rarr; EndAbility(true, true) 취소<br>
+                &bull; ASC = ActorInfo->AbilitySystemComponent.Get() &mdash; null이면 취소<br>
+                &bull; !AddEnergyEffectClass이면 취소<br>
+                &bull; FuelAmount = TriggerEventData ? TriggerEventData->EventMagnitude : 0<br>
+                &bull; FuelAmount &le; 0이면 취소 (음수/0 연료 방지)<br>
+                &bull; ASC->MakeOutgoingSpec(AddEnergyEffectClass, Level=1.f, Context)<br>
+                &bull; Spec 유효성 검증 (IsValid &amp;&amp; Data.IsValid)<br>
+                &bull; FGameplayTag "Data.EnergyAmount"를 RequestGameplayTag로 생성<br>
+                &bull; Spec.Data->SetSetByCallerMagnitude(Tag, FuelAmount)<br>
+                &bull; ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get())<br>
+                &bull; EndAbility(false, false) &mdash; 정상 종료
+              </div>
+              <div class="fn-section"><div class="fn-section-title">Super::ActivateAbility 미호출</div>
+                부모의 ActivateAbility를 호출하지 않습니다. UGameplayAbility의 기본 구현은 비어있으므로 기능적 문제는 없지만, 커스텀 부모 클래스에서 로직이 추가되면 문제가 될 수 있습니다.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="addfuel" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>실행됨</td><td><span class="rel-cls">AAO_Train (ASC)</span></td><td>기차의 ASC에서 HandleGameplayEvent로 트리거, BeginPlay에서 GiveAbility로 부여</td></tr>
+          <tr><td>적용</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>AddEnergyEffectClass GE를 통해 Fuel 어트리뷰트 증가</td></tr>
+          <tr><td>트리거</td><td><span class="rel-cls">Event.Interaction.AddFuel</span></td><td>GameplayEvent 태그로 자동 활성화</td></tr>
+          <tr><td>전달값</td><td><span class="rel-cls">Data.EnergyAmount</span></td><td>SetByCallerMagnitude 태그로 연료량을 GE에 전달</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_AddFuel_GameplayAbility -->
+
+    <!-- ==================== AO_RemoveFuel_GameplayAbility ==================== -->
+    <div class="class-card" id="rmfuel">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_RemoveFuel_GameplayAbility</div>
+        <div class="class-parent">부모: UGameplayAbility (GAS)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'rmfuel','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'rmfuel','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'rmfuel','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'rmfuel','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="rmfuel" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">기차의 연료를 감소시키는 GAS GameplayAbility (연료 누수)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">트리거 방식</div>
+            <div class="info-value">AAO_Train::FuelLeakSkillOn()에서 TryActivateAbility로 명시적 활성화</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (IsNetAuthority 확인). InstancedPerActor 인스턴싱 정책</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">PendingAmount(-5)만큼 연료 감소 GE 적용, EndAbility 시 효과 제거, UI 브로드캐스트</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GAS의 UGameplayAbility를 상속하여 기차 연료 누수(감소)를 구현합니다.
+          AddFuel과 달리 이벤트 기반이 아니라 TryActivateAbility로 명시적으로 활성화됩니다.<br><br>
+          <strong>PendingAmount 값 충돌:</strong> 헤더에서 PendingAmount = -10.f로 선언하지만, 생성자(.cpp)에서 -5.f로 재설정합니다. 실제 사용값은 -5입니다. 에디터에서 EditDefaultsOnly로 편집 가능하므로 Blueprint에서 다시 변경될 수 있습니다.<br><br>
+          <strong>ActiveGEHandle 패턴:</strong> ActivateAbility에서 ApplyGameplayEffectSpecToSelf의 반환값을 ActiveGEHandle에 보관합니다. EndAbility에서 이 핸들로 RemoveActiveGameplayEffect를 호출하여 효과를 명시적으로 제거합니다. DeleteEnergyEffectClass가 Infinite Duration GE인 경우, 어빌리티 종료 시 효과도 함께 제거되어야 하므로 이 패턴이 필요합니다.<br><br>
+          <strong>UI 브로드캐스트:</strong> ActivateAbility 내에서 GE 적용 후 FuelAttributeSet에서 현재 Fuel을 읽어 AAO_Train의 OnFuelChangedDelegate를 직접 Broadcast합니다. 이는 GAS의 AttributeValueChange 델리게이트와 별도로 수동 알림을 추가한 것입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="rmfuel" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">DeleteEnergyEffectClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayEffect&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>연료 감소에 사용할 GameplayEffect 클래스. SetByCallerMagnitude("Data.EnergyAmount", PendingAmount)로 감소량 전달. Infinite Duration GE일 가능성이 높음.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PendingAmount</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>한 번에 감소할 연료량. 헤더: -10.f, 생성자: -5.f (실제 사용값). 음수이므로 GE의 Additive Modifier와 결합하면 Fuel 감소.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ActiveGEHandle</span></td>
+            <td><span class="var-type">FActiveGameplayEffectHandle</span></td>
+            <td>(private 멤버)</td>
+            <td>적용된 GameplayEffect의 핸들. EndAbility에서 RemoveActiveGameplayEffect(ActiveGEHandle)로 효과 제거. InstancedPerActor이므로 액터당 하나만 보관.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="rmfuel" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UAO_RemoveFuel_GameplayAbility() &mdash; 생성자</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; InstancingPolicy = InstancedPerActor<br>
+                &bull; PendingAmount = -5.f &mdash; 헤더의 -10.f를 덮어씀
+              </div>
+              <div class="fn-section"><div class="fn-section-title">AddFuel과의 차이</div>
+                AddFuel은 AbilityTriggers로 이벤트 기반 활성화를 등록하지만, RemoveFuel은 트리거 등록이 없습니다. FuelLeakSkillOn에서 TryActivateAbility로 명시적으로 활성화됩니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ActivateAbility(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; <strong>Super::ActivateAbility() 호출</strong> (AddFuel과 달리 부모 호출 있음)<br>
+                &bull; ActorInfo null || !IsNetAuthority()이면 EndAbility(true, true) 취소<br>
+                &bull; !DeleteEnergyEffectClass || !ASC.IsValid()이면 취소<br>
+                &bull; ASC->MakeEffectContext() &rarr; MakeOutgoingSpec(DeleteEnergyEffectClass, 1.f, Context)<br>
+                &bull; Spec 유효성 검증 (IsValid &amp;&amp; Data.IsValid)<br>
+                &bull; FGameplayTag "Data.EnergyAmount" 생성<br>
+                &bull; Spec.Data->SetSetByCallerMagnitude(Tag, PendingAmount) &mdash; -5.f 전달<br>
+                &bull; <strong>ActiveGEHandle = ASC->ApplyGameplayEffectSpecToSelf</strong> &mdash; 핸들 보관<br>
+                &bull; ASC->GetSet&lt;UAO_Fuel_AttributeSet&gt;()에서 현재 Fuel 읽기<br>
+                &bull; AvatarActor를 AAO_Train으로 캐스트<br>
+                &bull; Train->OnFuelChangedDelegate.Broadcast(NewFuel) &mdash; 수동 UI 알림
+              </div>
+              <div class="fn-section"><div class="fn-section-title">CommitAbility 미호출</div>
+                AddFuel은 CommitAbility를 호출하여 쿨다운/코스트를 확인하지만, RemoveFuel은 CommitAbility를 호출하지 않습니다. GE가 쿨다운/코스트 없이 즉시 적용됩니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">EndAbility 미호출 (정상 경로)</div>
+                AddFuel은 정상 경로 끝에 EndAbility(false, false)를 호출하지만, RemoveFuel은 ActivateAbility 정상 경로에서 EndAbility를 호출하지 않습니다. 이는 의도적일 수 있습니다 &mdash; FuelLeakSkillOut에서 외부적으로 CancelAbility/ClearAbility를 호출하여 어빌리티를 종료합니다.
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EndAbility(...)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">구현 상세 (.cpp)</div>
+                &bull; ActorInfo &amp;&amp; ASC.IsValid() &amp;&amp; ActiveGEHandle.IsValid() 확인<br>
+                &bull; ASC->RemoveActiveGameplayEffect(ActiveGEHandle) &mdash; 적용된 GE 제거<br>
+                &bull; Super::EndAbility(...) 호출 &mdash; 부모의 정리 로직 실행
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>
+                &bull; FuelLeakSkillOut()에서 CancelAbility 호출 시 bWasCancelled=true로 호출됨<br>
+                &bull; 서버 권한 상실 시 등 비정상 종료에서도 호출되어 GE를 정리합니다
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="rmfuel" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>실행됨</td><td><span class="rel-cls">AAO_Train (ASC)</span></td><td>FuelLeakSkillOn에서 TryActivateAbility로 활성화, FuelLeakSkillOut에서 CancelAbility + ClearAbility</td></tr>
+          <tr><td>적용</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>DeleteEnergyEffectClass GE로 Fuel 어트리뷰트 감소</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>ActivateAbility에서 GetFuel()로 현재 연료 조회</td></tr>
+          <tr><td>알림</td><td><span class="rel-cls">AAO_Train</span></td><td>OnFuelChangedDelegate.Broadcast()로 UI 갱신 알림</td></tr>
+          <tr><td>포함 (.cpp)</td><td><span class="rel-cls">AO_Fuel_AttributeSet.h, AO_Train.h</span></td><td>cpp에서 참조하는 핵심 헤더</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_RemoveFuel_GameplayAbility -->
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div class="footer">
+  AVaOut QA &mdash; 학습 목적 전용 &middot; Claude Opus 4.6 생성
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['inv','invsub','itemdata','master','pickup','carry','fuelattr','addfuel','rmfuel'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+
+// TOC click → immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

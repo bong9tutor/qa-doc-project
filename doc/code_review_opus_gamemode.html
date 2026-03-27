@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 게임모드 & 컨트롤러 클래스 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#ea580c;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:500;}
+
+/* Layout */
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+/* Sidebar TOC */
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#fff7ed;color:#ea580c;border-left-color:#ea580c;font-weight:600;}
+.toc-divider{border:none;border-top:1px solid #e5e7eb;margin:8px 0;}
+
+/* Content */
+.content{flex:1;min-width:0;}
+
+/* Class Card */
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#ea580c;border-bottom-color:#ea580c;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+/* Overview */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #ea580c;}
+
+/* Variable Table */
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#ea580c;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+/* Function Accordion */
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#fff7ed;border-color:#fed7aa;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #fed7aa;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+/* Relation Table */
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#ea580c;font-weight:600;}
+
+/* Section bottom */
+.section-divider{border:none;border-top:1px solid #e5e7eb;margin:32px 0 0;}
+
+/* Responsive */
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_opus.html">&larr; 코드 리뷰</a>
+  <div class="nav-logo">GameMode &amp; Controller &mdash; Opus</div>
+  <div class="nav-sub">게임모드 &amp; 컨트롤러 클래스 &middot; 심층 분석</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">게임모드 &amp; 컨트롤러 클래스</div>
+  <div class="hero-sub">맵별 게임 규칙과 플레이어 입력을 담당하는 12개 클래스 &middot; .h + .cpp 전체 분석</div>
+  <div class="badges">
+    <span class="badge">AO_GameMode</span>
+    <span class="badge">AO_GameMode_MainMenu</span>
+    <span class="badge">AO_GameMode_Lobby</span>
+    <span class="badge">AO_GameMode_Stage</span>
+    <span class="badge">AO_GameMode_InGameBase</span>
+    <span class="badge">AO_GameMode_Rest</span>
+    <span class="badge">AO_PlayerController</span>
+    <span class="badge">AO_PlayerController_MainMenu</span>
+    <span class="badge">AO_PlayerController_Lobby</span>
+    <span class="badge">AO_PlayerController_Stage</span>
+    <span class="badge">AO_PlayerController_InGameBase</span>
+    <span class="badge">AO_PlayerController_Rest</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">GameMode</div>
+      <a class="toc-item active" href="#gm">AO_GameMode</a>
+      <a class="toc-item" href="#gm_mm">AO_GameMode_MainMenu</a>
+      <a class="toc-item" href="#gm_ig">AO_GameMode_InGameBase</a>
+      <a class="toc-item" href="#gm_lb">AO_GameMode_Lobby</a>
+      <a class="toc-item" href="#gm_st">AO_GameMode_Stage</a>
+      <a class="toc-item" href="#gm_rs">AO_GameMode_Rest</a>
+      <hr class="toc-divider">
+      <div class="toc-title">PlayerController</div>
+      <a class="toc-item" href="#pc">AO_PlayerController</a>
+      <a class="toc-item" href="#pc_mm">AO_PC_MainMenu</a>
+      <a class="toc-item" href="#pc_ig">AO_PC_InGameBase</a>
+      <a class="toc-item" href="#pc_lb">AO_PC_Lobby</a>
+      <a class="toc-item" href="#pc_st">AO_PC_Stage</a>
+      <a class="toc-item" href="#pc_rs">AO_PC_Rest</a>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ==================== AO_GameMode ==================== -->
+    <div class="class-card" id="gm">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode</div>
+        <div class="class-parent">부모: AGameMode</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">프로젝트 전체 GameMode의 최상위 기본 클래스</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨 동안만 존재 (맵 전환 시 파괴)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서만 인스턴스 존재 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">공통 GameMode 타입 제공, 하위 클래스에서 기능 확장</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          <code>AGameMode</code>를 상속하는 프로젝트 루트 GameMode 클래스입니다.
+          헤더(.h)에서 <code>UCLASS()</code>와 <code>GENERATED_BODY()</code>만 선언되어 있고, .cpp에서는 헤더 include만 존재합니다.
+          추가 멤버 변수, 함수, 생성자 모두 없는 빈 껍데기 클래스이며, <code>AGameMode</code>가 제공하는 PostLogin, Logout, HandleSeamlessTravelPlayer, RestartPlayer 등의 가상 함수를 그대로 상속합니다.
+          모든 맵별 GameMode가 이 클래스를 직접(<code>AAO_GameMode_MainMenu</code>) 또는 간접적(<code>AAO_GameMode_InGameBase</code> 경유)으로 상속하므로, 향후 공통 로직이 필요하면 이 클래스에 추가하면 전체에 자동 반영됩니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm" data-tab="vars">
+        <div style="padding:12px 0;font-size:13px;color:#9ca3af;">추가 멤버 변수 없음 &mdash; AGameMode 기본 속성만 상속합니다.</div>
+      </div>
+
+      <div class="tab-panel" data-class="gm" data-tab="funcs">
+        <div style="padding:12px 0;font-size:13px;color:#9ca3af;">추가 함수 없음 &mdash; AGameMode 기본 가상 함수만 상속합니다. .cpp 파일은 include 한 줄만 존재합니다.</div>
+      </div>
+
+      <div class="tab-panel" data-class="gm" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_GameMode_MainMenu</span></td><td>메인 메뉴 맵 전용 GameMode &mdash; 직접 상속</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_GameMode_InGameBase</span></td><td>인게임(Lobby/Stage/Rest) 공통 기반 GameMode &mdash; 직접 상속</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameMode_MainMenu ==================== -->
+    <div class="class-card" id="gm_mm">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode_MainMenu</div>
+        <div class="class-parent">부모: AAO_GameMode</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm_mm','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_mm','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_mm','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_mm','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm_mm" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_MainMenu 맵 전용 GameMode</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">메인 메뉴 맵이 로드되어 있는 동안만 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">PlayerController, DefaultPawn, HUD 클래스 지정</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          메인 메뉴 전용 GameMode로, 생성자에서 세 가지 클래스 지정만 수행하는 최소 구현입니다.
+          <code>PlayerControllerClass</code>를 <code>AAO_PlayerController_MainMenu::StaticClass()</code>로 하드코딩하고,
+          <code>DefaultPawnClass</code>와 <code>HUDClass</code>를 <code>nullptr</code>로 설정합니다.
+          메인 메뉴에서는 3D 캐릭터가 필요 없으므로 Pawn 생성을 비활성화하고, 전용 위젯 기반 UI만 사용하기 위해 UE 기본 HUD도 비활성화합니다.
+          .cpp 파일은 include 2줄과 생성자 3줄이 전부입니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_mm" data-tab="vars">
+        <div style="padding:12px 0;font-size:13px;color:#9ca3af;">추가 멤버 변수 없음 &mdash; 생성자에서 기본 클래스 지정만 수행합니다.</div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_mm" data-tab="funcs">
+        <div class="fn-list">
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AAO_GameMode_MainMenu() &rarr; void (생성자)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>AAO_GameMode_MainMenu()</code> &mdash; 매개변수 없음, 반환값 없음</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>PlayerControllerClass = AAO_PlayerController_MainMenu::StaticClass()</code> &mdash; 메인 메뉴 전용 컨트롤러 지정<br>
+                2. <code>DefaultPawnClass = nullptr</code> &mdash; Pawn 스폰 비활성화 (UI 전용 맵)<br>
+                3. <code>HUDClass = nullptr</code> &mdash; UE 기본 HUD 비활성화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>엔진이 메인 메뉴 맵 로드 시 CDO(Class Default Object)를 통해 자동 호출합니다. 이 생성자에서 설정한 값이 CDO에 반영되어, 이후 SpawnDefaultPawnAtTransform 등에서 nullptr 체크로 Pawn 생성을 건너뜁니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_mm" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_GameMode</span></td><td>프로젝트 루트 GameMode 상속</td></tr>
+          <tr><td>지정</td><td><span class="rel-cls">AAO_PlayerController_MainMenu</span></td><td>PlayerControllerClass로 지정 (StaticClass 하드코딩)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameMode_InGameBase ==================== -->
+    <div class="class-card" id="gm_ig">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode_InGameBase</div>
+        <div class="class-parent">부모: AAO_GameMode</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm_ig','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_ig','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_ig','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_ig','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm_ig" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">인게임(Lobby, Stage, Rest) 공통 기반 GameMode</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨 동안 존재 (SeamlessTravel 시 파괴 후 재생성)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">SeamlessTravel 활성화, 보이스 채팅 관리, 동기화 ServerTravel, 인벤토리 보존 판정</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Lobby, Stage, Rest GameMode가 공통으로 상속하는 중간 기반 클래스입니다.
+          생성자에서 <code>bUseSeamlessTravel = true</code>로 설정하여 맵 이동 시 TCP 연결이 끊기지 않도록 합니다.
+          보이스 채팅 시작/정지/뮤트 업데이트를 모든 클라이언트에 일괄 전파하는 함수(<code>StopVoiceChatForAllClients</code>, <code>LetUpdateVoiceMemberForAllClients</code>)를 제공합니다.
+          ServerTravel 전 모든 플레이어의 오디오 리소스 정리를 기다리는 동기화 메커니즘(<code>RequestSynchronizedServerTravel</code>)을 구현하며, 이 메커니즘은 보이스 채팅 크래시 방지를 위해 도입되었습니다.
+          또한 맵 이동 직전 인벤토리/체력 보존 판정(<code>HandlePlayerTravel</code>)과 세이프존 좌표 체크(<code>CheckPlayerInsideSafeZone</code>) 로직을 수행합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_ig" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CleanupCompletePlayers</span></td>
+            <td><span class="var-type">TSet&lt;TObjectPtr&lt;AAO_PlayerController&gt;&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>ServerTravel 동기화 시, 오디오 리소스 정리를 완료한 플레이어 컨트롤러 세트입니다. <code>NotifyPlayerCleanupCompleteForTravel()</code>에서 Add되며, <code>GetNumPlayers()</code>와 비교하여 전원 완료 시 <code>StartServerTravel()</code>을 호출합니다. Travel 시작/완료 시 <code>Empty()</code>로 초기화됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsTravelSyncInProgress</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(private, 기본값 false)</td>
+            <td>동기화 ServerTravel이 진행 중인지 여부 플래그입니다. <code>RequestSynchronizedServerTravel()</code> 진입 시 true로 설정하여 중복 요청을 차단하고, <code>StartServerTravel()</code> 완료 시 false로 복귀합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PendingTravelURL</span></td>
+            <td><span class="var-type">FString</span></td>
+            <td>(private)</td>
+            <td>동기화 대기 중인 ServerTravel 목적지 URL을 보관합니다. <code>"?listen"</code> 접미사가 포함된 전체 경로이며, <code>StartServerTravel()</code>에서 <code>World-&gt;ServerTravel()</code>에 전달 후 <code>Empty()</code>로 초기화됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="gm_ig" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AAO_GameMode_InGameBase() &rarr; void (생성자)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>AO_LOG(LogJM, Log, "Start")</code> &mdash; 로그 출력<br>
+                2. <code>bUseSeamlessTravel = true</code> &mdash; SeamlessTravel 활성화. 이 설정으로 <code>World-&gt;ServerTravel()</code> 호출 시 클라이언트 TCP 연결이 유지됩니다.<br>
+                3. <code>AO_LOG(LogJM, Log, "End")</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleSeamlessTravelPlayer(AController*&amp; C) &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>virtual void HandleSeamlessTravelPlayer(AController*&amp; C) override</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::HandleSeamlessTravelPlayer(C)</code> &mdash; 엔진 기본 로직 (컨트롤러 재연결, PlayerState 복원) 실행<br>
+                2. LetStartVoiceChat 호출은 현재 주석 처리됨 &mdash; "사용자 설정에 맞게 반영"이라는 코멘트와 함께 비활성화
+              </div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>SeamlessTravel 완료 직후, 엔진이 이동해 온 각 Controller에 대해 자동 호출합니다. 매개변수 C는 참조(&amp;)이므로 함수 내에서 컨트롤러를 교체할 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandlePlayerTravel(AAO_PlayerState* PS) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void HandlePlayerTravel(AAO_PlayerState* PS)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. null 체크 &mdash; PS가 nullptr이면 즉시 return<br>
+                2. <strong>인벤토리 복사</strong>: <code>PS-&gt;GetPawn()</code> &rarr; <code>FindComponentByClass&lt;UAO_InventoryComponent&gt;()</code> &rarr; <code>PS-&gt;SaveInventoryBeforeTravel(Inv)</code> 호출하여 인벤토리 슬롯 데이터를 PlayerState에 보존<br>
+                3. <strong>체력 복사</strong>: 동일 Pawn에서 <code>Cast&lt;AAO_PlayerCharacter&gt;</code> &rarr; <code>GetCurrentHealth()</code> &rarr; <code>PS-&gt;SaveHealthBeforeTravel(CurrentHealth)</code><br>
+                4. <strong>맵 판정</strong>: <code>GetWorld()-&gt;GetMapName()</code>에 <code>"Rest"</code>가 포함되면 <code>bFinalPersist = true</code> (무조건 보존), 아니면 <code>CheckPlayerInsideSafeZone(PS)</code>로 좌표 검증<br>
+                5. <strong>결과 반영</strong>: <code>PS-&gt;bInventoryShouldPersist = bFinalPersist</code>. false이면 <code>PS-&gt;PersistentInventory.Empty()</code>로 즉시 삭제
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>서버 전용 함수. <code>RequestSynchronizedServerTravel()</code> 내부에서 각 PC 순회 시 호출되며, ServerTravel 실행 전에 모든 플레이어의 데이터가 PS에 저장됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RequestSynchronizedServerTravel(const FString&amp; URL) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void RequestSynchronizedServerTravel(const FString&amp; URL)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>bIsTravelSyncInProgress</code> 체크 &mdash; 이미 진행 중이면 return (중복 방지)<br>
+                2. <code>bIsTravelSyncInProgress = true</code>, <code>PendingTravelURL = URL</code>, <code>CleanupCompletePlayers.Empty()</code><br>
+                3. 모든 PC 순회 (<code>World-&gt;GetPlayerControllerIterator()</code>):<br>
+                &nbsp;&nbsp;a. <code>Cast&lt;AAO_PlayerController_InGameBase&gt;</code><br>
+                &nbsp;&nbsp;b. <code>PS-&gt;bIsTraveling = true</code> 설정<br>
+                &nbsp;&nbsp;c. <code>HandlePlayerTravel(PS)</code> &mdash; 인벤토리/체력 저장 + 보존 판정<br>
+                &nbsp;&nbsp;d. <code>PC-&gt;Client_PrepareForTravel(URL)</code> &mdash; Client RPC 전송
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>서버에서 실행. 3d의 Client RPC가 각 클라이언트에 도달하면, 클라이언트는 오디오 정리 후 <code>Server_NotifyReadyForTravel</code> RPC를 서버로 반환합니다. 전원 완료 시 <code>StartServerTravel()</code>이 호출되어 <code>World-&gt;ServerTravel(PendingTravelURL)</code>을 실행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyPlayerCleanupCompleteForTravel(AAO_PlayerController* PC) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void NotifyPlayerCleanupCompleteForTravel(AAO_PlayerController* PC)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>bIsTravelSyncInProgress</code> 또는 PC null 체크 &mdash; 실패 시 return<br>
+                2. <code>CleanupCompletePlayers.Add(PC)</code><br>
+                3. <code>GetNumPlayers()</code>로 총 플레이어 수 조회<br>
+                4. 로그: <code>"Player CleanupComplete : %s (%d / %d)"</code><br>
+                5. <code>CleanupCompletePlayers.Num() &gt;= TotalPlayers</code>이면 <code>StartServerTravel()</code> 호출
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>서버에서 실행. <code>PC_InGameBase::Server_NotifyReadyForTravel_Implementation()</code>에서 호출됩니다. 모든 클라이언트의 오디오 정리가 완료될 때까지 ServerTravel이 지연됩니다. 딜레이 기반이 아닌 이벤트 기반 동기화입니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StopVoiceChatForAllClients() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void StopVoiceChatForAllClients() const</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>GetWorld()</code> 유효성 확인<br>
+                2. <code>World-&gt;GetPlayerControllerIterator()</code>로 모든 PC 순회<br>
+                3. 각 PC를 <code>Cast&lt;AAO_PlayerController_InGameBase&gt;</code> &mdash; 실패 시 <code>AO_ENSURE</code> 경고<br>
+                4. <code>AO_PC_InGame-&gt;Client_StopVoiceChat()</code> &mdash; Client RPC 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">LetUpdateVoiceMemberForAllClients(const TObjectPtr&lt;AAO_PlayerController_InGameBase&gt;&amp;) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void LetUpdateVoiceMemberForAllClients(const TObjectPtr&lt;AAO_PlayerController_InGameBase&gt;&amp; ChangedPlayerController)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ChangedPlayerController의 PlayerState를 <code>Cast&lt;AAO_PlayerState&gt;</code>로 추출<br>
+                2. 모든 PC를 순회하며 <code>AO_PC_InGame-&gt;Client_UpdateVoiceMember(ChangedPlayerState)</code> 호출<br>
+                3. 모든 클라이언트가 각자의 로컬 뮤트 상태를 변경된 플레이어 기준으로 갱신
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CheckPlayerInsideSafeZone(AAO_PlayerState* PS) &rarr; bool</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool CheckPlayerInsideSafeZone(AAO_PlayerState* PS)</code> &mdash; protected</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. PS 또는 PS의 Pawn이 null이면 <code>return false</code><br>
+                2. <code>PS-&gt;GetPawn()-&gt;GetActorLocation()</code>으로 플레이어 월드 좌표 획득<br>
+                3. <code>TActorIterator&lt;AAO_InventorySaveZone&gt;</code>로 월드의 모든 세이프존 액터 순회<br>
+                4. 각 세이프존의 <code>FindComponentByClass&lt;UBoxComponent&gt;()</code> &rarr; <code>BoxComp-&gt;Bounds.GetBox().IsInside(PlayerLocation)</code><br>
+                5. AABB 내부이면 <code>return true</code>, 모든 세이프존을 통과하면 <code>return false</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StartServerTravel() &rarr; void (private)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. World와 PendingTravelURL이 유효하면 <code>World-&gt;ServerTravel(PendingTravelURL)</code> 실행<br>
+                2. <code>bIsTravelSyncInProgress = false</code>, <code>PendingTravelURL.Empty()</code>, <code>CleanupCompletePlayers.Empty()</code> 상태 초기화
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_ig" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_GameMode</span></td><td>프로젝트 루트 GameMode 상속</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_GameMode_Lobby</span></td><td>로비 맵 전용 GameMode</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_GameMode_Stage</span></td><td>스테이지 맵 전용 GameMode</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_GameMode_Rest</span></td><td>휴게공간 맵 전용 GameMode</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>Client_PrepareForTravel, Client_StopVoiceChat, Client_UpdateVoiceMember 등 Client RPC 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>SaveInventoryBeforeTravel, SaveHealthBeforeTravel, bInventoryShouldPersist, bIsTraveling 설정</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_InventorySaveZone</span></td><td>TActorIterator로 월드의 세이프존 액터 순회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameMode_Lobby ==================== -->
+    <div class="class-card" id="gm_lb">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode_Lobby</div>
+        <div class="class-parent">부모: AAO_GameMode_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm_lb','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_lb','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_lb','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_lb','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm_lb" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_Lobby 맵 전용 GameMode &mdash; 매치메이킹과 게임 시작 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">로비 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">플레이어 입장/퇴장 처리, 레디 상태 관리, 호스트 결정, 스테이지 시작</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          로비 맵에서 플레이어 입장(PostLogin), SeamlessTravel 복귀(HandleSeamlessTravelPlayer), 퇴장(Logout)을 처리합니다.
+          생성자에서 <code>PlayerControllerClass = AAO_PlayerController_Lobby::StaticClass()</code>와 <code>bUseSeamlessTravel = true</code>를 설정하고, <code>NextLobbyJoinOrder = 0</code>으로 초기화합니다.
+          입장 순서(NextLobbyJoinOrder)를 관리하여 첫 번째 입장자를 호스트로 지정하고,
+          레디 상태(ReadyPlayers TSet)를 추적하여 호스트 외 전원 레디 시 게임 시작을 허용합니다.
+          BeginPlay에서 GameInstance의 <code>PassiveReset()</code>과 GameState의 <code>Authority_NotifyGlobalReset()</code>을 수행합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_lb" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ReadyPlayers</span></td>
+            <td><span class="var-type">TSet&lt;TObjectPtr&lt;AController&gt;&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>레디 상태인 컨트롤러 집합입니다. <code>SetPlayerReady()</code>에서 Add/Remove되고, <code>IsEveryoneReadyExceptHost()</code>에서 호스트를 제외한 전원 레디 여부를 판정합니다. <code>Logout()</code> 시 퇴장 플레이어를 Remove합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">NextLobbyJoinOrder</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td>(protected, 기본값 0)</td>
+            <td>다음에 입장하는 플레이어에게 부여할 순번입니다. 0부터 시작하며 <code>AssignJoinOrderIfNeeded()</code>에서 부여 후 1씩 증가합니다. <code>UpdateNextLobbyJoinOrderFromExistingPlayers()</code>에서 기존 플레이어의 최대 JoinOrder + 1로 재계산됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="gm_lb" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::BeginPlay()</code><br>
+                2. <code>GetGameInstance&lt;UAO_GameInstance&gt;()-&gt;PassiveReset()</code> &mdash; 패시브 효과 초기화<br>
+                3. <code>GetGameState&lt;AAO_GameState&gt;()-&gt;Authority_NotifyGlobalReset()</code> &mdash; 모든 클라이언트에 글로벌 리셋 Multicast 발송
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PostLogin(APlayerController* NewPlayer) &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::PostLogin(NewPlayer)</code> &mdash; 엔진 기본 입장 처리 (PlayerState 생성, Pawn 스폰)<br>
+                2. <code>UpdateNextLobbyJoinOrderFromExistingPlayers()</code> &mdash; GameState.PlayerArray를 순회하여 최대 JoinOrder 재계산<br>
+                3. <code>AssignJoinOrderIfNeeded(NewPlayer-&gt;PlayerState)</code> &mdash; JoinOrder가 -1(미부여)인 경우에만 순번 부여. 이미 갖고 있으면(스테이지 복귀) 건너뜀<br>
+                4. <code>AO_GI-&gt;HasLobbyHost()</code> 체크 &mdash; false면 이 플레이어를 호스트로 설정 (<code>SetLobbyHostFromPlayerState</code>, <code>SetIsLobbyHost(true)</code>). true면 기존 호스트와 UniqueNetId 비교<br>
+                5. <code>OnlineSessionSubsystem-&gt;UpdateCurrentPlayers(GameState-&gt;PlayerArray.Num())</code> &mdash; 세션 메타데이터의 현재 인원 수 갱신<br>
+                6. <code>NotifyLobbyBoardChanged()</code> &mdash; 레디 보드 UI 갱신
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>서버 전용. 클라이언트가 서버에 연결 완료된 직후 호출됩니다. 이 시점에서 NewPlayer의 PlayerState는 이미 생성되어 있지만, Pawn은 아직 Possess되지 않았을 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleSeamlessTravelPlayer(AController*&amp; C) &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::HandleSeamlessTravelPlayer(C)</code> &mdash; InGameBase의 오버라이드 호출<br>
+                2. Controller null 체크, PlayerState null 체크<br>
+                3. <code>AssignJoinOrderIfNeeded(AOPS)</code> &mdash; 로비 복귀 시 JoinOrder 재부여<br>
+                4. <code>AO_GI-&gt;IsLobbyHostPlayerState(AOPS)</code>로 호스트 여부 갱신<br>
+                5. <code>NotifyLobbyBoardChanged()</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Logout(AController* Exiting) &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>ReadyPlayers.Remove(Exiting)</code> &mdash; 레디 세트에서 제거<br>
+                2. GameState의 PlayerArray에서 해당 PS 강제 제거 (<code>GameState-&gt;RemovePlayerState(PS)</code>)<br>
+                3. <code>Super::Logout(Exiting)</code> &mdash; 엔진 기본 정리 (내부에서도 RemovePlayerState가 중복 호출될 수 있음)<br>
+                4. <code>OnlineSessionSubsystem-&gt;UpdateCurrentPlayers()</code> &mdash; 세션 인원 재계산<br>
+                5. <code>NotifyLobbyBoardChanged()</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetPlayerReady(AController*, bool) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void SetPlayerReady(AController* Controller, bool bReady)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Controller null 체크<br>
+                2. <code>bReady</code>이면 <code>ReadyPlayers.Add(Controller)</code>, 아니면 <code>ReadyPlayers.Remove(Controller)</code><br>
+                3. 로그: Ready 상태와 ReadyPlayers 수 출력<br>
+                4. <code>NotifyLobbyBoardChanged()</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RequestStartFrom(AController*) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>GetHostController()</code> &mdash; GameState.PlayerArray에서 <code>IsLobbyHost() == true</code>인 PS의 Owner Controller 반환<br>
+                2. 요청자가 호스트가 아니면 경고 로그 후 return<br>
+                3. <code>IsEveryoneReadyExceptHost()</code> &mdash; 호스트 외 모든 PS의 Controller가 ReadyPlayers에 포함되는지 확인<br>
+                4. <code>OnlineSessionSubsystem-&gt;SetSessionInGame(true)</code> &mdash; 세션 상태를 InGame으로 변경<br>
+                5. <code>TravelToStage()</code> 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TravelToStage() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>AO_GI-&gt;ResetRun()</code> &mdash; 스테이지 인덱스 0, 연료 초기값으로 초기화<br>
+                2. <code>AO_GI-&gt;GetCurrentStageMap()</code> &mdash; FName으로 첫 번째 스테이지 맵 이름 반환<br>
+                3. <code>StageMapName.ToString() + "?listen"</code>으로 URL 구성<br>
+                4. <code>RequestSynchronizedServerTravel(Path)</code> &mdash; 보이스 정리 후 안전하게 이동
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyLobbyBoardChanged() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>UGameplayStatics::GetAllActorsOfClass(World, AAO_LobbyReadyBoardActor::StaticClass(), FoundBoards)</code><br>
+                2. 각 Board를 <code>Cast&lt;AAO_LobbyReadyBoardActor&gt;</code> &rarr; <code>Board-&gt;MulticastRebuildBoard()</code> 호출 &mdash; Multicast RPC로 모든 클라이언트의 레디 보드 UI 갱신
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_lb" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_GameMode_InGameBase</span></td><td>인게임 공통 기반 GameMode 상속</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_PlayerController_Lobby</span></td><td>Server_SetReady, Server_RequestStart RPC에서 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>HasLobbyHost, SetLobbyHostFromPlayerState, IsLobbyHostPlayerState, ResetRun, GetCurrentStageMap</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>UpdateCurrentPlayers, SetSessionInGame 호출</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_LobbyReadyBoardActor</span></td><td>MulticastRebuildBoard로 레디 보드 UI 갱신</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_GameState</span></td><td>Authority_NotifyGlobalReset 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameMode_Stage ==================== -->
+    <div class="class-card" id="gm_st">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode_Stage</div>
+        <div class="class-parent">부모: AAO_GameMode_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm_st','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_st','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_st','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_st','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm_st" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_Meadow_Main / LV_Lava_Main / LV_SnowField_Main 등 스테이지 맵 전용 GameMode</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">스테이지 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">스테이지 진행, 부활 시스템, 전멸 판정, 연료 검증, 힌트 검증</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          스테이지 맵의 핵심 게임 로직을 관리합니다. 생성자에서 <code>AutoReviveDelaySeconds = 5.0f</code>를 설정합니다.
+          BeginPlay에서 GameInstance의 부활 횟수를 GameState에 동기화하고, 첫 스테이지(<code>AO_MapRoutes::STAGE_MAPS[0]</code>)이면 게임 시작 시간을 기록합니다.
+          플레이어 사망 시 부활 대기 큐(<code>PendingReviveQueue</code>)에 등록하고, <code>ScheduleAutoRevive()</code>로 5초 딜레이 타이머를 설정한 뒤 <code>TryAutoReviveFromQueue()</code>에서 큐 순서대로 부활을 시도합니다.
+          스테이지 출발 시 힌트 3종 수집 여부(<code>GS-&gt;CheckHintCount()</code>)와 기차 연료량(<code>ASC-&gt;GetNumericAttribute</code>)을 검증하여 다음 맵으로 이동하거나 게임 클리어/실패를 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_st" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PendingReviveQueue</span></td>
+            <td><span class="var-type">TArray&lt;TWeakObjectPtr&lt;AAO_PlayerState&gt;&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>죽은 순서대로 자동 부활시키기 위한 대기 큐입니다. <code>TWeakObjectPtr</code>를 사용하여 PS가 파괴되어도 댕글링 포인터를 방지합니다. <code>EnqueuePendingRevive()</code>에서 중복 체크 후 추가, <code>TryAutoReviveFromQueue()</code>에서 순회하며 부활 처리 후 제거됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AutoReviveDelaySeconds</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>자동 부활까지의 대기 시간(초)입니다. 기본값 5.0초. 0 이하이면 <code>ScheduleAutoRevive()</code>에서 즉시 부활을 시도합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AutoReviveTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(protected)</td>
+            <td>자동 부활 스케줄링에 사용하는 타이머 핸들입니다. <code>ScheduleAutoRevive()</code>에서 <code>ClearTimer</code> 후 <code>SetTimer(OneShot)</code>로 재설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bStageEnded</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(protected, 기본값 false)</td>
+            <td>스테이지 종료 여부 플래그입니다. <code>HandleStageExitRequest</code>와 <code>HandleStageFail</code> 모두 진입 시 이 값을 true로 설정하여 중복 종료 처리를 방지합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FuelDataAsset</span></td>
+            <td><span class="var-type">UAO_FuelData*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>다음 스테이지 이동에 필요한 연료량을 정의하는 데이터 에셋입니다. <code>GetRuquireFuelValue()</code>에서 <code>FuelDataAsset-&gt;RequireNextStage</code>를 반환하며, nullptr이면 기본값 40.0을 반환합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="gm_st" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::BeginPlay()</code><br>
+                2. <code>HasAuthority()</code> 체크<br>
+                3. <code>AO_GI-&gt;GetSharedReviveCount()</code> &rarr; <code>AO_GS-&gt;SetSharedReviveCount(ReviveCount)</code> &mdash; GI의 부활 횟수를 GS에 동기화 (복제됨)<br>
+                4. 현재 맵 이름이 <code>AO_MapRoutes::STAGE_MAPS[0]</code>의 Short Name을 포함하면 <code>AO_GS-&gt;SetGameStartTime()</code> &mdash; 첫 스테이지에서만 게임 시작 시간 기록<br>
+                5. <code>PendingReviveQueue.Empty()</code> &mdash; 부활 대기 큐 초기화
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleStageExitRequest(AController* Requester) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>HasAuthority()</code> 체크<br>
+                2. <code>GS-&gt;CheckHintCount()</code> &mdash; 힌트 3종 수집 여부 확인. 미수집 시 return<br>
+                3. <code>TActorIterator&lt;AAO_newTrain&gt;</code>로 월드의 첫 번째 Train 액터 탐색<br>
+                4. <code>Train-&gt;GetAbilitySystemComponent()-&gt;GetNumericAttribute(UAO_Fuel_AttributeSet::GetFuelAttribute())</code> &mdash; 현재 연료 조회<br>
+                5. <code>AO_GI-&gt;SharedTrainFuel = Fuel</code> &mdash; GI에 1회 저장<br>
+                6. <code>GetRuquireFuelValue()</code>로 필요 연료 조회 &rarr; 미달 시 return<br>
+                7. <code>AO_GI-&gt;SharedTrainFuel = FMath::Max(0.0f, Fuel - RequiredFuel)</code> &mdash; 연료 차감<br>
+                8. <code>bStageEnded = true</code><br>
+                9. <code>AO_GI-&gt;IsLastStage()</code>이면 <code>AO_GS-&gt;SetGameClear()</code> (OnRep으로 클리어 UI 표시), 아니면 <code>AO_GI-&gt;GetRestMap()</code>으로 휴게공간 이동<br>
+                10. 모든 플레이어의 인벤토리 저장 + <code>HandlePlayerTravel()</code><br>
+                11. <code>RequestSynchronizedServerTravel(Path)</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleStageFail(AController*) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>bStageEnded</code> 체크 &mdash; 이미 true면 return (중복 방지)<br>
+                2. <code>bStageEnded = true</code><br>
+                3. <code>AO_GS-&gt;SetStageFailed()</code> &mdash; GS의 OnRep 함수로 모든 클라이언트에 실패 UI 표시
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ResetGameAndGoToLobby(AController*) &rarr; void</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>HasAuthority()</code> 체크<br>
+                2. <code>AO_GI-&gt;ResetRun()</code> &mdash; 스테이지 인덱스/연료 초기화<br>
+                3. <code>RollbackSessionInGameFlag()</code> &mdash; <code>OnlineSessionSubsystem-&gt;SetSessionInGame(false)</code><br>
+                4. <code>AO_GI-&gt;GetLobbyMap()</code>으로 로비 맵 이름 조회<br>
+                5. <code>RequestSynchronizedServerTravel(LobbyPath)</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">NotifyPlayerAliveStateChanged(AAO_PlayerState*) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>HasAuthority()</code> 및 null 체크<br>
+                2. <code>GetIsAlive() == false</code>이면 (사망):<br>
+                &nbsp;&nbsp;a. <code>EnqueuePendingRevive(ChangedPlayerState)</code> &mdash; 큐에 추가 (중복 방지 체크 포함)<br>
+                &nbsp;&nbsp;b. <code>AO_GS-&gt;AddTeamDeathCount()</code> &mdash; 팀 사망 횟수 +1<br>
+                &nbsp;&nbsp;c. <code>ScheduleAutoRevive()</code> &mdash; 5초 타이머 설정 (또는 즉시 부활)<br>
+                3. <code>EvaluateTeamWipe()</code> &mdash; 전멸 여부 재평가
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TryRevivePlayer(APlayerController*) &rarr; bool</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>bool TryRevivePlayer(APlayerController* ReviveTargetPC)</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. Authority, null, bStageEnded 체크<br>
+                2. <code>AO_PS-&gt;GetIsAlive()</code> &mdash; 이미 살아있으면 false 반환<br>
+                3. <code>AO_GS-&gt;TryConsumeSharedReviveCount()</code> &mdash; 부활 카운트 소모. 0이면 false 반환<br>
+                4. <code>AO_PS-&gt;SetIsAlive(true)</code><br>
+                5. 기존 Pawn <code>DetachFromControllerPendingDestroy()</code> &mdash; 시체/래그돌 분리<br>
+                6. <code>RestartPlayer(ReviveTargetPC)</code> &mdash; PlayerStart에서 새 Pawn 스폰 + Possess<br>
+                7. 성공 시 true 반환
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">EvaluateTeamWipe() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>HasAnyAlivePlayer()</code> &mdash; GameState.PlayerArray 순회하여 <code>GetIsAlive() == true</code>인 플레이어가 있는지 확인<br>
+                2. 살아있는 플레이어가 있으면 return<br>
+                3. <code>AO_GI-&gt;GetSharedReviveCount() &lt;= 0</code>이면 <code>HandleStageFail(nullptr)</code> &mdash; 전멸 처리<br>
+                4. 부활 횟수가 남아있으면 로그만 출력하고 대기 (자동 부활 타이머가 처리)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TriggerStageFailByTrainFuel() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>Authority 체크 후 <code>HandleStageFail(nullptr)</code> 호출. 기차 연료가 0 이하로 떨어졌을 때 외부에서 호출됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetRuquireFuelValue() &rarr; float</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>FuelDataAsset</code>이 유효하면 <code>FuelDataAsset-&gt;RequireNextStage</code> 반환, nullptr이면 기본값 <code>40.0f</code> 반환.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_st" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_GameMode_InGameBase</span></td><td>인게임 공통 기반 GameMode 상속</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_PlayerController_Stage</span></td><td>Server_RequestStageExit, Server_RequestRevive에서 호출</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_GameState</span></td><td>SetStageFailed, SetGameClear, AddTeamDeathCount, SetSharedReviveCount, SetGameStartTime, CheckHintCount</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>부활 횟수, 연료 저장/차감, 스테이지 인덱스 조회, IsLastStage, ResetRun</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_newTrain</span></td><td>TActorIterator로 탐색, ASC에서 Fuel Attribute 조회</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_FuelData</span></td><td>RequireNextStage 필요 연료량 조회</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AO_MapRoutes</span></td><td>STAGE_MAPS[0] 첫 스테이지 맵 경로 참조</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_GameMode_Rest ==================== -->
+    <div class="class-card" id="gm_rs">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameMode_Rest</div>
+        <div class="class-parent">부모: AAO_GameMode_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gm_rs','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_rs','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_rs','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gm_rs','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gm_rs" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_RestRoom 맵 전용 GameMode &mdash; 스테이지 사이 휴게공간</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">휴게공간 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 전용 (Authority Only)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">부활 횟수 동기화, 다음 스테이지 진행 처리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          스테이지 사이 휴게공간 맵의 GameMode입니다. 생성자에서 <code>PlayerControllerClass = AAO_PlayerController_Stage::StaticClass()</code>로 지정합니다.
+          BeginPlay에서 GameInstance의 부활 횟수를 GameState에 동기화하고 로그에 현재 연료값을 출력합니다.
+          <code>HandleRestExitRequest()</code>에서 <code>TryAdvanceStageIndex()</code>로 다음 스테이지 인덱스를 증가시키고, 실패하면(더 이상 스테이지 없음) <code>ResetRun()</code> 후 로비로 귀환합니다.
+          성공 시 모든 플레이어의 인벤토리를 <code>HandlePlayerTravel()</code>로 보존 처리한 뒤 다음 스테이지 맵으로 이동합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_rs" data-tab="vars">
+        <div style="padding:12px 0;font-size:13px;color:#9ca3af;">추가 멤버 변수 없음 &mdash; InGameBase의 변수를 상속합니다.</div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_rs" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AAO_GameMode_Rest() &rarr; void (생성자)</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>PlayerControllerClass = AAO_PlayerController_Stage::StaticClass()</code> &mdash; 휴게공간에서도 스테이지와 동일한 컨트롤러를 사용합니다. 별도의 Rest 전용 컨트롤러(AAO_PlayerController_Rest)가 존재하지만, 이 GameMode에서는 Stage 컨트롤러를 지정합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::BeginPlay()</code><br>
+                2. <code>Cast&lt;UAO_GameInstance&gt;(GetGameInstance())</code><br>
+                3. 로그: <code>"GI Fuel = %.1f"</code> 현재 연료값 출력<br>
+                4. <code>AO_GI-&gt;GetSharedReviveCount()</code> &rarr; <code>AO_GS-&gt;SetSharedReviveCount(ReviveCount)</code> &mdash; GI에서 GS로 부활 횟수 동기화
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleRestExitRequest(AController* Requester) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>HasAuthority()</code> 체크<br>
+                2. <code>AO_GI-&gt;TryAdvanceStageIndex()</code> &mdash; 다음 스테이지 인덱스 증가 시도<br>
+                3. <strong>실패 시</strong> (더 이상 스테이지 없음): <code>AO_GI-&gt;ResetRun()</code> + <code>RequestSynchronizedServerTravel(LobbyPath)</code> &rarr; 로비 귀환<br>
+                4. <strong>성공 시</strong>: 모든 PC 순회 &rarr; <code>PS-&gt;bIsTraveling = true</code> &rarr; <code>HandlePlayerTravel(PS)</code> 인벤토리 보존 판정<br>
+                5. <code>AO_GI-&gt;GetCurrentStageMap()</code>으로 다음 스테이지 맵 이름 조회<br>
+                6. <code>RequestSynchronizedServerTravel(Path)</code>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gm_rs" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_GameMode_InGameBase</span></td><td>인게임 공통 기반 GameMode 상속</td></tr>
+          <tr><td>지정</td><td><span class="rel-cls">AAO_PlayerController_Stage</span></td><td>PlayerControllerClass로 지정 (Stage 컨트롤러 재사용)</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>부활 횟수, 연료값, TryAdvanceStageIndex, GetCurrentStageMap, GetLobbyMap, ResetRun</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_GameState</span></td><td>SetSharedReviveCount로 부활 횟수 동기화</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController ==================== -->
+    <div class="class-card" id="pc">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController</div>
+        <div class="class-parent">부모: APlayerController</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">프로젝트 전체 PlayerController의 최상위 기본 클래스</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨 동안 존재 (SeamlessTravel 시 유지 가능)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버와 소유 클라이언트에 각각 인스턴스 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">설정 위젯 관리, 로딩 화면 맵 이름 업데이트, PreClientTravel 처리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          <code>APlayerController</code>를 상속하는 프로젝트 루트 컨트롤러입니다.
+          <code>PreClientTravel</code>을 오버라이드하여 로컬 컨트롤러인 경우 <code>UpdateLoadingMapName()</code>으로 <code>LoadingScreenManager</code> 서브시스템의 <code>PendingMapName</code>을 갱신합니다.
+          설정(Settings) 위젯의 지연 생성(<code>GetOrCreateSettingsWidgetInstance()</code>)을 제공하며, <code>SettingsWidgetClass</code>로 <code>CreateWidget</code> 후 인스턴스를 캐싱합니다.
+          UIStackManager가 AddToViewport/RemoveFromParent를 담당하므로 이 클래스에서는 뷰포트 추가를 하지 않습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">SettingsWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_UserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>에디터에서 지정하는 설정 위젯 Blueprint 클래스입니다. <code>GetOrCreateSettingsWidgetInstance()</code>에서 이 클래스를 사용해 위젯을 생성합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SettingsWidgetInstance</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_UserWidget&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span> (기본값 nullptr)</td>
+            <td>지연 생성된 설정 위젯 인스턴스입니다. 첫 호출 시 생성되고 이후 캐싱됩니다. UPROPERTY로 GC 참조를 유지합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PreClientTravel(const FString&amp;, ETravelType, bool) &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>virtual void PreClientTravel(const FString&amp; PendingURL, ETravelType TravelType, bool bIsSeamlessTravel) override</code></div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>IsLocalController()</code> 체크 &mdash; 로컬 컨트롤러인 경우에만 로딩 화면 갱신<br>
+                2. <code>UpdateLoadingMapName(PendingURL)</code> &mdash; 메인 메뉴에서 이동할 때는 <code>Client_PrepareForTravel</code>을 거치지 않으므로 여기서 한번 더 처리<br>
+                3. <code>Super::PreClientTravel(...)</code>
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>클라이언트에서 실행. 엔진이 맵 이동을 시작하기 직전 호출됩니다. 코드 코멘트에 따르면 "이 시점은 너무 늦어서 간혹 제대로 반영 안될 때가 많"다고 합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetOrCreateSettingsWidgetInstance() &rarr; UAO_UserWidget*</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>SettingsWidgetInstance</code>가 유효하면 즉시 반환 (캐싱)<br>
+                2. <code>SettingsWidgetClass</code> null 체크 (<code>AO_ENSURE</code>)<br>
+                3. <code>CreateWidget&lt;UAO_UserWidget&gt;(this, SettingsWidgetClass)</code><br>
+                4. 생성 실패 시 nullptr 반환, 성공 시 <code>SettingsWidgetInstance</code>에 저장 후 반환
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdateLoadingMapName(const FString&amp;) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">시그니처</div><code>void UpdateLoadingMapName(const FString&amp; PendingURL) const</code> &mdash; protected</div>
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>GetGameInstance()-&gt;GetSubsystem&lt;ULoadingScreenManager&gt;()</code><br>
+                2. <code>LSM-&gt;PendingMapName = PendingURL</code> &mdash; URL 전체를 그대로 설정
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_PlayerController_MainMenu</span></td><td>메인 메뉴 전용 컨트롤러</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>인게임 공통 기반 컨트롤러</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">ULoadingScreenManager</span></td><td>PendingMapName 직접 설정</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController_MainMenu ==================== -->
+    <div class="class-card" id="pc_mm">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController_MainMenu</div>
+        <div class="class-parent">부모: AAO_PlayerController</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc_mm','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_mm','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_mm','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_mm','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc_mm" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">메인 메뉴 맵 전용 PlayerController</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">메인 메뉴 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 로컬 클라이언트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">메인 메뉴 위젯 생성, UI 전용 입력 모드, ESC 키 처리, 설정 위젯 초기화 트리거</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          메인 메뉴에서 사용되는 PlayerController입니다. BeginPlay에서 MainMenuWidget을 <code>CreateWidget</code>하여 뷰포트 ZOrder 0에 추가하고,
+          <code>FInputModeUIOnly</code>로 전환하여 마우스 커서를 활성화합니다.
+          UI IMC(Input Mapping Context)를 <code>EnhancedInputLocalPlayerSubsystem</code>에 우선순위 100으로 등록하고,
+          <code>DelegateManager</code>를 통해 <code>OnSettingsOpen</code>/<code>OnSettingsClose</code>를 연속 브로드캐스트하여 설정 위젯의 초기화를 트리거합니다.
+          <code>SetupInputComponent()</code>에서 UI Open 액션을 <code>HandleUIOpen()</code>에 바인딩합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_mm" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">MainMenuClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_MainMenuWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>에디터에서 지정하는 메인 메뉴 위젯 Blueprint 클래스입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MainMenu</span></td>
+            <td><span class="var-type">UAO_MainMenuWidget*</span></td>
+            <td><span class="prop-tag">UPROPERTY</span> (기본값 nullptr)</td>
+            <td>생성된 메인 메뉴 위젯 인스턴스입니다. BeginPlay에서 중복 생성 방지를 위해 null 체크합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc_mm" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::BeginPlay()</code><br>
+                2. <code>MainMenu != nullptr</code>이면 중복 방지 return<br>
+                3. <code>MainMenuClass</code> null 체크<br>
+                4. <code>CreateWidget&lt;UAO_MainMenuWidget&gt;(this, MainMenuClass)</code><br>
+                5. <code>MainMenu-&gt;AddToViewport(0)</code>, <code>SetVisibility(Visible)</code>, <code>SetIsFocusable(true)</code><br>
+                6. <code>FInputModeUIOnly</code> &mdash; <code>SetWidgetToFocus(MainMenu-&gt;TakeWidget())</code>, <code>DoNotLock</code>, <code>bShowMouseCursor = true</code><br>
+                7. <code>UIActionKeySubsystem-&gt;GetUIIMC()</code> &rarr; <code>EnhancedInputLocalPlayerSubsystem-&gt;AddMappingContext(IMC, 100)</code><br>
+                8. <code>DelegateManager-&gt;OnSettingsOpen.Broadcast()</code> + <code>OnSettingsClose.Broadcast()</code> &mdash; 연속 호출로 설정 WBP 초기화 트리거
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetupInputComponent() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::SetupInputComponent()</code><br>
+                2. <code>Cast&lt;UEnhancedInputComponent&gt;(InputComponent)</code><br>
+                3. <code>UIActionKeySubsystem-&gt;GetUIOpenAction()</code> &rarr; <code>EIC-&gt;BindAction(OpenAction, ETriggerEvent::Started, this, &amp;HandleUIOpen)</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleUIOpen() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>UIStackManager-&gt;GetTopUserWidget()</code><br>
+                2. TopWidget이 있으면 <code>TopWidget-&gt;OnEscapeCloseRequested()</code> &mdash; 최상위 위젯에 닫기 요청<br>
+                3. TopWidget이 없으면 아무 동작 없음 (InGameBase와 달리 PauseMenu가 없으므로)
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_mm" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_PlayerController</span></td><td>프로젝트 루트 컨트롤러 상속</td></tr>
+          <tr><td>지정됨</td><td><span class="rel-cls">AAO_GameMode_MainMenu</span></td><td>PlayerControllerClass로 지정됨</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">UAO_MainMenuWidget</span></td><td>메인 메뉴 위젯 생성 및 뷰포트 추가</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIStackManager</span></td><td>ESC 키 위젯 닫기 처리</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_DelegateManager</span></td><td>OnSettingsOpen/Close 브로드캐스트</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIActionKeySubsystem</span></td><td>UI IMC 및 UI Open 액션 조회</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController_InGameBase ==================== -->
+    <div class="class-card" id="pc_ig">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController_InGameBase</div>
+        <div class="class-parent">부모: AAO_PlayerController</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc_ig','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_ig','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_ig','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_ig','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc_ig" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">인게임(Lobby, Stage, Rest) 공통 기반 PlayerController</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨 동안 존재 (SeamlessTravel 시 유지)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 소유 클라이언트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">보이스 채팅 RPC, 일시정지 메뉴, 카메라 관리, 맵 이동 준비, 능력 실패 사운드</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          Lobby, Stage, Rest 컨트롤러가 공통으로 상속하는 중간 기반 클래스입니다.
+          생성자에서 <code>CameraManagerComponent = CreateDefaultSubobject&lt;UAO_CameraManagerComponent&gt;("CameraManagerComponent")</code>를 생성합니다.
+          보이스 채팅 시작/정지/뮤트를 Client RPC(<code>Client_StartVoiceChat</code>, <code>Client_StopVoiceChat</code>, <code>Client_UpdateVoiceMember</code>)로 처리합니다.
+          맵 이동 전 <code>Client_PrepareForTravel</code> RPC에서 오디오 리소스 정리(<code>CleanupAudioResource</code>)를 수행하고, Tick에서 <code>IsVoiceFullyCleanedUp()</code>을 폴링하여 완료 시 <code>Server_NotifyReadyForTravel</code>을 전송합니다.
+          <code>OnPossess</code>와 <code>OnRep_Pawn</code> 모두에서 <code>BindASCAbilityFailed()</code>를 호출하여 서버/클라이언트 양쪽에서 AbilityFailedCallbacks를 바인딩합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_ig" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CameraManagerComponent</span></td>
+            <td><span class="var-type">UAO_CameraManagerComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>카메라 상태 전환을 관리하는 컴포넌트입니다. 생성자에서 CreateDefaultSubobject로 생성. <code>AcknowledgePossession()</code>에서 로컬 컨트롤러인 경우 <code>InitCameraManager()</code>로 SpringArm/Camera 바인딩 및 기본 Camera.Default 상태 Push를 수행합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PauseMenuClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_PauseMenuWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>일시정지 메뉴 위젯 Blueprint 클래스입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ConfirmReturnToMenuWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_ConfirmReturnToMenuWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>메뉴 복귀 확인 위젯 Blueprint 클래스입니다. <code>OpenConfirmReturnToMenuWidget()</code>에서 지연 생성됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ConfirmQuitGameWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UAO_ConfirmQuitGameWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>게임 종료 확인 위젯 Blueprint 클래스입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">NotEnoughStaminaSoundInterval</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span> (기본값 5.0f)</td>
+            <td>스태미나 부족 사운드 재생 최소 간격(초)입니다. <code>HandleAbilityFailed()</code>에서 <code>GetWorld()-&gt;GetTimeSeconds()</code>와 <code>LastNotEnoughStaminaSoundTime</code>의 차이를 비교합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsCheckingVoiceCleanup</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(private, 기본값 false)</td>
+            <td>Tick에서 보이스 리소스 정리 완료를 폴링 중인지 여부 플래그입니다. <code>Client_PrepareForTravel</code>에서 true로 설정되고, <code>IsVoiceFullyCleanedUp()</code>이 true를 반환하면 false로 복귀합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc_ig" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Client_StartVoiceChat() / Client_StopVoiceChat() &rarr; void</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>서버에서 호출하면 해당 클라이언트에서 <code>GetGameInstance()-&gt;GetSubsystem&lt;UAO_OnlineSessionSubsystem&gt;()-&gt;StartVoiceChat()</code> 또는 <code>StopVoiceChat()</code>을 실행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Client_UpdateVoiceMember(AAO_PlayerState*) &rarr; void</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. ChangedPlayerState와 로컬 MyPS 비교<br>
+                2. <strong>변경된 플레이어가 나인 경우</strong>: 내가 부활하면 <code>OSS-&gt;MuteAllDeadRemoteTalker()</code>, 내가 죽으면 <code>OSS-&gt;UnmuteAllRemoteTalker()</code><br>
+                3. <strong>변경된 플레이어가 타인인 경우</strong> (내가 살아있을 때): 타인 부활 시 <code>UnmuteRemoteTalker</code>, 타인 사망 시 <code>MuteRemoteTalker</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Client_PrepareForTravel(const FString&amp;) &rarr; void</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>UpdateLoadingMapName(URL)</code> &mdash; 로딩 화면 맵 이름 설정<br>
+                2. <code>LoadingScreenManager-&gt;bAOLoadingRequested = true</code> &mdash; 로딩 화면 활성화 플래그<br>
+                3. <code>CleanupAudioResource()</code> &mdash; <code>OSS-&gt;MuteAllRemoteTalker()</code> + <code>OSS-&gt;StopVoiceChat()</code><br>
+                4. <code>bIsCheckingVoiceCleanup = true</code> &mdash; Tick에서 폴링 시작
+              </div>
+              <div class="fn-section"><div class="fn-section-title">네트워크 타이밍</div>서버에서 <code>RequestSynchronizedServerTravel()</code> 중에 전송. 클라이언트가 오디오 정리 완료 후 <code>Server_NotifyReadyForTravel()</code> Server RPC를 반환할 때까지 ServerTravel이 지연됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_NotifyReadyForTravel() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>Cast&lt;AAO_GameMode_InGameBase&gt;(GetWorld()-&gt;GetAuthGameMode())</code> &rarr; <code>GM_InGame-&gt;NotifyPlayerCleanupCompleteForTravel(this)</code></div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleUIOpen() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>UIStackManager-&gt;GetTopUserWidget()</code><br>
+                2. TopWidget이 있으면 <code>TopWidget-&gt;OnEscapeCloseRequested()</code> + return<br>
+                3. TopWidget이 없으면 <code>UIStack-&gt;TryTogglePauseMenu(this)</code> &mdash; 일시정지 메뉴 토글
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPauseMenu_RequestReturnLobby() &rarr; void</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>AO_GI-&gt;ResetSessionData()</code> &mdash; 세션 데이터 초기화<br>
+                2. <code>OnlineSessionSubsystem-&gt;DestroyCurrentSession()</code> &mdash; 내부적으로 세션 파기 후 메인 메뉴로 이동<br>
+                3. 서브시스템이 없으면 fallback: <code>UGameplayStatics::OpenLevel(LV_MainMenu)</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleAbilityFailed(const UGameplayAbility*, const FGameplayTagContainer&amp;) &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>IsLocalController()</code> 체크<br>
+                2. <code>FailureTags.HasTag("Ability.Fail.NotEnoughStamina")</code> 확인<br>
+                3. <code>GetWorld()-&gt;GetTimeSeconds()</code>와 <code>LastNotEnoughStaminaSoundTime</code>의 간격이 <code>NotEnoughStaminaSoundInterval</code>(5초) 이상이면:<br>
+                &nbsp;&nbsp;a. <code>PlayerSoundSubsystem-&gt;GetSoundFromActor(GetPawn(), "Sound.Player.NotEnoughStamina")</code><br>
+                &nbsp;&nbsp;b. <code>UGameplayStatics::PlaySound2D(this, Sound)</code>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_ig" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_PlayerController</span></td><td>프로젝트 루트 컨트롤러 상속</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_PlayerController_Lobby</span></td><td>로비 전용 컨트롤러</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_PlayerController_Stage</span></td><td>스테이지 전용 컨트롤러</td></tr>
+          <tr><td>자식</td><td><span class="rel-cls">AAO_PlayerController_Rest</span></td><td>휴게공간 전용 컨트롤러</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_GameMode_InGameBase</span></td><td>Client_PrepareForTravel, Client_StopVoiceChat, Client_UpdateVoiceMember 수신</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>보이스 채팅 Start/Stop/Mute/Unmute, 세션 파기</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_UIStackManager</span></td><td>일시정지 메뉴, 확인 위젯 Push/Pop</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_CameraManagerComponent</span></td><td>카메라 상태 관리 (SpringArm/Camera 바인딩)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController_Lobby ==================== -->
+    <div class="class-card" id="pc_lb">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController_Lobby</div>
+        <div class="class-parent">부모: AAO_PlayerController_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc_lb','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_lb','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_lb','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_lb','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc_lb" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_Lobby 맵 전용 PlayerController</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">로비 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 소유 클라이언트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">레디/시작 요청 RPC, 초대 UI, 옷장(커스터마이징) UI, HUD 관리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          로비에서 플레이어의 입력을 처리하는 컨트롤러입니다. BeginPlay에서 입력 모드를 <code>FInputModeGameOnly</code>로 리셋하고, 로컬 PC인 경우 HUD 위젯을 생성합니다.
+          옷장 UI는 <code>Server_RequestWardrobe</code> &rarr; <code>Client_OpenWardrobe</code> RPC 쌍으로 동작하며, <code>OpenWardrobe()</code>에서 카메라 페이드 인, TargetPoint에 더미 캐릭터 스폰, 타이머 후 ViewTarget 전환과 커스터마이징 위젯 표시를 수행합니다. 닫을 때는 역순으로 카메라 복귀, 위젯 제거, 더미 파괴, <code>Server_CloseWardrobe</code>로 상호작용 잠금 해제를 처리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_lb" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CustomizingInteractable</span></td>
+            <td><span class="var-type">TObjectPtr&lt;AAO_LobbyInteractable&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>현재 사용 중인 옷장 상호작용 가능 액터 참조입니다. <code>Server_CloseWardrobe</code>에서 <code>RemoveDisabledPlayer</code>를 호출하여 잠금을 해제합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CustomizingWidget</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UAO_UserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>커스터마이징 UI 위젯 인스턴스입니다. OpenWardrobe에서 AddToViewport, CloseWardrobe에서 RemoveFromParent됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FadeTime</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span> (기본값 1.5f)</td>
+            <td>카메라 페이드 인/아웃 시간(초)입니다. <code>PlayerCameraManager-&gt;StartCameraFade()</code>에 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CustomizingDummyClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;AAO_CustomizingCharacter&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>옷장 UI에서 스폰할 커스터마이징 더미 캐릭터 클래스입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HUDWidgetClass / HUDWidget</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt; / TObjectPtr&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>로비 HUD 위젯 클래스와 인스턴스입니다. 옷장 열 때 RemoveFromParent, 닫을 때 재생성+AddToViewport됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FadeTimerHandle</span></td>
+            <td><span class="var-type">FTimerHandle</span></td>
+            <td>(protected)</td>
+            <td>카메라 페이드 완료 후 UI 전환을 수행하는 타이머 핸들입니다. <code>EndPlay</code>에서 <code>ClearTimer</code>로 정리됩니다. <code>CloseWardrobe()</code>에서 유효하면 중복 호출을 방지합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc_lb" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_SetReady(bool bNewReady) &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>GetPlayerState&lt;AAO_PlayerState&gt;()-&gt;SetLobbyReady(bNewReady)</code> &mdash; PS의 레디 상태 업데이트 (Replicated)<br>
+                2. <code>World-&gt;GetAuthGameMode&lt;AAO_GameMode_Lobby&gt;()-&gt;SetPlayerReady(this, bNewReady)</code> &mdash; GM의 ReadyPlayers 세트 업데이트
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestStart() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>World-&gt;GetAuthGameMode&lt;AAO_GameMode_Lobby&gt;()-&gt;RequestStartFrom(this)</code></div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestInviteOverlay() / Client_OpenInviteOverlay() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>Server RPC &rarr; <code>Client_OpenInviteOverlay()</code> Client RPC &rarr; <code>OpenInviteOverlay()</code> &rarr; <code>IsLocalController()</code> 체크 &rarr; <code>OnlineSessionSubsystem-&gt;ShowInviteUI()</code></div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestWardrobe() / Client_OpenWardrobe() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                Server RPC &rarr; <code>Client_OpenWardrobe()</code> Client RPC &rarr; <code>OpenWardrobe()</code>:<br>
+                1. <code>FadeIn()</code> &mdash; <code>PlayerCameraManager-&gt;StartCameraFade(0.0, 1.0, FadeTime, Black)</code><br>
+                2. <code>UGameplayStatics::GetActorOfClass(TargetPoint)</code>로 스폰 위치 탐색<br>
+                3. <code>World-&gt;SpawnActor&lt;AAO_CustomizingCharacter&gt;(CustomizingDummyClass, SpawnPoint)</code><br>
+                4. <code>SetTimer(FadeTimerHandle, OnFadeInFinishedOpenUI, FadeTime)</code><br>
+                5. 타이머 콜백: <code>SetViewTarget(CustomizingDummy)</code>, <code>CustomizingWidget-&gt;AddToViewport()</code>, HUD 제거, <code>FadeOut()</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CloseWardrobe() / Server_CloseWardrobe() &rarr; void</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                <strong>CloseWardrobe()</strong> (클라이언트 로컬):<br>
+                1. <code>FadeTimerHandle.IsValid()</code>이면 return (중복 방지)<br>
+                2. <code>FadeIn()</code> + <code>SetTimer(OnFadeInFinishedCloseUI, FadeTime)</code><br>
+                3. 타이머 콜백: <code>SetViewTarget(PlayerCharacter)</code>, 위젯 제거, 더미 Destroy, HUD 재생성, <code>Server_CloseWardrobe()</code>, <code>FadeOut()</code><br><br>
+                <strong>Server_CloseWardrobe()</strong> (서버):<br>
+                <code>CustomizingInteractable-&gt;RemoveDisabledPlayer(Cast&lt;AAO_PlayerCharacter&gt;(GetPawn()))</code> &mdash; 상호작용 잠금 해제
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_lb" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>인게임 공통 기반 컨트롤러 상속</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_GameMode_Lobby</span></td><td>SetPlayerReady, RequestStartFrom 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>ShowInviteUI 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>SetLobbyReady 호출</td></tr>
+          <tr><td>생성</td><td><span class="rel-cls">AAO_CustomizingCharacter</span></td><td>옷장 UI용 더미 캐릭터 스폰/파괴</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_LobbyInteractable</span></td><td>RemoveDisabledPlayer로 상호작용 잠금 해제</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController_Stage ==================== -->
+    <div class="class-card" id="pc_st">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController_Stage</div>
+        <div class="class-parent">부모: AAO_PlayerController_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc_st','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_st','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_st','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_st','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc_st" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">스테이지 맵 전용 PlayerController (Rest GameMode에서도 사용)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">스테이지/휴게공간 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 소유 클라이언트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">스테이지 출발 요청, 사망 UI, 관전 시스템, 부활 요청, 힌트 알림, 리스폰 카운트다운</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          스테이지 진행 중 플레이어의 모든 입력과 UI를 관리하는 핵심 컨트롤러입니다. 생성자에서 <code>PrimaryActorTick.bCanEverTick = true</code>를 설정합니다.
+          Tick에서 <code>bIsSpectating</code>이 true이면 <code>UpdateSpectateCamera()</code>로 관전 카메라 보간을 수행합니다 (위치: <code>VInterpTo</code>, 회전: <code>RInterpTo</code>, FOV: <code>FInterpTo</code>).
+          관전 시스템은 Server/Client RPC 쌍 (<code>ServerRPC_RequestSpectate</code> &rarr; <code>ClientRPC_SetSpectateTarget</code>)으로 대상 선택/전환/종료를 처리하며,
+          <code>DeathSpectateComponent</code>를 통해 관전자를 등록(<code>AddSpectator</code>)/해제(<code>RemoveSpectator</code>)합니다.
+          <code>OnPossess</code>와 <code>OnRep_Pawn</code>에서 <code>bIsSpectating</code>이면 <code>SpectateCameraActor</code>를 ViewTarget으로 유지하고, 아니면 <code>RebuildDefaultHUD()</code>로 HUD를 재생성합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_st" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HUDWidgetClass / HUDWidget</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt; / TObjectPtr&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>스테이지 HUD 위젯. <code>RebuildDefaultHUD()</code>에서 기존 위젯을 RemoveFromParent 후 새로 CreateWidget+AddToViewport합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DeathWidgetClass / DeathWidget</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt; / TObjectPtr&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>사망 UI 위젯. <code>ShowDeathUI()</code>에서 지연 생성 후 AddToViewport, 부활 시 RemoveFromParent.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpectateWidgetClass / SpectateWidget</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt; / TObjectPtr&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>관전 UI 위젯. <code>RequestSpectate()</code>에서 매번 새로 생성됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentSpectateTarget</span></td>
+            <td><span class="var-type">TObjectPtr&lt;APawn&gt;</span></td>
+            <td><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재 관전 중인 대상 Pawn입니다. 서버와 클라이언트 양쪽에서 관리됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpectateCameraActor</span></td>
+            <td><span class="var-type">TObjectPtr&lt;ACameraActor&gt;</span></td>
+            <td><span class="prop-tag">Transient</span></td>
+            <td>관전 카메라 보간에 사용하는 CameraActor입니다. <code>EnsureSpectateCameraActor()</code>에서 <code>World-&gt;SpawnActor&lt;ACameraActor&gt;</code>로 생성, <code>SetActorHiddenInGame(true)</code>로 숨김.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PosInterpSpeed / RotInterpSpeed / FovInterpSpeed</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>관전 카메라의 위치/회전/FOV 보간 속도입니다. 기본값 12.0/12.0/8.0. <code>FMath::VInterpTo</code>, <code>RInterpTo</code>, <code>FInterpTo</code>에 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">RespawnRemainingSeconds</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>리스폰 카운트다운 남은 시간(초)입니다. 1초마다 <code>UpdateRespawnCountdown()</code>에서 1.0 감소합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bPendingAutoRespawn</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(public, 기본값 false)</td>
+            <td>자동 부활 대기 중인지 여부 플래그입니다. <code>ShowDeathUI()</code>에서 이 값이 true이면 Death UI를 표시하지 않습니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc_st" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestStageExit() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>World-&gt;GetAuthGameMode&lt;AAO_GameMode_Stage&gt;()-&gt;HandleStageExitRequest(this)</code></div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ShowDeathUI() &rarr; void</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>IsLocalController()</code> 체크<br>
+                2. <code>AO_GS-&gt;GetSharedReviveCount() &gt; 0</code>이면 return (자동 부활 예정)<br>
+                3. <code>bPendingAutoRespawn</code>이 true이면 return<br>
+                4. <code>DeathWidgetClass</code>로 위젯 지연 생성 &rarr; <code>AddToViewport()</code><br>
+                5. <code>FInputModeGameAndUI</code> &mdash; <code>SetWidgetToFocus(DeathWidget)</code><br>
+                6. <code>GetPawn()-&gt;DisableInput(this)</code> &mdash; Pawn 입력 차단
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RequestSpectate() / RequestSpectateNext(bool) &rarr; void</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                <strong>RequestSpectate()</strong>: SpectateWidget 재생성, DeathWidget/HUDWidget 제거, GameAndUI 입력 모드, Pawn 입력 차단, <code>ServerRPC_RequestSpectate()</code> 호출<br><br>
+                <strong>ServerRPC_RequestSpectate()</strong> (서버): PlayerArray 순회 &rarr; 나 자신과 죽은 플레이어 제외 &rarr; 첫 살아있는 Pawn을 대상으로 설정 &rarr; <code>ServerRPC_SetSpectateTarget()</code> (DeathSpectateComponent 등록) &rarr; <code>ClientRPC_SetSpectateTarget(NewTarget, NewIndex)</code><br><br>
+                <strong>ClientRPC_SetSpectateTarget()</strong> (클라이언트): <code>bIsSpectating = true</code>, <code>ResetSpectateSmoothing()</code>, <code>EnsureSpectateCameraActor()</code>, <code>SetViewTargetWithBlend(SpectateCameraActor, 0.25f)</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestRevive() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>World-&gt;GetAuthGameMode&lt;AAO_GameMode_Stage&gt;()-&gt;TryRevivePlayer(this)</code><br>
+                2. 성공 시 <code>Client_OnRevived()</code> Client RPC 호출
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Client_OnRevived() &rarr; void</span>
+              <span class="fn-spec client">Client, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>bIsSpectating</code>이면 <code>RequestStopSpectate(Revived)</code> &rarr; StopSpectate에서 ViewTarget 복구, 관전 UI 정리, HUD 재생성, GameOnly 입력 모드<br>
+                2. 관전 중이 아니면: Death UI 제거, <code>RebuildDefaultHUD()</code>, <code>FInputModeGameOnly</code>, SpectateWidget 제거
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_NotifyHintFound(int32 HintNum) &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div><code>GetWorld()-&gt;GetGameState&lt;AAO_GameState&gt;()-&gt;FindHint(HintNum)</code> &mdash; 힌트 번호를 GS에 전달</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StartRespawnCountdown(float) / StopRespawnCountdown() &rarr; void</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                <strong>Start</strong>: <code>RespawnRemainingSeconds = InDelaySeconds</code>, 위젯 지연 생성 + AddToViewport, <code>SetTimer(looping, 1.0s, UpdateRespawnCountdown)</code><br>
+                <strong>UpdateRespawnCountdown</strong>: <code>RespawnRemainingSeconds -= 1.0f</code>, 0 이하이면 <code>StopRespawnCountdown()</code><br>
+                <strong>Stop</strong>: 타이머 Clear, <code>RespawnRemainingSeconds = 0</code>, 위젯 RemoveFromParent
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_st" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>인게임 공통 기반 컨트롤러 상속</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_GameMode_Stage</span></td><td>HandleStageExitRequest, TryRevivePlayer 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_GameState</span></td><td>GetSharedReviveCount, FindHint 호출</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_DeathSpectateComponent</span></td><td>AddSpectator/RemoveSpectator, GetRepCameraView</td></tr>
+          <tr><td>지정됨</td><td><span class="rel-cls">AAO_GameMode_Rest</span></td><td>Rest GameMode의 PlayerControllerClass로도 사용됨</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">UAO_SpectateWidget</span></td><td>SetSpectatingCharacter 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== AO_PlayerController_Rest ==================== -->
+    <div class="class-card" id="pc_rs">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerController_Rest</div>
+        <div class="class-parent">부모: AAO_PlayerController_InGameBase</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc_rs','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_rs','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_rs','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc_rs','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc_rs" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">LV_RestRoom 맵 전용 PlayerController</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">휴게공간 맵이 로드되어 있는 동안 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 소유 클라이언트</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">휴게공간 출발 요청 RPC, HUD 위젯 관리</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          휴게공간에서 사용되는 간결한 컨트롤러입니다. 헤더에서 <code>BeginPlay</code> 오버라이드와 <code>Server_RequestRestExit</code> RPC, HUD 위젯 2개 변수만 선언합니다.
+          BeginPlay에서 부모(<code>InGameBase</code>) 호출 후, 로컬 플레이어인 경우 <code>HUDWidgetClass</code>로 위젯을 생성하여 뷰포트에 추가합니다.
+          "다음으로 진행" 상호작용 시 <code>Server_RequestRestExit</code> RPC를 통해 서버의 <code>GameMode_Rest-&gt;HandleRestExitRequest(this)</code>를 호출합니다.
+          주의: <code>AAO_GameMode_Rest</code>의 PlayerControllerClass는 <code>AAO_PlayerController_Stage</code>로 지정되어 있으므로, 이 Rest 전용 컨트롤러는 실제 Rest 맵에서 사용되지 않을 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_rs" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">HUDWidgetClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>휴게공간 HUD 위젯 Blueprint 클래스입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HUDWidget</span></td>
+            <td><span class="var-type">TObjectPtr&lt;UUserWidget&gt;</span></td>
+            <td><span class="prop-tag">UPROPERTY</span></td>
+            <td>생성된 HUD 위젯 인스턴스입니다. BeginPlay에서 생성, UPROPERTY로 GC 참조 유지.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc_rs" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() &rarr; void</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>Super::BeginPlay()</code> &mdash; InGameBase의 입력 모드 설정, IMC 등록 등 실행<br>
+                2. <code>IsLocalPlayerController()</code> 체크<br>
+                3. <code>HUDWidgetClass</code>가 유효하면 <code>CreateWidget&lt;UUserWidget&gt;(this, HUDWidgetClass)</code> &rarr; <code>HUDWidget-&gt;AddToViewport()</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Server_RequestRestExit() &rarr; void</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">&#9654;</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">내부 흐름</div>
+                1. <code>GetWorld()</code> null 체크<br>
+                2. <code>World-&gt;GetAuthGameMode&lt;AAO_GameMode_Rest&gt;()</code> null 체크<br>
+                3. <code>RestGM-&gt;HandleRestExitRequest(this)</code>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc_rs" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>부모</td><td><span class="rel-cls">AAO_PlayerController_InGameBase</span></td><td>인게임 공통 기반 컨트롤러 상속</td></tr>
+          <tr><td>호출</td><td><span class="rel-cls">AAO_GameMode_Rest</span></td><td>HandleRestExitRequest 호출</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut &mdash; Avatar Out &nbsp;&middot;&nbsp; &copy; 2025 김피탕 컴퍼니 &nbsp;&middot;&nbsp; UE 5.6<br>
+  소스 코드 리뷰 &mdash; 학습 목적 전용 &nbsp;&middot;&nbsp; Claude Opus 4.6 생성
+</div>
+
+<script>
+// Tab switching
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+// Accordion
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// TOC active highlight on scroll
+const sections = ['gm','gm_mm','gm_ig','gm_lb','gm_st','gm_rs','pc','pc_mm','pc_ig','pc_lb','pc_st','pc_rs'];
+const tocItems = {};
+sections.forEach(id => {
+  tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`);
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      const key = e.target.id;
+      if (tocItems[key]) tocItems[key].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// TOC click -> immediate highlight
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
