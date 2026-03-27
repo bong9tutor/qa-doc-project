@@ -46,4 +46,4 @@
 
 ### QA 프로세스
 
-![QA 수행 플로우](Doc/qa-workflow.svg)
+![QA 수행 플로우](doc/qa-workflow.svg)
