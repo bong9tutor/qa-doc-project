@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 소스 코드 리뷰 (Opus)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#8b5cf6;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:28px 16px 24px;text-align:center;}
+.hero-title{font-size:22px;font-weight:700;color:#111827;margin-bottom:6px;opacity:0;transform:translateY(8px);transition:.35s ease;}
+.hero-title.visible{opacity:1;transform:translateY(0);}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:16px;opacity:0;transform:translateY(8px);transition:.35s ease .08s;}
+.hero-sub.visible{opacity:1;transform:translateY(0);}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;opacity:0;transform:translateY(8px);transition:.35s ease .16s;}
+.badges.visible{opacity:1;transform:translateY(0);}
+.badge{font-size:11px;padding:4px 10px;border-radius:20px;background:#ede9fe;border:1px solid #c4b5fd;color:#8b5cf6;font-weight:500;}
+
+.grid-wrap{max-width:680px;margin:0 auto;padding:20px 16px 40px;}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:12px;margin-top:24px;}
+.section-label:first-child{margin-top:0;}
+.grid{display:flex;flex-direction:column;gap:10px;}
+
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;transition:all .2s ease;opacity:0;transform:translateY(8px);}
+.card.visible{opacity:1;transform:translateY(0);}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);border-color:var(--c,#8b5cf6);transform:translateY(-2px);}
+
+.card-header{display:flex;align-items:center;gap:8px;}
+.card-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.card-num{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;}
+.card-badge{margin-left:auto;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.card-title{font-size:15px;font-weight:700;color:#111827;}
+.card-en{font-size:12px;font-weight:600;}
+.card-desc{font-size:13px;color:#6b7280;line-height:1.6;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid #e5e7eb;color:#6b7280;background:#f9fafb;}
+.card-arrow{margin-top:4px;font-size:12px;color:#9ca3af;transition:.2s ease;}
+.card:hover .card-arrow{color:var(--c,#8b5cf6);transform:translateX(3px);}
+
+.footer{text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;opacity:0;transform:translateY(8px);transition:.35s ease;}
+.footer.visible{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="index.html">← 목록</a>
+  <div class="nav-logo">Code Review — Opus</div>
+  <div class="nav-sub">소스 코드 심층 리뷰</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title" id="ht">소스 코드 리뷰 — Opus 4.6</div>
+  <div class="hero-sub" id="hs">AVaOut — 13개 핵심 클래스 · .h + .cpp 전체 분석 기반 심층 리뷰</div>
+  <div class="badges" id="hb">
+    <span class="badge">Framework 4</span>
+    <span class="badge">Player 2</span>
+    <span class="badge">AI 3</span>
+    <span class="badge">Systems 4</span>
+  </div>
+</div>
+
+<div class="grid-wrap">
+
+  <div class="section-label">게임 프레임워크</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_framework.html" id="c0" style="--c:#d97706">
+      <div class="card-header">
+        <div class="card-dot" style="background:#d97706"></div>
+        <div class="card-num">섹션 01</div>
+        <div class="card-badge" style="background:#fffbeb;color:#d97706;border:1px solid #fef3c7">Framework</div>
+      </div>
+      <div class="card-title">게임 프레임워크 클래스</div>
+      <div class="card-en" style="color:#d97706">Game Framework</div>
+      <div class="card-desc">게임 인스턴스, 온라인 세션, 게임 스테이트, 플레이어 스테이트. 맵 전환 시 데이터 보존 메커니즘, Steam 세션 생명주기, OnRep 복제 체인 상세 분석.</div>
+      <div class="tag-row">
+        <span class="tag">AO_GameInstance</span>
+        <span class="tag">AO_OnlineSessionSubsystem</span>
+        <span class="tag">AO_GameState</span>
+        <span class="tag">AO_PlayerState</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">플레이어</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_player.html" id="c1" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">섹션 02</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Player</div>
+      </div>
+      <div class="card-title">플레이어 클래스</div>
+      <div class="card-en" style="color:#2563eb">Player</div>
+      <div class="card-desc">플레이어 캐릭터와 GAS 어트리뷰트 세트. PossessedBy↔OnRep_PlayerState 이중 초기화, GAS 파이프라인 전체 흐름, 스태미나 잠금 메커니즘 심층 분석.</div>
+      <div class="tag-row">
+        <span class="tag">AO_PlayerCharacter</span>
+        <span class="tag">AO_PlayerCharacter_AttributeSet</span>
+        <span class="tag">GAS Pipeline</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">AI 시스템</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_ai.html" id="c2" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">섹션 03</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">AI</div>
+      </div>
+      <div class="card-title">AI 시스템 클래스</div>
+      <div class="card-en" style="color:#7c3aed">AI System</div>
+      <div class="card-desc">AI 캐릭터 기반 클래스, 기억 컴포넌트, 스포너 관리자. StateTree Task↔MemoryComponent 연동 패턴, EQS 비동기 스폰 체인, 7종 적 파생 구조 심층 분석.</div>
+      <div class="tag-row">
+        <span class="tag">AO_AICharacterBase</span>
+        <span class="tag">AO_AIMemoryComponent</span>
+        <span class="tag">AO_Spawner_AIManager</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+  <div class="section-label">게임 시스템</div>
+  <div class="grid">
+    <a class="card" href="code_review_opus_systems.html" id="c3" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">섹션 04</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">Systems</div>
+      </div>
+      <div class="card-title">게임 시스템 클래스</div>
+      <div class="card-en" style="color:#0891b2">Game Systems</div>
+      <div class="card-desc">기차 연료 시스템, 월드 서브시스템, 상호작용 베이스, 퍼즐 조건 체커. 비-캐릭터 GAS 적용 패턴, 태그 기반 퍼즐 판정 로직, NetMulticast 이펙트 동기화 심층 분석.</div>
+      <div class="tag-row">
+        <span class="tag">AO_Train</span>
+        <span class="tag">AO_TrainWorldSubsystem</span>
+        <span class="tag">AO_BaseInteractable</span>
+        <span class="tag">AO_PuzzleConditionChecker</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+  </div>
+
+</div>
+
+<div class="footer" id="ft">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  소스 코드 리뷰 — 학습 목적 전용 · Claude Opus 4.6 생성
+</div>
+
+<script>
+const els=[
+  document.getElementById('ht'),
+  document.getElementById('hs'),
+  document.getElementById('hb'),
+  document.getElementById('c0'),
+  document.getElementById('c1'),
+  document.getElementById('c2'),
+  document.getElementById('c3'),
+  document.getElementById('ft')
+];
+els.forEach((el,i)=>setTimeout(()=>el&&el.classList.add('visible'),i*80));
+</script>
+</body>
+</html>

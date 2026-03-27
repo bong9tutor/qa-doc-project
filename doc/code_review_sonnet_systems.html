@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 게임 시스템 클래스</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#0891b2;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#ecfeff;color:#0891b2;border-left-color:#0891b2;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#0891b2;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#0891b2;border-bottom-color:#0891b2;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #0891b2;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#ecfeff;border:1px solid #cffafe;color:#0891b2;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+.prop-tag.pu{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#ecfeff;border-color:#a5f3fc;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.bp-impl{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-spec.bp-pure{background:#ecfeff;color:#0891b2;border:1px solid #cffafe;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #a5f3fc;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0891b2;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#0891b2;font-weight:600;}
+
+.flow-box{background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.8;color:#374151;margin-top:6px;}
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">← 코드 리뷰</a>
+  <div class="nav-logo">Systems</div>
+  <div class="nav-sub">게임 시스템 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">게임 시스템 클래스</div>
+  <div class="hero-sub">기차 연료·월드 서브시스템·상호작용·퍼즐을 담당하는 4개 클래스</div>
+  <div class="badges">
+    <span class="badge">AO_Train</span>
+    <span class="badge">AO_TrainWorldSubsystem</span>
+    <span class="badge">AO_BaseInteractable</span>
+    <span class="badge">AO_PuzzleConditionChecker</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#train">AO_Train</a>
+      <a class="toc-item" href="#tws">AO_TrainWorldSubsystem</a>
+      <a class="toc-item" href="#inter">AO_BaseInteractable</a>
+      <a class="toc-item" href="#puzzle">AO_PuzzleConditionChecker</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_Train ==================== -->
+    <div class="class-card" id="train">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_Train</div>
+        <div class="class-parent">부모: AActor · IAbilitySystemInterface</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'train','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'train','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'train','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'train','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="train" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">연료를 받아 움직이는 기차 액터 — GAS로 연료 수치 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">연료 공급 방식</div>
+            <div class="info-value">플레이어가 인벤토리의 연료 아이템을 선택한 채로 기차에 상호작용</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 GAS 연료 연산, 클라이언트에는 AttributeSet 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">연료 누수</div>
+            <div class="info-value">FuelLeakSkillOn/Out으로 주기적 연료 감소 어빌리티 제어</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          AActor와 IAbilitySystemInterface를 함께 상속하여 비-캐릭터 액터에도 GAS를 적용한 사례입니다.
+          연료 수치는 UAO_Fuel_AttributeSet에 FGameplayAttributeData로 저장되며,
+          증가(AddEnergyAbilityClass)·감소(LeakEnergyAbilityClass) 두 가지 GameplayAbility로 제어합니다.
+          InteractableComponent를 통해 플레이어의 상호작용을 받고,
+          HandleInteractionSuccess에서 AddEnergy 어빌리티를 실행해 연료를 충전합니다.
+          연료가 변경될 때마다 OnFuelChangedDelegate를 브로드캐스트하여 UI와 Blueprint를 갱신합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="train" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">ASC</span></td>
+            <td><span class="var-type">UAbilitySystemComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>기차의 GAS 핵심 컴포넌트. 연료 증가·감소 어빌리티 실행과 FuelAttributeSet 등록을 담당합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FuelAttributeSet</span></td>
+            <td><span class="var-type">UAO_Fuel_AttributeSet*</span></td>
+            <td>(UPROPERTY)</td>
+            <td>연료(Fuel)와 최대 연료(MaxFuel) 어트리뷰트를 보관하는 세트. ASC에 등록되어 복제됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AddEnergyAbilityClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayAbility&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>연료 충전 어빌리티 클래스. HandleInteractionSuccess에서 이 어빌리티를 ASC에 실행합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LeakEnergyAbilityClass</span></td>
+            <td><span class="var-type">TSubclassOf&lt;UGameplayAbility&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>연료 누수(주기적 감소) 어빌리티 클래스. FuelLeakSkillOn()에서 실행되고 FuelLeakSkillOut()에서 취소됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractableComp</span></td>
+            <td><span class="var-type">UAO_InteractableComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>플레이어의 상호작용 완료 이벤트를 수신하는 컴포넌트. OnInteractionSuccess 델리게이트에 HandleInteractionSuccess가 바인딩됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnFuelChangedDelegate</span></td>
+            <td><span class="var-type">FOnFuelChanged</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>연료 수치가 변경될 때 새 연료값(float)과 함께 브로드캐스트됩니다. UI 게이지·Blueprint 로직이 바인딩합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TotalFuelGained</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>게임 중 누적 충전된 총 연료량 (통계용). HandleInteractionSuccess마다 증가합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LeakFuelAmount</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>연료 누수 어빌리티가 한 번 실행될 때 감소시킬 연료량 (기본값 10).</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="train" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() — GAS 초기화 및 델리게이트 바인딩</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                ① FuelAttributeSet을 ASC에 등록<br>
+                ② ASC에 AddEnergyAbilityClass · LeakEnergyAbilityClass Grant<br>
+                ③ GameInstance.GetInitialFuel()로 초기 연료값 설정<br>
+                ④ ASC의 OnAttributeValueChanged에 OnFuelChanged 바인딩<br>
+                ⑤ InteractableComp.OnInteractionSuccess에 HandleInteractionSuccess 바인딩
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어가 기차에 상호작용을 완료했을 때 InteractableComponent가 호출하는 콜백입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                ① Interactor(플레이어)의 인벤토리에서 선택된 연료 아이템 확인<br>
+                ② ASC에 AddEnergyAbilityClass 실행 요청<br>
+                ③ GAS → FuelAttributeSet의 Fuel 어트리뷰트 증가<br>
+                ④ OnFuelChanged 콜백 호출 → OnFuelChangedDelegate 브로드캐스트<br>
+                ⑤ TotalFuelGained 누적
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FuelLeakSkillOn() / FuelLeakSkillOut()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>연료 누수(주기적 연료 감소) 어빌리티를 시작하거나 중지합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">FuelLeakSkillOn 흐름</div>ASC에 LeakEnergyAbilityClass 실행 → 어빌리티 내부에서 주기적으로 Fuel -= LeakFuelAmount 적용</div>
+              <div class="fn-section"><div class="fn-section-title">FuelLeakSkillOut 흐름</div>ASC에서 LeakEnergyAbilityClass 취소(CancelAbility)</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>게임 시작 시(기차 이동 시작) FuelLeakSkillOn, 휴게공간 도착 시 FuelLeakSkillOut을 Blueprint에서 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnFuelChanged(const FOnAttributeChangeData& Data)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>ASC의 OnAttributeValueChanged 델리게이트에 바인딩된 콜백입니다. Fuel 어트리뷰트가 변경될 때마다 실행됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① Data.NewValue로 새 연료값 수신 → ② OnFuelChangedDelegate.Broadcast(NewValue)</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="train" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>GetInitialFuel()로 초기 연료량 설정</td></tr>
+          <tr><td>수신</td><td><span class="rel-cls">UAO_InteractableComponent</span></td><td>OnInteractionSuccess 델리게이트에 HandleInteractionSuccess 바인딩</td></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_Fuel_AttributeSet</span></td><td>Fuel·MaxFuel 어트리뷰트 관리</td></tr>
+          <tr><td>알림</td><td><span class="rel-cls">연료 UI Widget / Blueprint</span></td><td>OnFuelChangedDelegate를 구독해 게이지 갱신</td></tr>
+          <tr><td>등록됨</td><td><span class="rel-cls">UAO_TrainWorldSubsystem</span></td><td>RegisterTrain()으로 전역 접근 가능하게 등록</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_Train -->
+
+    <!-- ==================== AO_TrainWorldSubsystem ==================== -->
+    <div class="class-card" id="tws">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_TrainWorldSubsystem</div>
+        <div class="class-parent">부모: UWorldSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tws','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'tws','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'tws','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'tws','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="tws" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">현재 레벨의 AAO_newTrain 액터를 전역에서 접근 가능하게 캐시</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨(World) 동안만 존재. 맵 전환 시 재생성</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">접근 방법</div>
+            <div class="info-value">GetWorld()-&gt;GetSubsystem&lt;UAO_TrainWorldSubsystem&gt;()-&gt;GetTrain()</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">기차 참조 중앙 관리, 등록 완료 시 델리게이트 브로드캐스트</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UWorldSubsystem을 상속하며, 현재 월드(레벨)에 대해 자동으로 인스턴스화됩니다.
+          GameInstance처럼 앱 전체가 아닌, 현재 레벨에서만 유효합니다.
+          기차(AAO_newTrain)는 레벨에 배치되어 BeginPlay에서 RegisterTrain()을 호출하고,
+          다른 시스템(연료 UI, 퍼즐 로직 등)은 GetTrain()으로 기차 참조를 안전하게 가져옵니다.
+          직접 FindActor를 사용하지 않아도 되므로 코드가 단순해집니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="tws" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">CachedTrain</span></td>
+            <td><span class="var-type">TObjectPtr&lt;AAO_newTrain&gt;</span></td>
+            <td>(private UPROPERTY)</td>
+            <td>RegisterTrain()으로 등록된 기차 액터의 포인터. GetTrain()이 이 값을 반환합니다. nullptr이면 아직 등록되지 않은 상태입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnTrainRegistered</span></td>
+            <td><span class="var-type">FOnTrainRegistered</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>RegisterTrain() 호출 직후 브로드캐스트됩니다. 기차 등록 시점에 초기화가 필요한 시스템이 바인딩합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="tws" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RegisterTrain(AAO_newTrain* InTrain)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>InTrain을 CachedTrain에 저장하고 OnTrainRegistered 델리게이트를 브로드캐스트합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AAO_newTrain의 BeginPlay에서 자기 자신을 인자로 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetTrain()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CachedTrain을 반환합니다. 기차가 아직 등록되지 않았으면 nullptr을 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">사용 패턴</div>
+                C++: GetWorld()-&gt;GetSubsystem&lt;UAO_TrainWorldSubsystem&gt;()-&gt;GetTrain()<br>
+                Blueprint: GetTrainWorldSubsystem 노드 → GetTrain 연결
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="tws" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>등록됨</td><td><span class="rel-cls">AAO_newTrain</span></td><td>BeginPlay에서 RegisterTrain() 호출</td></tr>
+          <tr><td>조회됨</td><td><span class="rel-cls">연료 UI / 퍼즐 Blueprint</span></td><td>GetTrain()으로 기차 참조 획득</td></tr>
+          <tr><td>자동 생성</td><td><span class="rel-cls">UWorld (레벨)</span></td><td>UWorldSubsystem이므로 레벨 로드 시 자동 생성됨</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_TrainWorldSubsystem -->
+
+    <!-- ==================== AO_BaseInteractable ==================== -->
+    <div class="class-card" id="inter">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_BaseInteractable</div>
+        <div class="class-parent">부모: AAO_WorldInteractable (Abstract)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'inter','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'inter','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'inter','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'inter','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="inter" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">레벨 내 모든 상호작용 가능 오브젝트의 C++ 기반 클래스</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">파생 사용법</div>
+            <div class="info-value">C++: OnInteractionSuccess_BP_Implementation 오버라이드<br>BP: OnInteractionSuccessBP 이벤트 구현</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 성공 판정. NetMulticast로 모든 클라이언트에 이펙트 전파</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">토글 지원</div>
+            <div class="info-value">bIsToggleable=true이면 활성화↔비활성화 반복 가능</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UCLASS(Abstract)로 선언되어 직접 배치는 불가하고 반드시 상속받아 사용합니다.
+          상호작용 흐름은 GAS AbilityTask(WaitForInteraction)가 주도하며,
+          플레이어가 범위 내에서 입력하면 CanInteraction() → 조건 통과 시 OnInteractionSuccess() 순서로 실행됩니다.
+          성공 시 MulticastNotifyInteractionSuccess RPC로 모든 클라이언트에 알리고,
+          VFX/SFX 이펙트도 MulticastPlayInteractionEffect로 동기화합니다.
+          DisabledPlayers 배열로 특정 플레이어의 재상호작용을 막을 수 있고,
+          LinkedReactionActors를 통해 퍼즐 연동 액터들의 반응을 연쇄 실행합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="inter" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">InteractableMeshComponent</span></td>
+            <td><span class="var-type">UStaticMeshComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>상호작용 오브젝트의 시각적 메시. 하이라이트 스텐실 효과가 이 메시에 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsActivated</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsActivated</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재 활성화 상태. 복제되어 모든 클라이언트의 OnRep_IsActivated가 시각 상태(메시 색상, 이펙트 등)를 갱신합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bInteractionEnabled</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 가능 여부 플래그. false로 설정하면 CanInteraction()이 항상 false를 반환합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DisabledPlayers</span></td>
+            <td><span class="var-type">TArray&lt;AActor*&gt;</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이 오브젝트와 상호작용이 금지된 플레이어 목록. 한 번 사용 후 재사용 방지, 특정 플레이어 잠금에 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionTitle / InteractionContent</span></td>
+            <td><span class="var-type">FText</span></td>
+            <td><span class="prop-tag rep">Replicated(Title)</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 UI에 표시할 제목과 설명. InteractionTitle은 복제되어 서버에서 동적 변경이 가능합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InteractionDuration</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 완료까지 누르고 있어야 하는 시간(초). 0이면 즉시 완료됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HighlightStencilValue</span></td>
+            <td><span class="var-type">uint8</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>포스트프로세스 아웃라인 하이라이트 스텐실 값. 250이 기본값이며, 서버에서 변경하면 클라이언트에 전파됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsToggleable</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>토글 모드 활성화 여부. true이면 상호작용마다 bIsActivated가 반전됩니다. DeactivateEffect, DeactivateMontage 사용 가능.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LinkedReactionActors</span></td>
+            <td><span class="var-type">TArray&lt;AAO_PuzzleReactionActor*&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>상호작용 성공 시 연쇄 반응할 퍼즐 액터 목록. TriggerLinkedReactions(true/false)로 활성화·비활성화를 전파합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="inter" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanInteraction(InteractionQuery)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어가 상호작용을 시도할 때 가능 여부를 판단합니다. GAS AbilityTask가 매 틱 이 함수를 확인합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">검사 항목</div>① bInteractionEnabled == true → ② 플레이어가 DisabledPlayers에 없는지 → ③ CanInteraction_BP() 결과(Blueprint 추가 조건)</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CanInteraction_BP(InteractionQuery)</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>C++ CanInteraction_BP_Implementation은 기본적으로 true를 반환합니다. Blueprint에서 오버라이드하여 추가 조건(아이템 보유 여부, 퍼즐 상태 등)을 검사할 수 있습니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess(AActor* Interactor)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버 Authority에서 실행되는 상호작용 성공 처리 함수입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                ① bIsToggleable이면 bIsActivated 반전, 아니면 true 고정<br>
+                ② MulticastNotifyInteractionSuccess(Interactor) 호출 → 모든 클라이언트에 전파<br>
+                ③ TriggerLinkedReactions(bIsActivated) 호출<br>
+                ④ ActivateEffect 또는 DeactivateEffect VFX/SFX 재생 (MulticastPlayInteractionEffect)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastNotifyInteractionSuccess(Interactor)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서 상호작용 성공을 확정한 후, 모든 클라이언트에서 OnInteractionSuccess_BP와 OnInteractionSuccessMulticast_BP를 실행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">클라이언트 실행 내용</div>애니메이션 몽타주(ActiveMontage/DeactivateMontage), 사운드, 파티클 등 시각·청각 피드백을 재생합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccess_BP(Interactor)</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>MulticastNotifyInteractionSuccess 내부에서 호출됩니다. 파생 클래스(C++ 또는 Blueprint)에서 오버라이드하여 실제 게임 로직(문 열기, 연료 충전 등)을 구현합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnInteractionSuccessMulticast_BP(Interactor)</span>
+              <span class="fn-spec bp-impl">BlueprintImplementableEvent</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>C++ 구현이 없고 Blueprint에서만 구현 가능한 이벤트입니다. 모든 클라이언트에서 실행되므로 클라이언트 전용 시각 효과(파티클, 사운드 등)에 적합합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">BlueprintNativeEvent와의 차이</div>BlueprintNativeEvent는 C++ 기본 구현(_Implementation)이 있고 BP에서 오버라이드 가능. BlueprintImplementableEvent는 C++ 구현이 없고 BP에서만 구현합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastPlayInteractionEffect(EffectSettings, SpawnTransform)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서 호출하면 서버·모든 클라이언트에서 VFX(Niagara/Cascade 파티클)와 SFX(사운드)를 지정된 위치에 스폰합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">내부 처리</div>SpawnVFXInternal() → Niagara 파티클 스폰<br>SpawnSFXInternal() → 사운드 큐 재생</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AddDisabledPlayer() / RemoveDisabledPlayer()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>DisabledPlayers 배열에 플레이어를 추가하거나 제거합니다. 서버에서 호출하며, 배열이 Replicated이므로 자동으로 클라이언트에 전파됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">활용 예</div>퍼즐 버튼을 한 번 누른 플레이어를 DisabledPlayers에 추가하여 중복 조작을 방지합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="inter" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속됨</td><td><span class="rel-cls">퍼즐 버튼·레버·문·연료통 등</span></td><td>레벨별 상호작용 오브젝트가 이 클래스를 BP로 파생</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>플레이어의 상호작용 컴포넌트가 CanInteraction → OnInteractionSuccess 호출</td></tr>
+          <tr><td>연쇄 알림</td><td><span class="rel-cls">AAO_PuzzleReactionActor</span></td><td>LinkedReactionActors를 통해 활성화·비활성화 전파</td></tr>
+          <tr><td>이벤트 전달</td><td><span class="rel-cls">AAO_PuzzleConditionChecker</span></td><td>상호작용 성공 시 OnPuzzleEvent() 호출로 퍼즐 조건 태그 등록</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_BaseInteractable -->
+
+    <!-- ==================== AO_PuzzleConditionChecker ==================== -->
+    <div class="class-card" id="puzzle">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PuzzleConditionChecker</div>
+        <div class="class-parent">부모: AActor (Blueprintable)</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'puzzle','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'puzzle','struct')">구조체</button>
+        <button class="tab-btn" onclick="switchTab(this,'puzzle','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'puzzle','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'puzzle','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="puzzle" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">GameplayTag 기반 퍼즐 조건을 검사하고 완료·실패를 판정</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">조건 유형</div>
+            <div class="info-value">AND/OR 조합, 순서 조건, 시간 제한, 차단 태그</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 조건 검사. ActiveEvents·bIsCompleted 복제로 클라이언트 동기화</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">완료 처리</div>
+            <div class="info-value">CompletionTag를 TargetActors에 부여하고 OnPuzzleCompleted 브로드캐스트</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          레벨에 배치하는 범용 퍼즐 판정 액터입니다.
+          PuzzleElement(버튼·레버 등)가 OnPuzzleEvent(tag)를 호출하면
+          ActiveEvents에 태그를 추가하고 CheckAllConditions()를 실행합니다.
+          bRequireAllConditions이 true이면 모든 FPuzzleCondition을 AND로 검사하고,
+          false이면 하나라도 만족하면 완료(OR)됩니다.
+          완료 시 TargetActors(문·엘리베이터 등)에 CompletionTag를 GameplayTag로 부여하여
+          해당 액터들이 자체 반응(문 열기, 플랫폼 이동)을 수행하게 합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="puzzle" data-tab="struct">
+        <div class="struct-box">
+          <div class="struct-title">FPuzzleCondition (USTRUCT, BlueprintType)</div>
+          <div class="struct-field">
+            <span class="sf-name">RequiredTags</span>
+            <span class="sf-desc">이 조건을 만족하려면 ActiveEvents에 반드시 포함되어야 할 GameplayTag 집합.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">BlockingTags</span>
+            <span class="sf-desc">ActiveEvents에 이 태그 중 하나라도 있으면 조건을 실패시키는 차단 태그 집합. 잘못된 버튼 조합 감지에 사용합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">bRequiresOrder</span>
+            <span class="sf-desc">true이면 OrderedTags에 정의된 순서 그대로 이벤트가 발생해야 합니다. false이면 순서 무관하게 모두 활성화되면 됩니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">OrderedTags</span>
+            <span class="sf-desc">bRequiresOrder=true일 때 필요한 이벤트 순서 배열. ConditionOrderHistory와 비교하여 정확한 순서인지 확인합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">TimeLimit</span>
+            <span class="sf-desc">조건 만족까지의 시간 제한(초). 0이면 무제한. StartConditionTimer()가 이 값으로 타이머를 설정합니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="puzzle" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">bRequireAllConditions</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>true: 모든 Conditions가 만족되어야 완료(AND). false: 하나라도 만족하면 완료(OR).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Conditions</span></td>
+            <td><span class="var-type">TArray&lt;FPuzzleCondition&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>검사할 조건 목록. 에디터에서 여러 FPuzzleCondition을 추가하여 복합 퍼즐을 구성합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">ActiveEvents</span></td>
+            <td><span class="var-type">FGameplayTagContainer</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_ActiveEvents</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 활성화된 이벤트 태그들. OnPuzzleEvent로 추가되고 RemovePuzzleEvent로 제거됩니다. 복제되어 클라이언트 UI가 진행 상황을 표시할 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsCompleted</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsCompleted</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>퍼즐 완료 여부. 복제되어 클라이언트에서도 완료 상태를 확인할 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CompletionTag</span></td>
+            <td><span class="var-type">FGameplayTag</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>완료 시 TargetActors에 부여할 GameplayTag. 대상 액터는 이 태그를 수신하여 자체 동작(문 열기 등)을 수행합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TargetActors</span></td>
+            <td><span class="var-type">TArray&lt;AActor*&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>퍼즐 완료 시 CompletionTag를 부여받을 액터 목록. 에디터에서 직접 지정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LinkedElements</span></td>
+            <td><span class="var-type">TArray&lt;AActor*&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>이 퍼즐과 연결된 요소 액터들. ResetPuzzle 시 초기화, 완료 시 상호작용 비활성화(DisableLinkedElements) 대상입니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnPuzzleCompleted / OnPuzzleFailed / OnPuzzleProgress</span></td>
+            <td><span class="var-type">Dynamic Delegate</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>완료·실패·진행도 변경 시 브로드캐스트되는 이벤트. 레벨 Blueprint 또는 UI Widget이 구독합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="puzzle" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnPuzzleEvent(FGameplayTag EventTag, AActor* EventInstigator)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>퍼즐 요소(버튼, 레버 등)가 활성화될 때 호출합니다. EventTag를 ActiveEvents에 추가하고 조건 검사를 실행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                ① bIsCompleted 이미 완료 상태이면 무시<br>
+                ② ActiveEvents에 EventTag 추가<br>
+                ③ ShouldFailPuzzle() 확인 → BlockingTag 감지 시 FailPuzzle()<br>
+                ④ CheckAllConditions() 실행<br>
+                ⑤ 조건 만족 시 CompletePuzzle() / 미만족 시 OnPuzzleProgress 브로드캐스트<br>
+                ⑥ 해당 조건에 TimeLimit이 있으면 StartConditionTimer() 시작
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">RemovePuzzleEvent(FGameplayTag EventTag)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>토글 가능한 버튼·레버가 비활성화될 때 호출합니다. ActiveEvents에서 EventTag를 제거하고 조건을 재검사합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CheckAllConditions()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>모든 FPuzzleCondition을 bRequireAllConditions에 따라 AND 또는 OR로 검사합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">CheckSingleCondition 흐름</div>
+                ① ActiveEvents가 RequiredTags를 모두 포함하는지 확인<br>
+                ② BlockingTags 중 하나라도 활성화됐으면 false<br>
+                ③ bRequiresOrder이면 ConditionOrderHistory와 OrderedTags 순서 비교
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CompletePuzzle()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>퍼즐 완료를 최종 처리합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>
+                ① bIsCompleted = true (복제로 클라이언트에 전파)<br>
+                ② TargetActors에게 CompletionTag 부여(GAS AddLooseGameplayTag)<br>
+                ③ bDisableElementsOnComplete이면 DisableLinkedElements()<br>
+                ④ ClearAllTimers()<br>
+                ⑤ OnPuzzleCompleted 브로드캐스트
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MulticastPuzzleFailed()</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서 FailPuzzle()이 호출되면 모든 클라이언트에서 OnPuzzleFailed 델리게이트를 브로드캐스트합니다. 실패 사운드·이펙트 재생에 사용됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StartConditionTimer(ConditionIndex, Duration)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>특정 조건(ConditionIndex)에 시간 제한 타이머를 설정합니다. Duration 초 안에 해당 조건이 만족되지 않으면 OnConditionTimeout이 실행되어 FailPuzzle()을 호출합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">타이머 관리</div>ConditionTimerHandles TMap에 조건 인덱스 → FTimerHandle로 저장하여 개별 취소가 가능합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetCompletionProgress()</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>현재 진행도를 0.0~1.0 범위로 반환합니다. 충족된 RequiredTags 수 / 전체 RequiredTags 수로 계산합니다. Progress Bar UI가 이 값을 사용합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="puzzle" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>이벤트 수신</td><td><span class="rel-cls">AAO_BaseInteractable (파생)</span></td><td>상호작용 성공 시 OnPuzzleEvent() 호출로 태그 전달</td></tr>
+          <tr><td>완료 알림</td><td><span class="rel-cls">TargetActors (문·엘리베이터 등)</span></td><td>CompletionTag 부여로 반응 트리거</td></tr>
+          <tr><td>제어</td><td><span class="rel-cls">LinkedElements</span></td><td>완료·리셋 시 상호작용 활성화/비활성화 일괄 제어</td></tr>
+          <tr><td>구독</td><td><span class="rel-cls">레벨 Blueprint / UI Widget</span></td><td>OnPuzzleCompleted, OnPuzzleFailed, OnPuzzleProgress 델리게이트 바인딩</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PuzzleConditionChecker -->
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  소스 코드 리뷰 — 학습 목적 전용
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['train','tws','inter','puzzle'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+</script>
+</body>
+</html>

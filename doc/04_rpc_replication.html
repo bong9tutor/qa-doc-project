@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — RPC / Replication 흐름</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 16px;position:sticky;top:0;z-index:20;}
+.nav-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.nav-logo{font-size:14px;font-weight:700;color:#2563eb;}
+.nav-doc{font-size:12px;color:#6b7280;}
+.nav-links{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;padding-bottom:2px;}
+.nav-links::-webkit-scrollbar{height:0;}
+.nav-link{font-size:11px;padding:4px 10px;border-radius:20px;background:#f1f5f9;color:#6b7280;text-decoration:none;transition:.2s;}
+.nav-link:hover,.nav-link.active{background:#dbeafe;color:#2563eb;}
+
+.page{max-width:680px;margin:0 auto;padding:20px 16px 48px;}
+.page-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#6b7280;margin-bottom:20px;}
+
+/* Scenario Tabs */
+.scenario-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.sc-tab{font-size:12px;padding:6px 14px;border-radius:20px;border:none;cursor:pointer;
+  background:#f1f5f9;color:#6b7280;transition:.2s;font-family:inherit;}
+.sc-tab.active{color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+.scenario{display:none;}
+.scenario.active{display:block;}
+
+/* Participants header */
+.participants{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.participant{padding:8px 10px;border-radius:8px;text-align:center;border:1px solid;}
+.p-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.p-class{font-size:12px;font-weight:600;}
+
+/* Sequence Steps */
+.seq-list{display:flex;flex-direction:column;gap:6px;}
+.seq-step{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;
+  cursor:pointer;transition:.2s;opacity:0;transform:translateY(6px);}
+.seq-step.visible{opacity:1;transform:translateY(0);}
+.seq-step:hover{box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.seq-step.open{border-color:var(--sc,#2563eb);}
+
+.seq-head{padding:10px 14px;display:flex;align-items:center;gap:8px;user-select:none;}
+.seq-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.seq-arrow{font-size:13px;font-weight:700;flex-shrink:0;}
+.seq-from{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;}
+.seq-to-arrow{font-size:11px;color:#9ca3af;margin:0 2px;}
+.seq-to{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;}
+.seq-label{font-size:12px;font-weight:600;color:#111827;flex:1;margin-left:4px;}
+.seq-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:auto;flex-shrink:0;}
+.seq-toggle{font-size:11px;color:#9ca3af;transition:.2s;flex-shrink:0;}
+.seq-step.open .seq-toggle{transform:rotate(90deg);color:var(--sc,#2563eb);}
+
+.seq-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.seq-step.open .seq-body{max-height:500px;}
+.seq-body-inner{padding:0 14px 12px;border-top:1px solid #f3f4f6;}
+
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
+  border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-top:8px;
+  overflow-x:auto;line-height:1.6;color:#374151;}
+.kw{color:#7c3aed;font-weight:600;}
+.fn{color:#2563eb;}
+.cm{color:#9ca3af;}
+
+.info-box{border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.6;}
+.info-box.tip{background:#eff6ff;border-left:3px solid #2563eb;color:#1d4ed8;}
+.info-box.warn{background:#fffbeb;border-left:3px solid #d97706;color:#92400e;}
+
+.fade{opacity:0;transform:translateY(8px);transition:.35s ease;}
+.fade.visible{opacity:1;transform:translateY(0);}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-top">
+    <div class="nav-logo">AVaOut</div>
+    <div class="nav-doc">RPC / Replication 흐름</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="01_session_flow.html">01 세션 흐름</a>
+    <a class="nav-link" href="02_network_arch.html">02 네트워크</a>
+    <a class="nav-link" href="03_state_machine.html">03 상태 머신</a>
+    <a class="nav-link active" href="04_rpc_replication.html">04 RPC</a>
+    <a class="nav-link" href="index.html">← 목록</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-title fade" id="pt">RPC / Replication 흐름</div>
+  <div class="page-sub fade" id="ps">3가지 시나리오 · 각 단계를 클릭해 함수 시그니처와 코드 상세 보기</div>
+
+  <div class="scenario-tabs fade" id="stabs">
+    <button class="sc-tab active" style="background:#d97706" onclick="switchScenario('melee',this)">근접 공격</button>
+    <button class="sc-tab" onclick="switchScenario('fuel',this)">연료 획득</button>
+    <button class="sc-tab" onclick="switchScenario('ai',this)">AI 공격</button>
+  </div>
+
+  <!-- Scenario 1: Melee Attack -->
+  <div class="scenario active" id="sc-melee">
+    <div class="participants">
+      <div class="participant" style="background:#fffbeb;border-color:#fef3c7">
+        <div class="p-role" style="color:#d97706">Client (공격자)</div>
+        <div class="p-class" style="color:#d97706">AO_PlayerCharacter</div>
+      </div>
+      <div class="participant" style="background:#eff6ff;border-color:#dbeafe">
+        <div class="p-role" style="color:#2563eb">Server</div>
+        <div class="p-class" style="color:#2563eb">GAS + Hitbox</div>
+      </div>
+      <div class="participant" style="background:#f5f3ff;border-color:#ede9fe">
+        <div class="p-role" style="color:#7c3aed">All Clients</div>
+        <div class="p-class" style="color:#7c3aed">애니메이션 동기화</div>
+      </div>
+    </div>
+    <div class="seq-list" id="seq-melee"></div>
+  </div>
+
+  <!-- Scenario 2: Fuel Pickup -->
+  <div class="scenario" id="sc-fuel">
+    <div class="participants">
+      <div class="participant" style="background:#fffbeb;border-color:#fef3c7">
+        <div class="p-role" style="color:#d97706">Client (수집자)</div>
+        <div class="p-class" style="color:#d97706">AO_PlayerCharacter</div>
+      </div>
+      <div class="participant" style="background:#fff7ed;border-color:#fed7aa">
+        <div class="p-role" style="color:#ea580c">Server</div>
+        <div class="p-class" style="color:#ea580c">AO_FuelActor</div>
+      </div>
+      <div class="participant" style="background:#eff6ff;border-color:#dbeafe">
+        <div class="p-role" style="color:#2563eb">All Clients</div>
+        <div class="p-class" style="color:#2563eb">UI 업데이트</div>
+      </div>
+    </div>
+    <div class="seq-list" id="seq-fuel"></div>
+  </div>
+
+  <!-- Scenario 3: AI Attack -->
+  <div class="scenario" id="sc-ai">
+    <div class="participants">
+      <div class="participant" style="background:#f5f3ff;border-color:#ede9fe">
+        <div class="p-role" style="color:#7c3aed">Server (AI)</div>
+        <div class="p-class" style="color:#7c3aed">AO_AICharacter</div>
+      </div>
+      <div class="participant" style="background:#fef2f2;border-color:#fecaca">
+        <div class="p-role" style="color:#ef4444">Server</div>
+        <div class="p-class" style="color:#ef4444">데미지 처리</div>
+      </div>
+      <div class="participant" style="background:#fffbeb;border-color:#fef3c7">
+        <div class="p-role" style="color:#d97706">Victim Client</div>
+        <div class="p-class" style="color:#d97706">HP UI 갱신</div>
+      </div>
+    </div>
+    <div class="seq-list" id="seq-ai"></div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+const scenarios = {
+  melee: [
+    { from:'Client', to:'Server', label:'좌클릭 입력 감지', type:'Server RPC',
+      typeColor:'#2563eb', typeBg:'#eff6ff', typeTag:'#dbeafe',
+      code:`<span class="cm">// 1. 클라이언트 입력 → Server RPC 호출</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerCharacter::OnMeleeInputPressed</span>()
+{
+    <span class="kw">if</span> (!HasAuthority()) { <span class="fn">ServerMeleeAttack</span>(); }
+}
+
+<span class="kw">UFUNCTION</span>(Server, Reliable)
+<span class="kw">void</span> <span class="fn">ServerMeleeAttack</span>();`,
+      note:'클라이언트는 즉시 로컬 예측 애니메이션도 재생합니다 (시각적 반응성).' },
+    { from:'Server', to:'Server', label:'GAS Ability 활성화', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 2. 서버에서 GAS Ability 활성화</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerCharacter::ServerMeleeAttack_Implementation</span>()
+{
+    AbilitySystem-><span class="fn">TryActivateAbilityByTag</span>(
+        FGameplayTag::RequestGameplayTag("Ability.Melee"));
+}`,
+      note:'서버에서만 Ability 활성화. 히트박스 판정도 서버 권한으로 처리.' },
+    { from:'Server', to:'AllClients', label:'Multicast 애니메이션 재생', type:'Multicast',
+      typeColor:'#7c3aed', typeBg:'#f5f3ff', typeTag:'#ede9fe',
+      code:`<span class="cm">// 3. 모든 클라이언트에 애니메이션 동기화</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, Unreliable)
+<span class="kw">void</span> <span class="fn">MulticastPlayMeleeAnim</span>();
+
+<span class="kw">void</span> <span class="fn">AAO_PlayerCharacter::MulticastPlayMeleeAnim_Implementation</span>()
+{
+    GetMesh()->GetAnimInstance()
+        -><span class="fn">Montage_Play</span>(MeleeAnimMontage);
+}`,
+      note:'Unreliable: 패킷 손실 허용. 애니메이션 누락보다 지연이 더 나쁩니다.' },
+    { from:'Server', to:'Server', label:'히트박스 오버랩 → 데미지 적용', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 4. 히트박스 오버랩 → GAS 데미지 적용</span>
+<span class="kw">void</span> <span class="fn">UAO_MeleeAbility::OnHitboxOverlap</span>(AActor* OtherActor)
+{
+    FGameplayEffectSpecHandle SpecHandle =
+        AbilitySystem-><span class="fn">MakeOutgoingSpec</span>(
+            DamageEffectClass, Level, ContextHandle);
+    AbilitySystem-><span class="fn">ApplyGameplayEffectSpecToTarget</span>(
+        *SpecHandle.Data.Get(), TargetASC);
+}` },
+    { from:'Server', to:'VictimClient', label:'ClientUpdateHP', type:'Client RPC',
+      typeColor:'#0891b2', typeBg:'#ecfeff', typeTag:'#cffafe',
+      code:`<span class="cm">// 5. 피해자 클라이언트 HP UI 업데이트</span>
+<span class="kw">UFUNCTION</span>(Client, Reliable)
+<span class="kw">void</span> <span class="fn">ClientUpdateHP</span>(float NewHP, float MaxHP);
+
+<span class="kw">void</span> <span class="fn">AAO_PlayerController::ClientUpdateHP_Implementation</span>(
+    float NewHP, float MaxHP)
+{
+    <span class="kw">if</span> (HUD) { HUD-><span class="fn">UpdateHPBar</span>(NewHP / MaxHP); }
+}`,
+      note:'OnRep_Health로도 처리 가능하지만 Client RPC가 더 즉각적입니다.' },
+  ],
+  fuel: [
+    { from:'Client', to:'Server', label:'E키 홀드 → ServerInteract', type:'Server RPC',
+      typeColor:'#2563eb', typeBg:'#eff6ff', typeTag:'#dbeafe',
+      code:`<span class="cm">// 1. E키 홀드 완료 → Server RPC</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerCharacter::OnInteractComplete</span>()
+{
+    <span class="kw">if</span> (CurrentInteractTarget)
+        <span class="fn">ServerInteract</span>(CurrentInteractTarget);
+}
+
+<span class="kw">UFUNCTION</span>(Server, Reliable)
+<span class="kw">void</span> <span class="fn">ServerInteract</span>(AActor* Target);` },
+    { from:'Server', to:'Server', label:'연료통 수집 처리', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 2. 서버에서 연료 수집 처리</span>
+<span class="kw">void</span> <span class="fn">AAO_FuelActor::Interact</span>(ACharacter* Interactor)
+{
+    <span class="kw">if</span> (!bCollected)
+    {
+        bCollected = <span class="kw">true</span>;
+        FuelManager-><span class="fn">AddFuel</span>(FuelValue);
+        <span class="fn">MulticastOnCollected</span>();
+    }
+}` },
+    { from:'Server', to:'AllClients', label:'MulticastOnCollected', type:'Multicast',
+      typeColor:'#7c3aed', typeBg:'#f5f3ff', typeTag:'#ede9fe',
+      code:`<span class="cm">// 3. 모든 클라이언트에 수집 이펙트 재생</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, Unreliable)
+<span class="kw">void</span> <span class="fn">MulticastOnCollected</span>();
+
+<span class="kw">void</span> <span class="fn">AAO_FuelActor::MulticastOnCollected_Implementation</span>()
+{
+    <span class="fn">SetActorHiddenInGame</span>(<span class="kw">true</span>);
+    UGameplayStatics::<span class="fn">SpawnEmitterAtLocation</span>(
+        GetWorld(), CollectFX, GetActorLocation());
+}` },
+    { from:'Server', to:'AllClients', label:'CollectedFuelCount Replicated', type:'Replicated',
+      typeColor:'#0891b2', typeBg:'#ecfeff', typeTag:'#cffafe',
+      code:`<span class="cm">// 4. 연료 카운트 자동 복제</span>
+<span class="kw">UPROPERTY</span>(ReplicatedUsing=OnRep_FuelCount)
+int32 CollectedFuelCount;
+
+<span class="kw">void</span> <span class="fn">AAO_FuelManager::OnRep_FuelCount</span>()
+{
+    <span class="cm">// 모든 클라이언트 UI 자동 업데이트</span>
+    <span class="fn">UpdateFuelUI</span>(CollectedFuelCount, RequiredFuelCount);
+}`,
+      note:'Replicated 변수는 서버 변경 시 자동으로 모든 클라이언트에 복제됩니다.' },
+  ],
+  ai: [
+    { from:'Server(AI)', to:'Server', label:'StateTree AI 공격 결정', type:'Authority',
+      typeColor:'#7c3aed', typeBg:'#f5f3ff', typeTag:'#ede9fe',
+      code:`<span class="cm">// 1. StateTree Task: AI 공격 실행</span>
+EStateTreeRunStatus <span class="fn">FTask_AIAttack::Tick</span>(
+    FStateTreeExecutionContext& Context, float dt)
+{
+    <span class="kw">if</span> (InstanceData.bAttackReady)
+    {
+        AIChar-><span class="fn">PerformAttack</span>(InstanceData.Target);
+        <span class="kw">return</span> EStateTreeRunStatus::Succeeded;
+    }
+    <span class="kw">return</span> EStateTreeRunStatus::Running;
+}` },
+    { from:'Server', to:'Server', label:'GAS 데미지 적용', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 2. AI → 플레이어 데미지 적용</span>
+<span class="kw">void</span> <span class="fn">AAO_AICharacter::PerformAttack</span>(AActor* Target)
+{
+    <span class="kw">if</span> (<span class="kw">auto</span>* TargetASC =
+        UAbilitySystemBlueprintLibrary::<span class="fn">GetAbilitySystemComponent</span>(Target))
+    {
+        FGameplayEffectSpecHandle Spec =
+            AbilitySystem-><span class="fn">MakeOutgoingSpec</span>(
+                AIDamageEffect, 1.0f, ContextHandle);
+        AbilitySystem-><span class="fn">ApplyGameplayEffectSpecToTarget</span>(
+            *Spec.Data.Get(), TargetASC);
+    }
+}` },
+    { from:'Server', to:'AllClients', label:'MulticastAIAttackAnim', type:'Multicast',
+      typeColor:'#7c3aed', typeBg:'#f5f3ff', typeTag:'#ede9fe',
+      code:`<span class="cm">// 3. AI 공격 애니메이션 동기화</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, Unreliable)
+<span class="kw">void</span> <span class="fn">MulticastPlayAttackAnim</span>();
+
+<span class="kw">void</span> <span class="fn">AAO_AICharacter::MulticastPlayAttackAnim_Implementation</span>()
+{
+    GetMesh()->GetAnimInstance()
+        -><span class="fn">Montage_Play</span>(AttackMontage);
+}` },
+    { from:'Server', to:'VictimClient', label:'ClientUpdateHP', type:'Client RPC',
+      typeColor:'#0891b2', typeBg:'#ecfeff', typeTag:'#cffafe',
+      code:`<span class="cm">// 4. 피해자 클라이언트 HP 갱신</span>
+<span class="kw">UFUNCTION</span>(Client, Reliable)
+<span class="kw">void</span> <span class="fn">ClientUpdateHP</span>(float NewHP, float MaxHP);
+
+<span class="cm">// CurrentHealth 변수 복제로도 처리</span>
+<span class="kw">UPROPERTY</span>(ReplicatedUsing=OnRep_Health)
+FGameplayAttributeData CurrentHealth;`,
+      note:'체력이 0이면 서버에서 Dead 상태 처리 후 ClientNotifyDeath 호출.' },
+  ]
+};
+
+const scColors = { melee:'#d97706', fuel:'#ea580c', ai:'#7c3aed' };
+
+function buildSeq(key) {
+  const list = document.getElementById('seq-'+key);
+  if (!list || list.children.length > 0) return;
+  const steps = scenarios[key];
+  steps.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'seq-step';
+    el.style.setProperty('--sc', s.typeColor);
+    const noteHtml = s.note ? `<div class="info-box tip">${s.note}</div>` : '';
+    el.innerHTML = `
+      <div class="seq-head" onclick="toggleSeq(this)">
+        <div class="seq-num" style="background:${s.typeColor}">${i+1}</div>
+        <div class="seq-from" style="background:${s.typeBg};color:${s.typeColor};border:1px solid ${s.typeTag}">${s.from}</div>
+        <div class="seq-to-arrow">→</div>
+        <div class="seq-to" style="background:${s.typeBg};color:${s.typeColor};border:1px solid ${s.typeTag}">${s.to}</div>
+        <div class="seq-label">${s.label}</div>
+        <div class="seq-badge" style="background:${s.typeBg};color:${s.typeColor};border:1px solid ${s.typeTag}">${s.type}</div>
+        <div class="seq-toggle">▶</div>
+      </div>
+      <div class="seq-body">
+        <div class="seq-body-inner">
+          <pre>${s.code}</pre>
+          ${noteHtml}
+        </div>
+      </div>`;
+    setTimeout(() => el.classList.add('visible'), 100 + i*60);
+    list.appendChild(el);
+  });
+}
+
+function toggleSeq(head) {
+  head.closest('.seq-step').classList.toggle('open');
+}
+
+function switchScenario(key, btn) {
+  document.querySelectorAll('.sc-tab').forEach(t=>{
+    t.classList.remove('active');
+    t.style.background = '#f1f5f9';
+    t.style.color = '#6b7280';
+  });
+  btn.classList.add('active');
+  btn.style.background = scColors[key] || '#374151';
+  btn.style.color = '#fff';
+  document.querySelectorAll('.scenario').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-'+key).classList.add('active');
+  buildSeq(key);
+}
+
+// Init
+buildSeq('melee');
+['pt','ps','stabs'].forEach((id,i)=>
+  setTimeout(()=>document.getElementById(id)?.classList.add('visible'),i*80));
+</script>
+</body>
+</html>

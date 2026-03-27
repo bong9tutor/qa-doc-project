@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 게임 프레임워크 클래스</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#d97706;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#fffbeb;border:1px solid #fef3c7;color:#d97706;font-weight:500;}
+
+/* Layout */
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+/* Sidebar TOC */
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#fffbeb;color:#d97706;border-left-color:#d97706;font-weight:600;}
+
+/* Content */
+.content{flex:1;min-width:0;}
+
+/* Class Card */
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#d97706;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#d97706;border-bottom-color:#d97706;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+/* Overview */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #d97706;}
+
+/* Variable Table */
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fffbeb;border:1px solid #fef3c7;color:#d97706;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+/* Function Accordion */
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#fffbeb;border-color:#fde68a;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #fde68a;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+/* Relation Table */
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#d97706;font-weight:600;}
+
+/* Section bottom */
+.section-divider{border:none;border-top:1px solid #e5e7eb;margin:32px 0 0;}
+
+/* Responsive */
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">← 코드 리뷰</a>
+  <div class="nav-logo">Framework</div>
+  <div class="nav-sub">게임 프레임워크 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">게임 프레임워크 클래스</div>
+  <div class="hero-sub">세션 생명주기·네트워크 상태·플레이어 데이터를 담당하는 4개 핵심 클래스</div>
+  <div class="badges">
+    <span class="badge">AO_GameInstance</span>
+    <span class="badge">AO_OnlineSessionSubsystem</span>
+    <span class="badge">AO_GameState</span>
+    <span class="badge">AO_PlayerState</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#gi">AO_GameInstance</a>
+      <a class="toc-item" href="#oss">AO_OnlineSessionSubsystem</a>
+      <a class="toc-item" href="#gs">AO_GameState</a>
+      <a class="toc-item" href="#ps">AO_PlayerState</a>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ==================== AO_GameInstance ==================== -->
+    <div class="class-card" id="gi">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_GameInstance</div>
+        <div class="class-parent">부모: UGameInstance</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gi','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gi','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gi','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gi','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gi" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">게임 인스턴스 — 맵 이동 중에도 살아남는 전역 데이터 컨테이너</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">앱 시작 → 앱 종료 (맵 로드·언로드와 무관하게 유지)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버·클라이언트 각각 독립 인스턴스 존재 (복제 없음)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">스테이지 인덱스, 연료 초기값, 부활 횟수, 게임 통계 보존</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UGameInstance를 상속하며, 언리얼 엔진이 앱 실행 시 단 하나만 생성합니다.
+          맵 전환(ServerTravel) 시 GameMode·GameState·Actor는 모두 파괴되지만
+          GameInstance는 파괴되지 않으므로, 스테이지 간에 유지해야 할 데이터
+          (연료량, 스테이지 인덱스, 부활 횟수)를 저장하는 용도로 사용합니다.
+          <code>AO_OnlineSessionSubsystem</code>도 이 인스턴스 안에서 생명주기를 공유합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gi" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">SharedTrainFuel</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>스테이지·휴게공간 사이를 오갈 때 보존할 기차 연료 수치. 서버에서 기록하고 다음 맵 시작 시 GAS AttributeSet에 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentStageIndex</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 진행 중인 스테이지 번호 (0부터 시작). GetCurrentStageMap()이 이 값으로 맵 이름을 조회합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LobbyHostNetIdStr</span></td>
+            <td><span class="var-type">FString</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>로비 호스트 플레이어의 Steam UniqueNetId 문자열. 호스트 권한 판별에 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InitialSharedReviveCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>런 시작 시 팀에 주어지는 공유 부활 횟수의 기본값. EditAnywhere이므로 에디터에서 직접 조정할 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SharedReviveCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>현재 남은 팀 공유 부활 횟수. GameState의 TryConsumeSharedReviveCount()가 이 값을 감소시킵니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">GameStartTime / GameEndTime</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>게임 시작·종료 타임스탬프. 결과 화면에서 클리어 시간 계산에 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">TeamDeathCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>팀 전체 사망 횟수 누적값 (통계용).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">FuelDataAsset</span></td>
+            <td><span class="var-type">UAO_FuelData*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>기차 초기 연료량을 정의하는 데이터 에셋. GetInitialFuel()이 이 에셋을 참조합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="gi" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Init()</span>
+              <span class="fn-spec bp-call">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>엔진이 GameInstance를 생성한 직후 호출하는 초기화 함수입니다. 부모 Init()을 호출하고 기본값을 설정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>앱 시작 시 엔진이 자동 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ResetRun()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CurrentStageIndex를 0으로 초기화하고, SharedReviveCount를 InitialSharedReviveCount로 복원합니다. 게임 오버 후 처음부터 다시 시작할 때 호출합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>게임 오버·재시작 시 GameMode 또는 Blueprint에서 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetCurrentStageMap()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CurrentStageIndex 값으로 스테이지 맵 이름(FName)을 반환합니다. 내부적으로 맵 이름 배열을 인덱스로 조회합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>GameMode가 다음 스테이지로 ServerTravel을 실행할 때 목적지 맵 이름 조회에 사용합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsLastStage() / TryAdvanceStageIndex()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>IsLastStage()는 현재 스테이지가 마지막인지 bool로 반환합니다. TryAdvanceStageIndex()는 인덱스를 1 증가시키고, 다음 스테이지가 없으면 false를 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>스테이지 클리어 후 다음 맵 전환 여부를 결정할 때 사용합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetInitialFuel() / GetInitialFuelValue()</span>
+              <span class="fn-spec bp-pure">BlueprintPure</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>FuelDataAsset에서 초기 연료량을 읽어 반환합니다. BlueprintPure이므로 사이드 이펙트 없이 값만 읽습니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>기차(AO_Train) 초기화 시 GAS AttributeSet에 연료 초기값을 설정할 때 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetLobbyHostFromPlayerState() / IsLobbyHostPlayerState()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>PlayerState에서 UniqueNetId를 추출해 LobbyHostNetIdStr에 저장하거나, 주어진 PlayerState가 호스트인지 비교합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>로비 GameMode가 플레이어 입장 시 첫 번째 플레이어를 호스트로 등록할 때 사용합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gi" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_OnlineSessionSubsystem</span></td><td>GameInstance 내부에서 생명주기를 공유하는 서브시스템</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">AAO_GameMode_*</span></td><td>스테이지 맵 이름, 연료 초기값을 조회</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">AAO_GameState</span></td><td>SharedReviveCount 동기화 시 초기값 참조</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">AAO_Train</span></td><td>GetInitialFuel()로 GAS 연료 초기값 설정</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameInstance -->
+
+    <!-- ==================== AO_OnlineSessionSubsystem ==================== -->
+    <div class="class-card" id="oss">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_OnlineSessionSubsystem</div>
+        <div class="class-parent">부모: UGameInstanceSubsystem</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'oss','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'oss','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'oss','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'oss','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="oss" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">Steam Online Subsystem 세션 API를 래핑하는 서브시스템</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">GameInstance와 동일 (앱 전체 생존)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">주로 클라이언트에서 호출, 실제 세션은 Steam 서버 경유</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">호스트·찾기·입장·파기 + 음성채팅 제어</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UGameInstanceSubsystem을 상속하므로 GameInstance가 생성될 때 자동으로 인스턴스화됩니다.
+          Steam OSS의 IOnlineSessionPtr를 통해 세션을 생성(Host)·검색(Find)·입장(Join)·파기(Destroy)합니다.
+          세션 설정 키(SERVER_NAME, HAS_PASSWORD, CURRENT_PLAYERS, IN_GAME 등)를 이용해
+          로비 UI에 방 목록을 표시하고 비밀번호 검증·스테이지 진입 차단을 처리합니다.
+          또한 언리얼의 IOnlineVoice 인터페이스를 통해 플레이어별 음소거/해제를 관리합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="oss" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">OnFindSessionsCompleteEvent</span></td>
+            <td><span class="var-type">FAO_OnFindSessionsComplete</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>세션 검색이 완료되었을 때 브로드캐스트되는 다이나믹 델리게이트. UI Widget이 바인딩해 방 목록을 갱신합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LastSearch / LastSearchResults</span></td>
+            <td><span class="var-type">TSharedPtr / TArray</span></td>
+            <td>(private)</td>
+            <td>FindSessions() 후 캐시된 검색 결과. GetServerNameByIndex() 등 조회 함수가 이 캐시를 참조합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bFinding / bOpInProgress</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td>(private)</td>
+            <td>검색 진행 여부와 Host/Join/Destroy 작업 재진입 방지 플래그. 중복 호출 시 작업을 건너뜁니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">세션 키 상수<br>(AO_SessionKeys::)</span></td>
+            <td><span class="var-type">FName</span></td>
+            <td>namespace 상수</td>
+            <td>SERVER_NAME, HAS_PASSWORD, PASSWORD_MD5, CURRENT_PLAYERS, IN_GAME. 세션 설정 딕셔너리의 키로 사용합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="oss" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HostSessionEx()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>방 이름·비밀번호를 포함한 세션을 Steam에 생성합니다. 비밀번호는 MD5로 해시하여 PASSWORD_MD5 키에 저장합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① FOnlineSessionSettings 설정 → ② CreateSession() 비동기 호출 → ③ OnCreateSessionComplete 델리게이트 수신 → ④ 성공 시 LobbyMap으로 ServerTravel</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindSessions()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Steam 세션 목록을 검색합니다. 결과가 오면 LastSearchResults에 캐시하고 OnFindSessionsCompleteEvent를 브로드캐스트합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① FOnlineSessionSearch 설정(MaxResults, Steam 키) → ② FindSessions() 비동기 호출 → ③ OnFindSessionsComplete 수신 → ④ 델리게이트 브로드캐스트</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">JoinSessionByIndex()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>LastSearchResults[Index]로 세션에 입장합니다. 입장 완료 시 OnJoinSessionComplete에서 실제 서버 URL을 받아 ClientTravel로 이동합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① JoinSession() 비동기 호출 → ② OnJoinSessionComplete 수신 → ③ GetResolvedConnectString() → ④ ClientTravel(URL)</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">MuteRemoteTalker() / UnmuteRemoteTalker()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>IOnlineVoice 인터페이스를 통해 특정 플레이어의 음성을 음소거하거나 해제합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>플레이어 사망 시 MuteAllDeadRemoteTalker()를 통해 자동 호출되거나, UI에서 수동으로 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetSessionInGame()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>세션의 IN_GAME 키 값을 변경합니다. true로 설정하면 게임 진행 중으로 표시되어 새 플레이어의 방 목록 검색에서 잠금 처리됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>스테이지 시작 시 GameMode에서 호출합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="oss" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>GameInstance 서브시스템으로 자동 생성됨</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">로비 UI Widget</span></td><td>HostSession, FindSessions, JoinSession 호출 및 OnFindSessionsCompleteEvent 바인딩</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>MuteRemoteTalker 호출 시 PlayerState의 UniqueNetId 사용</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_OnlineSessionSubsystem -->
+
+    <!-- ==================== AO_GameState ==================== -->
+    <div class="class-card" id="gs">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_GameState</div>
+        <div class="class-parent">부모: AGameState</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'gs','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'gs','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gs','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'gs','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="gs" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">현재 레벨의 게임 진행 상태를 모든 클라이언트에 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">현재 레벨 동안만 존재 (맵 전환 시 파괴)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 권한 있는 상태 변경, 클라이언트는 복제본 수신</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">공유 부활 횟수, 스테이지 성패, 클리어, 힌트, 통계</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          AGameState를 상속하며, 모든 플레이어가 공유해야 하는 게임 진행 상태를 보관합니다.
+          서버에서 SetStageFailed() / SetGameClear() 같은 Authority 전용 함수로 상태를 변경하면,
+          ReplicatedUsing 변수가 자동으로 클라이언트로 전파되고 OnRep_* 함수가 실행되어
+          각 클라이언트의 UI 델리게이트(OnStageFailed, OnGameCleared 등)를 브로드캐스트합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gs" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">SharedReviveCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>팀 공유 부활 횟수. 서버에서 변경 시 모든 클라이언트에 복제되고, OnRep_SharedReviveCount가 UI 델리게이트를 발동합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsStageFailed</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>스테이지 실패 여부. true가 되면 OnRep가 OnStageFailed 델리게이트를 브로드캐스트합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsGameCleared</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>게임 클리어 여부. 마지막 스테이지 완료 시 서버가 true로 설정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">RunResetTrigger</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span></td>
+            <td>패시브 초기화 신호. 서버가 Authority_NotifyGlobalReset()에서 값을 증가시키면 모든 클라이언트의 OnRep_RunResetTrigger가 실행됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bHint1 / bHint2 / bHint3</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>선발대 흔적(힌트) 3종 발견 여부 플래그. FindHint(num)으로 해당 번호를 true로 설정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentFindHintNum</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재까지 발견된 힌트 수. OnRep_HintCount가 OnHintCountChanged 델리게이트를 발동합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnSharedReviveCountChanged<br>OnStageFailed / OnGameCleared</span></td>
+            <td><span class="var-type">Dynamic Delegate</span></td>
+            <td><span class="prop-tag bp">BlueprintAssignable</span></td>
+            <td>UI가 바인딩하는 이벤트 델리게이트. 값 변경 시 OnRep 내부에서 자동 브로드캐스트됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="gs" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetSharedReviveCount() / TryConsumeSharedReviveCount()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버 Authority에서만 호출되는 함수로, SharedReviveCount를 직접 설정하거나 1 감소시킵니다. 복제 변수이므로 변경 즉시 클라이언트에 전파됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">TryConsume 흐름</div>① SharedReviveCount > 0 확인 → ② 1 감소 → ③ true 반환 (실패 시 false)</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetStageFailed() / SetGameClear()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버 Authority에서 bIsStageFailed 또는 bIsGameCleared를 true로 설정합니다. 복제로 클라이언트에 전달되고 각 OnRep 함수가 UI 델리게이트를 브로드캐스트합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Authority_NotifyGlobalReset()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>RunResetTrigger 값을 1 증가시켜 모든 클라이언트에 패시브(버프/디버프) 초기화를 알립니다. 카운터 증가 방식이므로 동일 값이 다시 복제되더라도 OnRep가 발동합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">FindHint(int32 Num) / CheckHintCount()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>FindHint는 Num(1~3)에 해당하는 힌트 플래그를 true로 설정하고 CurrentFindHintNum을 증가시킵니다. CheckHintCount는 3개 모두 발견했는지 bool로 반환합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">AddPlayerState() 오버라이드</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>기본 동작(PlayerStates 배열 추가)을 수행한 뒤, 타이머를 통해 UnmuteVoiceOnAddPlayerState()를 호출하여 새로 입장한 플레이어의 음성을 자동 언뮤트합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="gs" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_GameMode_Stage</span></td><td>SetStageFailed, SetGameClear, AddTeamDeathCount 호출</td></tr>
+          <tr><td>구독</td><td><span class="rel-cls">HUD / UI Widget</span></td><td>OnStageFailed, OnGameCleared, OnSharedReviveCountChanged 델리게이트 바인딩</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>TryConsumeSharedReviveCount로 부활 처리</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_GameState -->
+
+    <!-- ==================== AO_PlayerState ==================== -->
+    <div class="class-card" id="ps">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerState</div>
+        <div class="class-parent">부모: APlayerState</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'ps','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'ps','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ps','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'ps','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="ps" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어 1인의 상태를 서버·클라이언트에 복제 유지</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">CopyProperties로 맵 이동 후에도 데이터 이어받기 가능</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 Authority + 모든 클라이언트에 복제본 존재</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">로비 레디, 입장 순서, 생존 여부, 인벤토리/체력 맵 이동 보존</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          APlayerState를 상속하며, 각 플레이어의 개별 상태를 보관합니다.
+          GameState와 달리 PlayerState는 각 컨트롤러에 소속되며,
+          맵 이동(ServerTravel) 시 CopyProperties()가 호출되어 다음 맵의 새 PlayerState에 데이터를 복사합니다.
+          이 메커니즘으로 인벤토리(PersistentInventory)와 체력(PersistentHealth)이 스테이지 간에 유지됩니다.
+          로비에서는 bLobbyIsReady와 LobbyJoinOrder로 레디 보드 UI를 구동합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="ps" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">bLobbyIsReady</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_LobbyIsReady</span></td>
+            <td>로비 레디 상태. 변경 시 OnRep_LobbyIsReady가 실행되어 OnLobbyReadyChanged 델리게이트를 브로드캐스트합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LobbyJoinOrder</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_LobbyJoinOrder</span></td>
+            <td>로비 입장 순서 (0부터 시작). 첫 번째 입장자(0번)가 호스트로 취급됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsLobbyHost</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsLobbyHost</span></td>
+            <td>이 플레이어가 세션 호스트인지 여부. 서버에서 GameInstance 기반으로 설정됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsAlive</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_IsAlive</span></td>
+            <td>플레이어 생존 여부. 사망 시 false로 설정되고, 음성채팅 뮤트 처리에도 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DeathCount</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing</span><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>이 플레이어의 누적 사망 횟수 (통계용).</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CharacterCustomizingData</span></td>
+            <td><span class="var-type">FCustomizingData</span></td>
+            <td><span class="prop-tag">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span><span class="prop-tag rep">Replicated</span></td>
+            <td>캐릭터 외형 커스터마이징 데이터. ServerRPC_SetCharacterCustomizingData로 서버에서 설정한 뒤 모든 클라이언트로 복제됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">PersistentInventory</span></td>
+            <td><span class="var-type">TArray&lt;FInventorySlot&gt;</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>맵 이동 시 보존할 인벤토리 슬롯 배열. SaveInventoryBeforeTravel()이 이동 직전 기록하고, 다음 맵에서 InventoryComponent로 복원합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bHasPersistentHealth / PersistentHealth</span></td>
+            <td><span class="var-type">bool / float</span></td>
+            <td><span class="prop-tag rep">Replicated</span></td>
+            <td>맵 이동 시 보존할 체력값. SaveHealthBeforeTravel()로 기록하고 다음 맵의 AttributeSet에 적용합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="ps" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">CopyProperties(APlayerState* NewPlayerState)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>맵 이동(ServerTravel) 시 엔진이 호출하는 함수로, 현재 PlayerState의 중요 데이터를 새 맵의 PlayerState 인스턴스에 복사합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">복사 대상</div>LobbyJoinOrder, bIsLobbyHost, bIsAlive, DeathCount, CharacterCustomizingData, PersistentInventory, PersistentHealth 등</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerRPC_SetCharacterCustomizingData()</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>클라이언트에서 캐릭터 외형을 선택한 후, 서버에 커스터마이징 데이터를 전송합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">Server, Reliable 의미</div>클라이언트가 호출하면 네트워크를 통해 서버에서만 실행됩니다. Reliable이므로 패킷 손실 시 재전송을 보장합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① 클라이언트에서 ServerRPC 호출 → ② 서버에서 CharacterCustomizingData 설정 → ③ Replicated 변수이므로 자동 전파</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SaveInventoryBeforeTravel() / SaveHealthBeforeTravel()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>맵 이동 직전, 현재 InventoryComponent의 슬롯 또는 AttributeSet의 체력값을 PlayerState의 보존 변수에 복사합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>GameMode가 ServerTravel 호출 전에 각 플레이어의 PlayerState에 대해 실행합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetLobbyReady() / OnRep_LobbyIsReady()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>SetLobbyReady는 서버에서 bLobbyIsReady를 변경합니다. OnRep_LobbyIsReady는 복제 수신 후 클라이언트에서 실행되어 OnLobbyReadyChanged 델리게이트를 브로드캐스트하고, RefreshLobbyReadyBoard()로 UI를 갱신합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="ps" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>사망 시 bIsAlive = false, AddDeathCount 호출</td></tr>
+          <tr><td>호출됨</td><td><span class="rel-cls">로비 UI Widget</span></td><td>OnLobbyReadyChanged 델리게이트 바인딩, SetLobbyReady 호출</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">UAO_GameInstance</span></td><td>IsLobbyHostPlayerState로 호스트 여부 확인</td></tr>
+          <tr><td>복원 대상</td><td><span class="rel-cls">UAO_InventoryComponent</span></td><td>맵 이동 후 PersistentInventory에서 아이템 복원</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PlayerState -->
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  소스 코드 리뷰 — 학습 목적 전용
+</div>
+
+<script>
+// Tab switching
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+// Accordion
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// TOC active highlight on scroll
+const sections = ['gi','oss','gs','ps'];
+const tocItems = {};
+sections.forEach(id => {
+  tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`);
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      const key = e.target.id;
+      if (tocItems[key]) tocItems[key].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>

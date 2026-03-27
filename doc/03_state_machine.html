@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 상태 머신</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 16px;position:sticky;top:0;z-index:20;}
+.nav-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.nav-logo{font-size:14px;font-weight:700;color:#2563eb;}
+.nav-doc{font-size:12px;color:#6b7280;}
+.nav-links{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;padding-bottom:2px;}
+.nav-links::-webkit-scrollbar{height:0;}
+.nav-link{font-size:11px;padding:4px 10px;border-radius:20px;background:#f1f5f9;color:#6b7280;text-decoration:none;transition:.2s;}
+.nav-link:hover,.nav-link.active{background:#dbeafe;color:#2563eb;}
+
+.page{max-width:680px;margin:0 auto;padding:20px 16px 48px;}
+.page-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#6b7280;margin-bottom:20px;}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:16px;background:#f1f5f9;padding:4px;border-radius:24px;width:fit-content;}
+.tab{font-size:12px;padding:6px 18px;border-radius:20px;border:none;cursor:pointer;
+  background:transparent;color:#6b7280;transition:.2s;font-family:inherit;}
+.tab.active{background:#fff;color:#7c3aed;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* State Grid */
+.state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:16px;}
+.state-node{background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;
+  cursor:pointer;transition:.2s;opacity:0;transform:translateY(6px);}
+.state-node.visible{opacity:1;transform:translateY(0);}
+.state-node:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);border-color:var(--sc,#7c3aed);}
+.state-node.selected{border-color:var(--sc,#7c3aed);background:var(--sbg,#f5f3ff);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.state-node-dot{width:8px;height:8px;border-radius:50%;margin-bottom:6px;}
+.state-node-name{font-size:12px;font-weight:700;color:#111827;margin-bottom:2px;}
+.state-node-tag{font-size:10px;color:#6b7280;}
+
+/* Detail Panel */
+.detail-panel{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;
+  min-height:120px;transition:.2s;}
+.detail-empty{color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;}
+.detail-title{font-size:15px;font-weight:700;color:#111827;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.detail-dot{width:10px;height:10px;border-radius:50%;}
+
+.lifecycle-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.lc-box{border-radius:6px;padding:10px;background:#fafafa;border:1px solid #f3f4f6;}
+.lc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:4px;}
+.lc-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:#374151;line-height:1.5;}
+
+.trans-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.trans-tag{font-size:11px;padding:3px 9px;border-radius:20px;background:#fafafa;border:1px solid #e5e7eb;color:#374151;}
+
+/* Simulation */
+.sim-controls{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.sim-btn{font-size:12px;padding:6px 14px;border-radius:20px;border:none;cursor:pointer;
+  font-family:inherit;transition:.2s;}
+.sim-start{background:#7c3aed;color:#fff;}
+.sim-start:hover{background:#6d28d9;}
+.sim-reset{background:#f1f5f9;color:#6b7280;}
+.sim-state-label{font-size:12px;color:#6b7280;margin-left:4px;}
+.sim-state-val{font-size:12px;font-weight:700;color:#7c3aed;}
+
+.sim-timeline{position:relative;padding-left:18px;margin-top:12px;}
+.sim-timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:#e5e7eb;}
+.sim-step{position:relative;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px;}
+.sim-step-dot{width:14px;height:14px;border-radius:50%;border:2px solid #e5e7eb;background:#fff;
+  flex-shrink:0;margin-top:2px;transition:.3s;}
+.sim-step-dot.done{border-color:#7c3aed;background:#7c3aed;}
+.sim-step-dot.current{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+.sim-step-text{font-size:12px;color:#9ca3af;line-height:1.5;transition:.3s;}
+.sim-step-text.done{color:#374151;}
+.sim-step-text.current{color:#7c3aed;font-weight:600;}
+
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
+  border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-top:8px;
+  overflow-x:auto;line-height:1.6;color:#374151;}
+.kw{color:#7c3aed;font-weight:600;}
+.fn{color:#2563eb;}
+.cm{color:#9ca3af;}
+
+.fade{opacity:0;transform:translateY(8px);transition:.35s ease;}
+.fade.visible{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-top">
+    <div class="nav-logo">AVaOut</div>
+    <div class="nav-doc">상태 머신</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="01_session_flow.html">01 세션 흐름</a>
+    <a class="nav-link" href="02_network_arch.html">02 네트워크</a>
+    <a class="nav-link active" href="03_state_machine.html">03 상태 머신</a>
+    <a class="nav-link" href="04_rpc_replication.html">04 RPC</a>
+    <a class="nav-link" href="index.html">← 목록</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-title fade" id="pt">상태 머신</div>
+  <div class="page-sub fade" id="ps">플레이어 10종 + 게임 상태 7종 · 노드를 클릭해 Enter/Tick/Exit 상세 보기</div>
+
+  <div class="tabs fade" id="tb">
+    <button class="tab active" onclick="switchTab('player',this)">플레이어 상태</button>
+    <button class="tab" onclick="switchTab('game',this)">게임 상태</button>
+    <button class="tab" onclick="switchTab('sim',this)">시뮬레이션</button>
+  </div>
+
+  <!-- Player States Tab -->
+  <div class="tab-pane active" id="tab-player">
+    <div class="state-grid" id="playerGrid"></div>
+    <div class="detail-panel" id="playerDetail">
+      <div class="detail-empty">상태 노드를 클릭하면 상세 정보가 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Game States Tab -->
+  <div class="tab-pane" id="tab-game">
+    <div class="state-grid" id="gameGrid"></div>
+    <div class="detail-panel" id="gameDetail">
+      <div class="detail-empty">상태 노드를 클릭하면 상세 정보가 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Simulation Tab -->
+  <div class="tab-pane" id="tab-sim">
+    <div class="sim-controls">
+      <button class="sim-btn sim-start" onclick="runSim()">▶ 시뮬레이션 시작</button>
+      <button class="sim-btn sim-reset" onclick="resetSim()">↺ 초기화</button>
+      <span class="sim-state-label">현재:</span>
+      <span class="sim-state-val" id="simCurrent">Idle</span>
+    </div>
+    <div class="sim-timeline" id="simTimeline"></div>
+  </div>
+</div><!-- /page -->
+
+<script>
+const playerStates = [
+  { name:'Idle', tag:'대기', color:'#2563eb', bg:'#eff6ff',
+    enter:'캐릭터 속도 0, 애니메이션 Idle 재생',
+    tick:'입력 감지 → Move 전환 조건 체크',
+    exit:'이동 파티클 활성화',
+    transitions:['Move','Crouch','Attack','Interact','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Idle</span>() {
+    GetCharMovement()->MaxWalkSpeed = 0;
+    PlayMontage(IdleAnim);
+}` },
+  { name:'Move', tag:'이동', color:'#16a34a', bg:'#f0fdf4',
+    enter:'이동 속도 설정 (Walk:300, Sprint:600)',
+    tick:'속도벡터 → 애니메이션 블렌드',
+    exit:'발자국 사운드 중지',
+    transitions:['Idle','Sprint','Crouch','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Move</span>() {
+    <span class="fn">SetMovementSpeed</span>(bIsSprinting ? 600 : 300);
+    <span class="fn">PlayMontage</span>(WalkAnim);
+}` },
+  { name:'Sprint', tag:'달리기', color:'#ea580c', bg:'#fff7ed',
+    enter:'속도 600, 스태미나 소모 시작',
+    tick:'스태미나 감소, 0이면 Move로 강제 전환',
+    exit:'스태미나 회복 타이머 시작',
+    transitions:['Move','Idle','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">TickState_Sprint</span>(float dt) {
+    Stamina -= StaminaDrainRate * dt;
+    <span class="kw">if</span> (Stamina <= 0) <span class="fn">SetState</span>(EState::Move);
+}` },
+  { name:'Crouch', tag:'앉기', color:'#0891b2', bg:'#ecfeff',
+    enter:'캡슐 반지름 축소, 속도 150',
+    tick:'장애물 체크, 이동 가능 여부 판정',
+    exit:'캡슐 원래 크기 복원',
+    transitions:['Idle','Move','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Crouch</span>() {
+    GetCharMovement()->MaxWalkSpeed = 150;
+    <span class="fn">Crouch</span>();
+}` },
+  { name:'Attack', tag:'공격', color:'#d97706', bg:'#fffbeb',
+    enter:'GAS Ability 활성화, 히트박스 ON',
+    tick:'히트박스 오버랩 체크',
+    exit:'히트박스 OFF, 쿨다운 시작',
+    transitions:['Idle','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Attack</span>() {
+    AbilitySystem-><span class="fn">TryActivateAbilityByTag</span>(
+        TAG_Ability_Melee);
+}` },
+  { name:'Interact', tag:'상호작용', color:'#7c3aed', bg:'#f5f3ff',
+    enter:'인터랙션 위젯 표시, 이동 잠금',
+    tick:'입력 홀드 게이지 증가',
+    exit:'위젯 숨김, 이동 잠금 해제',
+    transitions:['Idle','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Interact</span>() {
+    bMovementLocked = <span class="kw">true</span>;
+    <span class="fn">ShowInteractWidget</span>(<span class="kw">true</span>);
+}` },
+  { name:'Stunned', tag:'스턴', color:'#9ca3af', bg:'#f9fafb',
+    enter:'모든 입력 차단, 스턴 파티클 재생',
+    tick:'스턴 시간 카운트다운',
+    exit:'입력 복원',
+    transitions:['Idle'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Stunned</span>() {
+    bInputBlocked = <span class="kw">true</span>;
+    <span class="fn">GetWorld</span>()-><span class="fn">GetTimerManager</span>()
+        .<span class="fn">SetTimer</span>(StunTimer, <span class="kw">this</span>,
+        &AAO_PlayerCharacter::OnStunEnd, 2.0f);
+}` },
+  { name:'Dead', tag:'사망', color:'#ef4444', bg:'#fef2f2',
+    enter:'래그돌 활성화, 스폰 타이머 시작',
+    tick:'리스폰 대기',
+    exit:'래그돌 비활성화, 체력 복구',
+    transitions:['Idle'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Dead</span>() {
+    GetMesh()->SetSimulatePhysics(<span class="kw">true</span>);
+    <span class="fn">GetWorld</span>()-><span class="fn">GetTimerManager</span>()
+        .<span class="fn">SetTimer</span>(RespawnTimer, 5.0f);
+}` },
+  { name:'Reviving', tag:'부활 중', color:'#f59e0b', bg:'#fffbeb',
+    enter:'팀원 부활 애니메이션 재생',
+    tick:'부활 게이지 증가',
+    exit:'체력 50% 복원, Idle 전환',
+    transitions:['Idle','Dead'],
+    code:`<span class="kw">void</span> <span class="fn">TickState_Reviving</span>(float dt) {
+    ReviveProgress += dt / 3.0f;
+    <span class="kw">if</span> (ReviveProgress >= 1.0f) <span class="fn">OnRevived</span>();
+}` },
+  { name:'Emoting', tag:'이모트', color:'#ec4899', bg:'#fdf2f8',
+    enter:'이모트 애니메이션 재생, 이동 잠금',
+    tick:'애니메이션 완료 대기',
+    exit:'이동 잠금 해제',
+    transitions:['Idle'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Emoting</span>() {
+    bMovementLocked = <span class="kw">true</span>;
+    <span class="fn">PlayMontage</span>(SelectedEmoteMontage);
+}` },
+];
+
+const gameStates = [
+  { name:'WaitingForPlayers', tag:'대기', color:'#6b7280', bg:'#f9fafb',
+    enter:'로비 UI 표시, 플레이어 카운트 시작',
+    tick:'접속 인원 체크',
+    exit:'카운트다운 UI 숨김',
+    transitions:['CountDown'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Waiting</span>() {
+    <span class="fn">BroadcastWaitingUI</span>(<span class="kw">true</span>);
+}` },
+  { name:'CountDown', tag:'카운트다운', color:'#d97706', bg:'#fffbeb',
+    enter:'3초 카운트다운 시작',
+    tick:'타이머 감소 → HUD 업데이트',
+    exit:'카운트다운 UI 제거',
+    transitions:['InProgress'],
+    code:`<span class="kw">void</span> <span class="fn">TickState_CountDown</span>(float dt) {
+    CountDown -= dt;
+    <span class="kw">if</span> (CountDown <= 0) <span class="fn">SetGameState</span>(InProgress);
+}` },
+  { name:'InProgress', tag:'진행 중', color:'#16a34a', bg:'#f0fdf4',
+    enter:'AI 스폰, 퍼즐 활성화, 연료 배치',
+    tick:'승리/패배 조건 매 프레임 체크',
+    exit:'AI 모두 비활성화',
+    transitions:['Victory','Defeat','Pause'],
+    code:`<span class="kw">void</span> <span class="fn">TickState_InProgress</span>(float dt) {
+    <span class="fn">CheckWinCondition</span>();
+    <span class="fn">CheckLoseCondition</span>();
+}` },
+  { name:'Pause', tag:'일시정지', color:'#0891b2', bg:'#ecfeff',
+    enter:'게임 일시정지, 포즈 UI 표시',
+    tick:'입력 대기',
+    exit:'포즈 UI 숨김, 게임 재개',
+    transitions:['InProgress'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Pause</span>() {
+    UGameplayStatics::<span class="fn">SetGamePaused</span>(World, <span class="kw">true</span>);
+}` },
+  { name:'Victory', tag:'승리', color:'#2563eb', bg:'#eff6ff',
+    enter:'승리 연출 재생, 점수 집계',
+    tick:'결과 화면 대기',
+    exit:'세션 정리',
+    transitions:['WaitingForPlayers'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Victory</span>() {
+    <span class="fn">MulticastShowVictory</span>();
+    <span class="fn">CalcAndSaveScores</span>();
+}` },
+  { name:'Defeat', tag:'패배', color:'#ef4444', bg:'#fef2f2',
+    enter:'패배 연출 재생',
+    tick:'재시작 입력 대기',
+    exit:'세션 정리',
+    transitions:['WaitingForPlayers'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_Defeat</span>() {
+    <span class="fn">MulticastShowDefeat</span>();
+}` },
+  { name:'RestRoom', tag:'휴식', color:'#ea580c', bg:'#fff7ed',
+    enter:'상점 UI 활성화, 업그레이드 가능',
+    tick:'다음 레벨 선택 대기',
+    exit:'업그레이드 적용, 세션 유지',
+    transitions:['CountDown'],
+    code:`<span class="kw">void</span> <span class="fn">EnterState_RestRoom</span>() {
+    <span class="fn">ActivateShop</span>(<span class="kw">true</span>);
+    <span class="fn">TrainSubsystem</span>-><span class="fn">ShowDestinations</span>(<span class="kw">true</span>);
+}` },
+];
+
+const simSteps = [
+  { state:'Idle', desc:'게임 시작 — 플레이어 Idle 상태 진입' },
+  { state:'Move', desc:'W키 입력 감지 → Move 전환' },
+  { state:'Sprint', desc:'Shift 홀드 → Sprint 전환, 스태미나 소모 시작' },
+  { state:'Attack', desc:'좌클릭 → Attack 전환, 근접 히트박스 활성화' },
+  { state:'Idle', desc:'공격 완료 → Idle 복귀, 쿨다운 시작' },
+  { state:'Interact', desc:'E키 홀드 → 연료통 수집 Interact 전환' },
+  { state:'Idle', desc:'수집 완료 → Idle 복귀' },
+  { state:'Stunned', desc:'AI 공격 피격 → Stunned 전환' },
+  { state:'Idle', desc:'스턴 2초 후 → Idle 복귀' },
+  { state:'Dead', desc:'체력 0 → Dead 전환, 래그돌 활성화' },
+  { state:'Reviving', desc:'팀원 접근 3초 홀드 → Reviving 전환' },
+  { state:'Idle', desc:'부활 완료 → Idle 복귀, HP 50% 회복' },
+];
+
+let simInterval, simStep = 0;
+
+function buildGrid(states, gridId, detailId) {
+  const grid = document.getElementById(gridId);
+  states.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'state-node';
+    el.style.setProperty('--sc', s.color);
+    el.style.setProperty('--sbg', s.bg);
+    el.innerHTML = `<div class="state-node-dot" style="background:${s.color}"></div>
+      <div class="state-node-name">${s.name}</div>
+      <div class="state-node-tag">${s.tag}</div>`;
+    el.onclick = () => showDetail(states, i, gridId, detailId);
+    setTimeout(() => el.classList.add('visible'), 100 + i * 40);
+    grid.appendChild(el);
+  });
+}
+
+function showDetail(states, idx, gridId, detailId) {
+  const s = states[idx];
+  document.querySelectorAll(`#${gridId} .state-node`).forEach(n => n.classList.remove('selected'));
+  document.querySelectorAll(`#${gridId} .state-node`)[idx].classList.add('selected');
+  const panel = document.getElementById(detailId);
+  panel.innerHTML = `
+    <div class="detail-title">
+      <div class="detail-dot" style="background:${s.color}"></div>
+      ${s.name} <span style="font-size:12px;color:${s.color};font-weight:500">${s.tag}</span>
+    </div>
+    <div class="lifecycle-row">
+      <div class="lc-box"><div class="lc-label" style="color:#16a34a">Enter</div><div class="lc-code">${s.enter}</div></div>
+      <div class="lc-box"><div class="lc-label" style="color:#d97706">Tick</div><div class="lc-code">${s.tick}</div></div>
+      <div class="lc-box"><div class="lc-label" style="color:#ef4444">Exit</div><div class="lc-code">${s.exit}</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px">가능한 전환</div>
+    <div class="trans-list">${s.transitions.map(t=>`<span class="trans-tag">→ ${t}</span>`).join('')}</div>
+    <pre>${s.code}</pre>`;
+}
+
+function buildSimTimeline() {
+  const tl = document.getElementById('simTimeline');
+  tl.innerHTML = simSteps.map((s,i) => `
+    <div class="sim-step" id="simStep${i}">
+      <div class="sim-step-dot" id="simDot${i}"></div>
+      <div class="sim-step-text" id="simText${i}"><strong>${s.state}</strong> — ${s.desc}</div>
+    </div>`).join('');
+}
+
+function runSim() {
+  resetSim();
+  buildSimTimeline();
+  simStep = 0;
+  simInterval = setInterval(() => {
+    if (simStep > 0) {
+      document.getElementById(`simDot${simStep-1}`)?.classList.replace('current','done');
+      document.getElementById(`simText${simStep-1}`)?.classList.replace('current','done');
+    }
+    if (simStep >= simSteps.length) { clearInterval(simInterval); return; }
+    document.getElementById(`simDot${simStep}`)?.classList.add('current');
+    document.getElementById(`simText${simStep}`)?.classList.add('current');
+    document.getElementById('simCurrent').textContent = simSteps[simStep].state;
+    simStep++;
+  }, 900);
+}
+
+function resetSim() {
+  clearInterval(simInterval);
+  simStep = 0;
+  document.getElementById('simCurrent').textContent = 'Idle';
+  buildSimTimeline();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// Init
+buildGrid(playerStates, 'playerGrid', 'playerDetail');
+buildGrid(gameStates, 'gameGrid', 'gameDetail');
+buildSimTimeline();
+
+['pt','ps','tb'].forEach((id,i)=>
+  setTimeout(()=>document.getElementById(id)?.classList.add('visible'),i*80));
+</script>
+</body>
+</html>

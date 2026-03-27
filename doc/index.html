@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 프로젝트 문서</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:0;}
+
+/* Nav */
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-logo{font-size:16px;font-weight:700;color:#2563eb;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:28px 16px 24px;text-align:center;}
+.hero-title{font-size:22px;font-weight:700;color:#111827;margin-bottom:6px;opacity:0;transform:translateY(8px);transition:.35s ease;}
+.hero-title.visible{opacity:1;transform:translateY(0);}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:16px;opacity:0;transform:translateY(8px);transition:.35s ease .08s;}
+.hero-sub.visible{opacity:1;transform:translateY(0);}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;opacity:0;transform:translateY(8px);transition:.35s ease .16s;}
+.badges.visible{opacity:1;transform:translateY(0);}
+.badge{font-size:11px;padding:4px 10px;border-radius:20px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-weight:500;}
+
+/* Grid */
+.grid-wrap{max-width:680px;margin:0 auto;padding:20px 16px 40px;}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:12px;}
+.grid{display:flex;flex-direction:column;gap:10px;}
+
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;transition:all .2s ease;opacity:0;transform:translateY(8px);}
+.card.visible{opacity:1;transform:translateY(0);}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);border-color:var(--c,#2563eb);transform:translateY(-2px);}
+
+.card-header{display:flex;align-items:center;gap:8px;}
+.card-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.card-num{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;}
+.card-badge{margin-left:auto;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.card-title{font-size:15px;font-weight:700;color:#111827;}
+.card-en{font-size:12px;font-weight:600;}
+.card-desc{font-size:13px;color:#6b7280;line-height:1.6;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid #e5e7eb;color:#6b7280;background:#f9fafb;}
+.card-arrow{margin-top:4px;font-size:12px;color:#9ca3af;transition:.2s ease;}
+.card:hover .card-arrow{color:var(--c,#2563eb);transform:translateX(3px);}
+
+/* Footer */
+.footer{text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;opacity:0;transform:translateY(8px);transition:.35s ease;}
+.footer.visible{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">AVaOut</div>
+  <div class="nav-sub">프로젝트 기술 문서</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title" id="ht">Avatar Out</div>
+  <div class="hero-sub" id="hs">Unreal Engine 5.6 · Listen Server · Steam OSS · 최대 4인 코옵</div>
+  <div class="badges" id="hb">
+    <span class="badge">GAS</span>
+    <span class="badge">StateTree · EQS</span>
+    <span class="badge">Server RPC</span>
+    <span class="badge">QA 교육용</span>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="section-label">기술 문서 목록</div>
+  <div class="grid">
+
+    <a class="card" href="01_session_flow.html" id="c0" style="--c:#d97706">
+      <div class="card-header">
+        <div class="card-dot" style="background:#d97706"></div>
+        <div class="card-num">문서 01</div>
+        <div class="card-badge" style="background:#fffbeb;color:#d97706;border:1px solid #fef3c7">Session</div>
+      </div>
+      <div class="card-title">게임 세션 흐름</div>
+      <div class="card-en" style="color:#d97706">Session Flow</div>
+      <div class="card-desc">메인 메뉴 → 세션 매칭 → 로비 → 레벨 로드 → 인게임 → 휴식 공간. 6단계 수직 스테퍼. 각 단계 클래스·의사코드 상세 패널.</div>
+      <div class="tag-row">
+        <span class="tag">AO_GameMode_*</span>
+        <span class="tag">AO_OnlineSessionSubsystem</span>
+        <span class="tag">ServerTravel</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="02_network_arch.html" id="c1" style="--c:#2563eb">
+      <div class="card-header">
+        <div class="card-dot" style="background:#2563eb"></div>
+        <div class="card-num">문서 02</div>
+        <div class="card-badge" style="background:#eff6ff;color:#2563eb;border:1px solid #dbeafe">Network</div>
+      </div>
+      <div class="card-title">네트워크 아키텍처</div>
+      <div class="card-en" style="color:#2563eb">Network Architecture</div>
+      <div class="card-desc">Client / Server / Client 3분할 구조. RPC 타입별 필터링. Replicated 변수 클릭 → 상세 코드. 개념별 색상 시스템.</div>
+      <div class="tag-row">
+        <span class="tag">Server RPC</span>
+        <span class="tag">Multicast</span>
+        <span class="tag">Replicated</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="03_state_machine.html" id="c2" style="--c:#7c3aed">
+      <div class="card-header">
+        <div class="card-dot" style="background:#7c3aed"></div>
+        <div class="card-num">문서 03</div>
+        <div class="card-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe">State</div>
+      </div>
+      <div class="card-title">상태 머신</div>
+      <div class="card-en" style="color:#7c3aed">State Machine</div>
+      <div class="card-desc">플레이어 상태 10종 + 게임 상태 7종. 상태 다이어그램 + 시뮬레이션 스텝. 노드 클릭 → Enter/Tick/Exit 상세 + 가능한 전환 목록.</div>
+      <div class="tag-row">
+        <span class="tag">GAS Ability</span>
+        <span class="tag">StateTree</span>
+        <span class="tag">Simulation</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="04_rpc_replication.html" id="c3" style="--c:#0891b2">
+      <div class="card-header">
+        <div class="card-dot" style="background:#0891b2"></div>
+        <div class="card-num">문서 04</div>
+        <div class="card-badge" style="background:#ecfeff;color:#0891b2;border:1px solid #cffafe">RPC</div>
+      </div>
+      <div class="card-title">RPC / Replication 흐름</div>
+      <div class="card-en" style="color:#0891b2">RPC & Replication Flow</div>
+      <div class="card-desc">3가지 시나리오 시퀀스 다이어그램. 근접 공격 · 연료 획득 · AI 공격. 이벤트 단계별 탐색 + 화살표 클릭 → 함수 시그니처 상세.</div>
+      <div class="tag-row">
+        <span class="tag">근접 공격</span>
+        <span class="tag">연료 획득</span>
+        <span class="tag">AI 공격</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+  </div>
+
+  <div class="section-label" style="margin-top:24px">코드 리뷰</div>
+  <div class="grid">
+
+    <a class="card" href="code_review_sonnet.html" id="c4" style="--c:#ef4444">
+      <div class="card-header">
+        <div class="card-dot" style="background:#ef4444"></div>
+        <div class="card-num">문서 05</div>
+        <div class="card-badge" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca">Sonnet 4.6</div>
+      </div>
+      <div class="card-title">소스 코드 리뷰 — Sonnet</div>
+      <div class="card-en" style="color:#ef4444">Source Code Review · Claude Sonnet 4.6</div>
+      <div class="card-desc">13개 핵심 클래스 상세 분석. 클래스 개요 · 멤버 변수 · 함수별 설명 · 호출 관계. Framework / Player / AI / Systems 4개 섹션으로 구성.</div>
+      <div class="tag-row">
+        <span class="tag">Framework</span>
+        <span class="tag">Player · AI</span>
+        <span class="tag">Train · Puzzle</span>
+        <span class="tag">13 Classes</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="code_review_opus.html" id="c5" style="--c:#8b5cf6">
+      <div class="card-header">
+        <div class="card-dot" style="background:#8b5cf6"></div>
+        <div class="card-num">문서 06</div>
+        <div class="card-badge" style="background:#ede9fe;color:#8b5cf6;border:1px solid #c4b5fd">Opus 4.6</div>
+      </div>
+      <div class="card-title">소스 코드 리뷰 — Opus</div>
+      <div class="card-en" style="color:#8b5cf6">Source Code Review · Claude Opus 4.6</div>
+      <div class="card-desc">13개 핵심 클래스 심층 분석. .h + .cpp 전체 읽기 기반. 더 깊은 함수 내부 흐름, 네트워크 타이밍, GAS 파이프라인 상세 설명.</div>
+      <div class="tag-row">
+        <span class="tag">Framework</span>
+        <span class="tag">Player · AI</span>
+        <span class="tag">Train · Puzzle</span>
+        <span class="tag">13 Classes</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer" id="ft">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  QA 교육 프로젝트 — 의도적 버그 포함 (P0 Critical ~ P3 Low)
+</div>
+
+<script>
+const els=[
+  document.getElementById('ht'),
+  document.getElementById('hs'),
+  document.getElementById('hb'),
+  document.getElementById('c0'),
+  document.getElementById('c1'),
+  document.getElementById('c2'),
+  document.getElementById('c3'),
+  document.getElementById('c4'),
+  document.getElementById('c5'),
+  document.getElementById('ft')
+];
+els.forEach((el,i)=>setTimeout(()=>el&&el.classList.add('visible'),i*80));
+</script>
+</body>
+</html>

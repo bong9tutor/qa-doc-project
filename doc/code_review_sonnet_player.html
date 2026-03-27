@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — 플레이어 클래스</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#2563eb;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#eff6ff;color:#2563eb;border-left-color:#2563eb;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#2563eb;border-bottom-color:#2563eb;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #2563eb;}
+
+/* Component list */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.comp-item{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;}
+.comp-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#2563eb;margin-bottom:2px;}
+.comp-desc{font-size:11px;color:#6b7280;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#fffbeb;border:1px solid #fef3c7;color:#d97706;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#f5f3ff;border-color:#ede9fe;color:#7c3aed;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-item{}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#eff6ff;border-color:#bfdbfe;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-pure{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #bfdbfe;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#2563eb;font-weight:600;}
+
+.tip{display:inline;cursor:help;border-bottom:1px dashed #9ca3af;color:inherit;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid,.comp-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">← 코드 리뷰</a>
+  <div class="nav-logo">Player</div>
+  <div class="nav-sub">플레이어 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">플레이어 클래스</div>
+  <div class="hero-sub">캐릭터 동작·입력·GAS 어빌리티·어트리뷰트를 담당하는 2개 클래스</div>
+  <div class="badges">
+    <span class="badge">AO_PlayerCharacter</span>
+    <span class="badge">AO_PlayerCharacter_AttributeSet</span>
+    <span class="badge">GAS · Enhanced Input</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#pc">AO_PlayerCharacter</a>
+      <a class="toc-item" href="#attr">AO_PlayerCharacter_AttributeSet</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_PlayerCharacter ==================== -->
+    <div class="class-card" id="pc">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_PlayerCharacter</div>
+        <div class="class-parent">부모: ACharacter · IAbilitySystemInterface · IAO_FoleyAudioBankInterface</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'pc','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','comps')">컴포넌트</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'pc','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="pc" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어가 조종하는 캐릭터 — 입력 처리, 이동, GAS 어빌리티 실행</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 인터페이스</div>
+            <div class="info-value">IAbilitySystemInterface (GAS 연동), IAO_FoleyAudioBankInterface (발소리 등 Foley 사운드)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버 + 모든 클라이언트. 입력은 로컬 클라이언트에서만, 이동·상태는 복제</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">GAS 초기화 시점</div>
+            <div class="info-value">PossessedBy(서버) + OnRep_PlayerState(클라이언트)에서 각각 수행</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          ACharacter를 상속하며, GAS(Gameplay Ability System)를 통해 근접 공격·달리기·점프·트래버설·상호작용·검사·사망 등 모든 캐릭터 능력을 관리합니다.
+          입력은 Enhanced Input(IMC_Player)으로 받아 이동/시야 회전은 직접 처리하고,
+          어빌리티 입력(공격·스프린트 등)은 InputAbilities TMap을 통해 GAS에 전달합니다.
+          멀티플레이어에서 이동 속도(Gait)와 착지 정보(LandVelocity, bJustLanded)는 Replicated 변수로 동기화하여
+          다른 클라이언트 화면에서도 올바른 애니메이션이 재생되도록 합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="comps">
+        <div class="section-title">카메라</div>
+        <div class="comp-grid">
+          <div class="comp-item"><div class="comp-name">SpringArm</div><div class="comp-desc">카메라 붐. 벽 충돌 시 자동 단축, 3인칭 거리 조절</div></div>
+          <div class="comp-item"><div class="comp-name">Camera</div><div class="comp-desc">3인칭 카메라. SpringArm에 부착</div></div>
+        </div>
+        <div class="section-title">GAS (Gameplay Ability System)</div>
+        <div class="comp-grid">
+          <div class="comp-item"><div class="comp-name">AbilitySystemComponent</div><div class="comp-desc">GAS의 핵심 컴포넌트. 어빌리티 부여·실행, 어트리뷰트 변경, 게임플레이 태그 관리</div></div>
+          <div class="comp-item"><div class="comp-name">AttributeSet</div><div class="comp-desc">체력·스태미나·이동속도 등 수치 보관 (UAO_PlayerCharacter_AttributeSet)</div></div>
+        </div>
+        <div class="section-title">상호작용</div>
+        <div class="comp-grid">
+          <div class="comp-item"><div class="comp-name">InteractionComponent</div><div class="comp-desc">주변 인터랙터블 감지 및 상호작용 GAS Ability Task 실행</div></div>
+          <div class="comp-item"><div class="comp-name">InteractableComponent</div><div class="comp-desc">이 캐릭터 자체가 상호작용 대상이 될 때 처리 (다른 플레이어가 부활시키는 경우 등)</div></div>
+          <div class="comp-item"><div class="comp-name">InspectionComponent</div><div class="comp-desc">아이템 검사(Inspect) 모드 진입·종료 처리</div></div>
+          <div class="comp-item"><div class="comp-name">MotionWarpingComponent</div><div class="comp-desc">트래버설(벽 넘기, 장애물 점프) 시 루트 모션 방향 보정</div></div>
+        </div>
+        <div class="section-title">UI / 음성 / 기타</div>
+        <div class="comp-grid">
+          <div class="comp-item"><div class="comp-name">VOIPTalker</div><div class="comp-desc">Steam 음성채팅 VOIP 송신 컴포넌트. PlayerState와 연결되어 음소거 상태를 반영</div></div>
+          <div class="comp-item"><div class="comp-name">NameplateComponent</div><div class="comp-desc">다른 플레이어 화면에 표시되는 이름표 UI 처리</div></div>
+          <div class="comp-item"><div class="comp-name">DeathSpectateComponent</div><div class="comp-desc">사망 후 관전 카메라 전환 처리</div></div>
+          <div class="comp-item"><div class="comp-name">InventoryComp</div><div class="comp-desc">아이템 슬롯 관리 (UAO_InventoryComponent)</div></div>
+          <div class="comp-item"><div class="comp-name">PassiveComp</div><div class="comp-desc">패시브 버프/디버프 효과 컨테이너 (UAO_PassiveComponent)</div></div>
+          <div class="comp-item"><div class="comp-name">AIPerceptionStimuliSource</div><div class="comp-desc">AI 지각 시스템이 이 캐릭터를 시각·청각 자극 소스로 인식하도록 등록</div></div>
+          <div class="comp-item"><div class="comp-name">CustomizingComponent</div><div class="comp-desc">Mutable CustomizableObject 기반 외형 커스터마이징 처리</div></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Gait</span></td>
+            <td><span class="var-type">EGait</span></td>
+            <td><span class="prop-tag rep">ReplicatedUsing=OnRep_Gait</span><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>현재 보행 상태(Walk/Run/Sprint). 복제되어 다른 클라이언트의 애니메이션 상태머신에 전달됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LandVelocity</span></td>
+            <td><span class="var-type">FVector</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>착지 직전의 속도 벡터. 착지 애니메이션 블렌딩 세기 계산에 사용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bJustLanded</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag rep">Replicated</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>착지 직후 짧은 시간 true로 유지되는 플래그. 애니메이션 인스턴스가 착지 모션을 재생하는 트리거로 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CharacterInputState</span></td>
+            <td><span class="var-type">FCharacterInputState</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>로컬 입력 상태(bWantsToSprint, bWantsToWalk). 클라이언트에서 변경 후 ServerRPC_SetInputState로 서버에 전달합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultAbilities</span></td>
+            <td><span class="var-type">TArray&lt;TSubclassOf&lt;UGameplayAbility&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>캐릭터 초기화 시 자동으로 부여(Grant)할 어빌리티 목록. 입력 없이 자동 실행되는 패시브·상시 어빌리티가 여기에 들어갑니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">InputAbilities</span></td>
+            <td><span class="var-type">TMap&lt;int32, TSubclassOf&lt;UGameplayAbility&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>입력 ID → 어빌리티 클래스 매핑. 키를 누르면 HandleGameplayAbilityInputPressed(ID)가 해당 어빌리티를 실행합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultEffects</span></td>
+            <td><span class="var-type">TArray&lt;TSubclassOf&lt;UGameplayEffect&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>초기화 시 자동 적용할 게임플레이 이펙트 목록. 초기 체력·스태미나 수치 설정에 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">IMC_Player / IA_Move 등</span></td>
+            <td><span class="var-type">UInputMappingContext / UInputAction</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>Enhanced Input 에셋 레퍼런스. IMC_Player가 매핑 컨텍스트(키 조합), 각 IA_*가 개별 입력 액션을 정의합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PossessedBy(AController* NewController)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서만 실행됩니다. 컨트롤러가 이 캐릭터를 점유(Possess)할 때 엔진이 호출합니다. GAS 초기화의 서버 측 진입점입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① 부모 PossessedBy 호출 → ② AbilitySystemComponent에 PlayerState 주인 등록 → ③ InitializeAttributes() → ④ BindGameplayAbilities() → ⑤ BindGameplayEffects()</div>
+              <div class="fn-section"><div class="fn-section-title">왜 서버에서만?</div>GAS의 어빌리티 부여(Grant)는 Authority(서버)에서만 수행해야 합니다. 클라이언트는 복제된 어빌리티 목록을 받아 사용합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_PlayerState()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>클라이언트에서 PlayerState 복제가 처음 수신될 때 엔진이 호출합니다. 클라이언트 측 GAS 초기화 진입점입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① PlayerState 유효성 확인 → ② AbilitySystemComponent 소유자 등록 → ③ BindAttributeDelegates() → ④ UI 업데이트</div>
+              <div class="fn-section"><div class="fn-section-title">PossessedBy와의 차이</div>PossessedBy는 서버 전용, OnRep_PlayerState는 클라이언트 전용. 둘이 짝을 이뤄 서버·클라이언트 양쪽에서 GAS를 초기화합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetupPlayerInputComponent()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Enhanced Input 컨텍스트(IMC_Player)를 PlayerController에 등록하고, 각 InputAction을 콜백 함수에 바인딩합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">바인딩 구조</div>
+                IA_Move → Move() (매 프레임 이동벡터 적용)<br>
+                IA_Look → Look() (마우스/스틱 시야 회전)<br>
+                IA_Jump → StartJump() / TriggerJump()<br>
+                IA_Sprint → HandleGameplayAbilityInputPressed/Released(ID)<br>
+                (공격 등 GAS 어빌리티도 동일 패턴)
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ServerRPC_SetInputState(bWantsToSprint, bWantsToWalk)</span>
+              <span class="fn-spec server">Server, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>클라이언트가 스프린트/걷기 입력을 서버에 전달합니다. 서버에서 CharacterInputState를 업데이트하고 SetCurrentGait()를 호출해 Gait를 변경합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">Server, Reliable 의미</div>클라이언트에서 호출하면 서버에서 실행됩니다. Reliable = 패킷 손실 시 재전송 보장. 이동 상태는 반드시 서버에서 권한 있게 처리해야 합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① 클라이언트 입력 감지 → ② ServerRPC 호출 → ③ 서버에서 Gait 변경 → ④ Gait(ReplicatedUsing) 자동 복제 → ⑤ 모든 클라이언트 OnRep_Gait 실행 → ⑥ 애니메이션 갱신</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">StartSprint_GAS(bool bShouldSprint)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>스프린트 시작/종료를 GAS에 알립니다. bWantsToSprint를 갱신하고 ServerRPC_SetInputState를 통해 서버에 전달합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>IA_Sprint 입력 액션 Pressed/Released 때 바인딩된 콜백에서 호출됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandlePlayerDeath()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>AttributeSet의 OnPlayerDeath 델리게이트에 바인딩된 함수로, Health가 0 이하가 되었을 때 호출됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① PlayerState.bIsAlive = false → ② DeathSpectateComponent 관전 모드 전환 → ③ 사망 어빌리티(GAS) 실행 → ④ GameState에 AddTeamDeathCount 통보</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">InitializeAttributes() / BindGameplayAbilities() / BindGameplayEffects()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">InitializeAttributes</div>AttributeSet을 ASC(AbilitySystemComponent)에 등록하고, AttributeDefaults 에셋에서 초기값을 읽어 적용합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">BindGameplayAbilities</div>DefaultAbilities와 InputAbilities 배열을 순회하며 각 어빌리티를 ASC에 Grant(부여)합니다. 이 작업은 서버(Authority)에서만 수행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">BindGameplayEffects</div>DefaultEffects 배열의 게임플레이 이펙트를 자신에게 적용합니다. 주로 초기 체력/스태미나 수치 세팅에 사용합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Landed() / OnJumped_Implementation()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>Landed는 착지 시 LandVelocity를 기록하고 bJustLanded를 true로 설정한 뒤, 타이머로 짧은 시간 후 false로 초기화합니다. OnJumped는 점프 시 Foley 사운드를 재생합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">LandVelocity / bJustLanded가 Replicated인 이유</div>다른 플레이어의 화면에서도 올바른 착지 애니메이션이 재생되어야 하기 때문입니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="pc" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_PlayerCharacter_AttributeSet</span></td><td>ASC에 등록된 어트리뷰트 세트</td></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_InteractionComponent</span></td><td>주변 인터랙터블 감지 및 GAS AbilityTask 실행</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>사망 시 bIsAlive 설정, 인벤토리 저장 요청</td></tr>
+          <tr><td>읽음</td><td><span class="rel-cls">AAO_GameState</span></td><td>TryConsumeSharedReviveCount로 부활 횟수 소비</td></tr>
+          <tr><td>자극 소스</td><td><span class="rel-cls">AAO_AICharacterBase</span></td><td>AIPerceptionStimuliSource를 통해 AI 시각/청각 지각에 감지됨</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PlayerCharacter -->
+
+    <!-- ==================== AO_PlayerCharacter_AttributeSet ==================== -->
+    <div class="class-card" id="attr">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_PlayerCharacter_AttributeSet</div>
+        <div class="class-parent">부모: UAttributeSet</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'attr','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'attr','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'attr','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'attr','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="attr" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">플레이어의 수치 스탯(체력·스태미나·속도)을 GAS 어트리뷰트로 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">생존 범위</div>
+            <div class="info-value">PlayerCharacter와 함께 생성·파괴</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 Authority 연산, ReplicatedUsing으로 클라이언트에 전파</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">주요 책임</div>
+            <div class="info-value">수치 클램핑(PreAttributeChange), 사망 감지, 스태미나 잠금</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          GAS의 UAttributeSet을 상속하며, FGameplayAttributeData 타입으로 각 스탯을 선언합니다.
+          ATTRIBUTE_ACCESSORS_BASIC 매크로가 GetHealth(), SetHealth(), GetHealthAttribute() 같은
+          접근자 함수를 자동 생성합니다.
+          수치 변경은 항상 GameplayEffect를 통해 이루어지며,
+          직접 SetHealth()를 호출하는 것이 아니라 GAS 파이프라인을 통해 PreAttributeChange → PostGameplayEffectExecute 순서로 처리됩니다.
+          이 구조 덕분에 수치 검증, 클램핑, 사망 처리를 한 곳에서 관리할 수 있습니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="attr" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">Health / MaxHealth</span></td>
+            <td><span class="var-type">FGameplayAttributeData</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span><span class="prop-tag rep">ReplicatedUsing=OnRep_Health</span></td>
+            <td>현재 체력과 최대 체력. 서버에서 GameplayEffect로 변경되면 OnRep_Health가 클라이언트에서 실행되어 UI 델리게이트를 발동합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">Stamina / MaxStamina</span></td>
+            <td><span class="var-type">FGameplayAttributeData</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span><span class="prop-tag rep">ReplicatedUsing=OnRep_Stamina</span></td>
+            <td>현재 스태미나와 최대 스태미나. 스프린트·점프 등의 어빌리티가 소비하고, 스태미나 회복 GameplayEffect가 채워줍니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">WalkSpeed / RunSpeed / SprintSpeed</span></td>
+            <td><span class="var-type">FGameplayAttributeData</span></td>
+            <td><span class="prop-tag bp">BPReadOnly</span><span class="prop-tag rep">ReplicatedUsing=OnRep_*Speed</span></td>
+            <td>3단계 이동속도. OnSpeedChanged 콜백에서 CharacterMovementComponent의 MaxWalkSpeed를 갱신합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">StaminaLockoutPercent</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>스태미나 잠금 임계값(기본 0.25 = 25%). Stamina가 MaxStamina의 25% 이하로 떨어지면 스프린트를 강제 중단합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">OnPlayerDeath</span></td>
+            <td><span class="var-type">FOnPlayerDeath (Multicast Delegate)</span></td>
+            <td>(멤버 델리게이트)</td>
+            <td>Health가 0 이하가 되었을 때 PostGameplayEffectExecute에서 브로드캐스트합니다. PlayerCharacter의 HandlePlayerDeath()가 이 델리게이트에 바인딩됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="attr" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PreAttributeChange(Attribute, NewValue)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>어트리뷰트 값이 실제로 변경되기 직전에 호출됩니다. 주로 범위 클램핑을 수행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">동작</div>
+                Health의 경우: NewValue = FMath::Clamp(NewValue, 0.f, MaxHealth)<br>
+                Stamina의 경우: NewValue = FMath::Clamp(NewValue, 0.f, MaxStamina)<br>
+                Speed의 경우: NewValue = FMath::Max(0.f, NewValue)
+              </div>
+              <div class="fn-section"><div class="fn-section-title">주의</div>PreAttributeChange의 클램핑은 임시적입니다. 최종 값은 PostGameplayEffectExecute에서도 검증합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">PostGameplayEffectExecute(Data)</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>GameplayEffect가 어트리뷰트를 변경한 직후 서버에서 호출됩니다. 최종 값 검증과 사이드 이펙트(사망 처리, 스태미나 잠금) 실행 위치입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름 (Health 변경 시)</div>① Health를 [0, MaxHealth] 범위로 클램핑 → ② Health == 0이면 OnPlayerDeath.Broadcast() → ③ PlayerCharacter.HandlePlayerDeath() 실행</div>
+              <div class="fn-section"><div class="fn-section-title">흐름 (Stamina 변경 시)</div>① Stamina 클램핑 → ② Stamina &lt; MaxStamina * StaminaLockoutPercent이면 HandleStaminaLockout() 호출</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">HandleStaminaLockout(Data)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>스태미나가 임계값(StaminaLockoutPercent) 이하로 떨어졌을 때 스프린트를 강제 종료합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>ASC에 스프린트 어빌리티 취소 요청 → CharacterInputState.bWantsToSprint = false → 서버 복제</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnRep_Health / OnRep_Stamina 등 (7종)</span>
+              <span class="fn-spec override">ReplicatedUsing</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버에서 어트리뷰트가 변경된 후 클라이언트가 복제 데이터를 수신했을 때 자동 호출됩니다. GAS의 표준 패턴으로, GAMEPLAYATTRIBUTE_REPNOTIFY 매크로를 호출하여 GAS 내부 예측(Prediction) 시스템과 동기화합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">파라미터 OldValue</div>이전 값을 받아 클라이언트가 변화량을 계산할 수 있습니다 (예: 피격 시 피해량 표시).</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="attr" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>ASC에 등록하고 HandlePlayerDeath를 델리게이트에 바인딩</td></tr>
+          <tr><td>수정자</td><td><span class="rel-cls">UGameplayEffect (GAS)</span></td><td>피해·치유·스태미나 변경 등 모든 수치 변경은 GameplayEffect를 통해 이루어짐</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">HUD / UI Widget</span></td><td>OnRep 콜백에서 브로드캐스트된 델리게이트를 구독해 체력바·스태미나바 UI 갱신</td></tr>
+          <tr><td>읽힘</td><td><span class="rel-cls">AAO_PlayerState</span></td><td>맵 이동 전 SaveHealthBeforeTravel이 현재 Health 값을 읽어 보존</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_PlayerCharacter_AttributeSet -->
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  소스 코드 리뷰 — 학습 목적 전용
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['pc','attr'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+</script>
+</body>
+</html>

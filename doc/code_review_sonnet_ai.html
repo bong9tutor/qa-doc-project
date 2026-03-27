@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — AI 시스템 클래스</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.nav-back{font-size:12px;color:#6b7280;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:6px;transition:.2s;}
+.nav-back:hover{background:#f3f4f6;color:#374151;}
+.nav-logo{font-size:16px;font-weight:700;color:#7c3aed;letter-spacing:.04em;}
+.nav-sub{font-size:12px;color:#6b7280;}
+
+.hero{background:#fff;border-bottom:1px solid #e5e7eb;padding:24px 16px 20px;text-align:center;}
+.hero-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.hero-sub{font-size:13px;color:#6b7280;margin-bottom:12px;}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:500;}
+
+.layout{display:flex;width:100%;margin:0 auto;padding:20px 20px 40px;gap:20px;}
+
+.toc{width:220px;min-width:160px;flex-shrink:0;}
+.toc-sticky{position:sticky;top:62px;}
+.toc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px;}
+.toc-item{display:block;font-size:12px;color:#6b7280;text-decoration:none;padding:5px 8px;border-radius:6px;margin-bottom:2px;border-left:2px solid transparent;transition:.15s;}
+.toc-item:hover{background:#f3f4f6;color:#374151;}
+.toc-item.active{background:#f5f3ff;color:#7c3aed;border-left-color:#7c3aed;font-weight:600;}
+
+.content{flex:1;min-width:0;}
+
+.class-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.class-header{padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.class-dot{width:10px;height:10px;border-radius:50%;background:#7c3aed;flex-shrink:0;}
+.class-name{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:#111827;}
+.class-parent{font-size:12px;color:#6b7280;margin-left:auto;}
+
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;padding:0 20px;overflow-x:auto;}
+.tab-btn{font-size:12px;font-weight:600;color:#9ca3af;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab-btn:hover{color:#374151;}
+.tab-btn.active{color:#7c3aed;border-bottom-color:#7c3aed;}
+.tab-panel{display:none;padding:16px 20px;overflow-x:auto;}
+.tab-panel.active{display:block;}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-item{background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;}
+.info-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;}
+.info-value{font-size:13px;color:#374151;}
+.desc-block{font-size:13px;color:#6b7280;line-height:1.7;background:#f9fafb;border-radius:8px;padding:12px 14px;border-left:3px solid #7c3aed;}
+
+.var-table{width:100%;border-collapse:collapse;font-size:12px;}
+.var-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.var-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.var-table tr:last-child td{border-bottom:none;}
+.var-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#111827;font-weight:600;}
+.var-type{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7c3aed;}
+.prop-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed;font-weight:600;margin-right:3px;margin-bottom:2px;}
+.prop-tag.rep{background:#ecfdf5;border-color:#a7f3d0;color:#059669;}
+.prop-tag.edit{background:#eff6ff;border-color:#dbeafe;color:#2563eb;}
+.prop-tag.bp{background:#fffbeb;border-color:#fef3c7;color:#d97706;}
+
+.fn-list{display:flex;flex-direction:column;gap:6px;}
+.fn-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:.15s;}
+.fn-header:hover{background:#f3f4f6;}
+.fn-header.open{background:#f5f3ff;border-color:#c4b5fd;border-radius:8px 8px 0 0;}
+.fn-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#111827;flex:1;}
+.fn-spec{font-size:10px;padding:1px 8px;border-radius:10px;font-weight:600;}
+.fn-spec.server{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;}
+.fn-spec.multicast{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;}
+.fn-spec.client{background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;}
+.fn-spec.bp-call{background:#f5f3ff;color:#7c3aed;border:1px solid #ede9fe;}
+.fn-spec.bp-native{background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;}
+.fn-spec.override{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;}
+.fn-spec.editor{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.fn-arrow{font-size:12px;color:#9ca3af;transition:.2s;}
+.fn-header.open .fn-arrow{transform:rotate(90deg);}
+.fn-body{display:none;padding:12px 14px;background:#fff;border:1px solid #c4b5fd;border-top:none;border-radius:0 0 8px 8px;font-size:13px;color:#374151;line-height:1.7;}
+.fn-body.open{display:block;}
+.fn-section{margin-bottom:8px;}
+.fn-section:last-child{margin-bottom:0;}
+.fn-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:3px;}
+
+/* struct box */
+.struct-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.struct-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:8px;}
+.struct-field{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px;}
+.struct-field:last-child{border-bottom:none;}
+.sf-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:#111827;min-width:160px;}
+.sf-desc{color:#6b7280;flex:1;}
+
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rel-table th{text-align:left;padding:8px 10px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;}
+.rel-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;font-size:13px;}
+.rel-table tr:last-child td{border-bottom:none;}
+.rel-cls{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7c3aed;font-weight:600;}
+
+.section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6;}
+
+@media(max-width:900px){
+  .toc{width:180px;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;padding:16px 12px 40px;}
+  .toc{width:100%;min-width:unset;}
+  .toc-sticky{position:static;}
+  .info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-back" href="code_review_sonnet.html">← 코드 리뷰</a>
+  <div class="nav-logo">AI</div>
+  <div class="nav-sub">AI 시스템 클래스</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">AI 시스템 클래스</div>
+  <div class="hero-sub">적 캐릭터 기반·기억·스폰을 담당하는 3개 클래스 — StateTree · EQS 연동</div>
+  <div class="badges">
+    <span class="badge">AO_AICharacterBase</span>
+    <span class="badge">AO_AIMemoryComponent</span>
+    <span class="badge">AO_Spawner_AIManager</span>
+    <span class="badge">StateTree · EQS</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="toc">
+    <div class="toc-sticky">
+      <div class="toc-title">목차</div>
+      <a class="toc-item active" href="#aicb">AO_AICharacterBase</a>
+      <a class="toc-item" href="#mem">AO_AIMemoryComponent</a>
+      <a class="toc-item" href="#spawn">AO_Spawner_AIManager</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- ==================== AO_AICharacterBase ==================== -->
+    <div class="class-card" id="aicb">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_AICharacterBase</div>
+        <div class="class-parent">부모: ACharacter · IAbilitySystemInterface</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'aicb','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'aicb','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'aicb','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'aicb','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="aicb" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">모든 적 AI 캐릭터의 공통 기반 클래스 (7종 파생)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">파생 클래스</div>
+            <div class="info-value">Bull, Crab, Insect, LavaMonster, Stalker, Troll, Werewolf</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서 AI 로직 실행. 몽타주는 NetMulticast로 모든 클라이언트에 전파</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">행동 구동</div>
+            <div class="info-value">StateTree (종별 Conditions·Evaluators·Tasks 파일 분리)</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          ACharacter와 IAbilitySystemInterface를 상속하여 이동·충돌·GAS를 모두 지원합니다.
+          각 적 종류(Bull, Crab 등)는 이 클래스를 상속받아 고유한 StateTree와 어빌리티를 정의합니다.
+          공통 기능인 기절(Stun) 처리는 이 기반 클래스에서 구현하며,
+          기절 몽타주는 NetMulticast RPC로 서버→모든 클라이언트에 동기화합니다.
+          기억 시스템(MemoryComponent)과 공격 설정(GetCurrentAttackConfig)도 여기서 정의하여
+          StateTree Tasks가 일관된 인터페이스로 접근할 수 있도록 합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="aicb" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">AbilitySystemComponent</span></td>
+            <td><span class="var-type">UAbilitySystemComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>GAS 핵심 컴포넌트. 공격·스턴·이동 어빌리티 부여 및 실행을 담당합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AttributeSet</span></td>
+            <td><span class="var-type">UAO_AIAttributeSet*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>AI의 체력·공격력 등 수치 관리. UAO_AIAttributeSet은 플레이어의 AttributeSet과 별도로 정의됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MemoryComponent</span></td>
+            <td><span class="var-type">UAO_AIMemoryComponent*</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadOnly</span></td>
+            <td>플레이어 목격 위치·청각 감지 위치를 기억하는 컴포넌트. StateTree Tasks가 수색·회피 행동에 활용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultAbilities / DefaultEffects</span></td>
+            <td><span class="var-type">TArray&lt;TSubclassOf&lt;...&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>BeginPlay에서 자동 부여·적용될 어빌리티와 이펙트 목록. 파생 클래스별 Blueprint에서 설정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">DefaultMovementSpeed</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>기본 순찰 이동속도 (기본값 300). StateTree의 순찰 Task에서 CharacterMovement에 적용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">AlertMovementSpeed</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>경계/추적 이동속도 (기본값 500). 플레이어 감지 후 StateTree가 이 값으로 속도를 전환합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">bIsAttacking</span></td>
+            <td><span class="var-type">bool</span></td>
+            <td><span class="prop-tag">VisibleAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>현재 공격 중인지 여부. StateTree의 공격 Task가 시작 시 true, 완료 시 false로 설정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CurrentStunMontage</span></td>
+            <td><span class="var-type">UAnimMontage*</span></td>
+            <td>(UPROPERTY)</td>
+            <td>현재 재생 중인 기절 몽타주 참조. Multicast_StopStunMontage 호출 시 이 몽타주를 중지합니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="aicb" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() — InitializeAbilitySystem()</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>서버 Authority에서 GAS를 초기화합니다. AIController가 없어도 BeginPlay 시점에 바로 실행됩니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① InitializeAbilitySystem() → ② BindDefaultAbilities() (DefaultAbilities 배열 Grant) → ③ BindDefaultEffects() (초기 체력 등 적용)</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnStunBegin() / OnStunEnd()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>기절 상태 진입·종료 처리를 수행하는 공개 진입점입니다. 내부에서 HandleStunBegin/End()를 호출하며, 파생 클래스에서 오버라이드 가능합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">HandleStunBegin 흐름</div>① AI 이동 중지(CharacterMovement 비활성화) → ② ASC에 스턴 GAS Tag 추가 → ③ Multicast_PlayStunMontage 호출</div>
+              <div class="fn-section"><div class="fn-section-title">HandleStunEnd 흐름</div>① 이동 재개 → ② 스턴 Tag 제거 → ③ Multicast_StopStunMontage 호출</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>GAS의 스턴 어빌리티 또는 StateTree Task에서 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Multicast_PlayStunMontage(Montage, PlayRate)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>기절 애니메이션 몽타주를 서버와 모든 클라이언트에서 동시에 재생합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">NetMulticast, Reliable 의미</div>
+                <b>NetMulticast</b>: 서버에서 호출하면 서버 자신 + 모든 연결된 클라이언트에서 실행됩니다.<br>
+                <b>Reliable</b>: 패킷 손실 시 재전송을 보장합니다. 기절 애니메이션처럼 반드시 재생되어야 하는 경우에 사용합니다.
+              </div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>서버 HandleStunBegin() → Multicast_PlayStunMontage 호출 → 서버·모든 클라이언트에서 AnimMontage 재생 → CurrentStunMontage에 참조 저장</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">Multicast_StopStunMontage(BlendOutTime)</span>
+              <span class="fn-spec multicast">NetMulticast, Reliable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>CurrentStunMontage를 BlendOutTime 동안 부드럽게 종료합니다. 서버·모든 클라이언트에서 동시에 실행됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetCurrentAttackConfig()</span>
+              <span class="fn-spec bp-native">BlueprintNativeEvent</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>현재 사용할 공격 설정(FEnemyAttackConfig — 범위, 피해량, 쿨다운 등)을 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">BlueprintNativeEvent 의미</div>C++ 기본 구현(_Implementation 접미사 함수)을 제공하면서, Blueprint에서 오버라이드도 가능합니다. 파생 클래스별 Blueprint에서 고유한 공격 설정을 반환하도록 재정의합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">StateTree 연동</div>공격 Task에서 GetCurrentAttackConfig()를 호출하여 트레이스 반경·피해량을 동적으로 가져옵니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TestStun() / TestStunEnd()</span>
+              <span class="fn-spec editor">CallInEditor</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>에디터 디테일 패널에서 버튼으로 직접 기절 시작/종료를 테스트할 수 있는 함수입니다.</div>
+              <div class="fn-section"><div class="fn-section-title">CallInEditor 의미</div>런타임 코드가 아닌 에디터에서 버튼처럼 실행 가능합니다. PIE(Play In Editor) 상태에서도 호출할 수 있습니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="aicb" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>상속됨</td><td><span class="rel-cls">Bull·Crab·Insect·LavaMonster·Stalker·Troll·Werewolf</span></td><td>7종 적이 이 기반 클래스를 파생하여 고유 StateTree·어빌리티 설정</td></tr>
+          <tr><td>보유</td><td><span class="rel-cls">UAO_AIMemoryComponent</span></td><td>플레이어 목격·청각 위치 기억 컴포넌트</td></tr>
+          <tr><td>사용됨</td><td><span class="rel-cls">StateTree Tasks</span></td><td>GetCurrentAttackConfig, SetIsAttacking, MemoryComponent 조회</td></tr>
+          <tr><td>감지 대상</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>AIPerceptionStimuliSource를 통해 시각·청각 자극 수신</td></tr>
+          <tr><td>스폰됨</td><td><span class="rel-cls">AAO_Spawner_AIManager</span></td><td>SpawnedMonsters 배열에서 생명주기 관리</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_AICharacterBase -->
+
+    <!-- ==================== AO_AIMemoryComponent ==================== -->
+    <div class="class-card" id="mem">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">UAO_AIMemoryComponent</div>
+        <div class="class-parent">부모: UActorComponent</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'mem','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'mem','struct')">구조체</button>
+        <button class="tab-btn" onclick="switchTab(this,'mem','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'mem','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'mem','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="mem" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">AI가 플레이어를 목격한 위치·시간·청각 정보를 개별 저장</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">멀티플레이어</div>
+            <div class="info-value">TMap으로 플레이어별 독립 기억 데이터 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서만 AI 로직이 실행되므로 복제 불필요</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">StateTree 연동</div>
+            <div class="info-value">수색 Task → GetLastKnownLocation, 회피 Task → GetLastLostLocation</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          UActorComponent를 상속하며, AAO_AICharacterBase에 부착되어 있습니다.
+          플레이어별 기억 데이터(FAO_PlayerMemoryData)를 TMap에 저장하고
+          MemoryDuration(기본 60초)이 지난 기억은 무효로 처리합니다.
+          청각 기억(LastHeardLocation)은 HeardMemoryDuration(기본 10초)의 더 짧은 유효 시간을 가집니다.
+          Crab AI는 GetLastLostLocation으로 플레이어가 마지막에 있던 위치를 피하고,
+          선공형 AI(Stalker 등)는 GetLastKnownLocation으로 플레이어를 추적합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="mem" data-tab="struct">
+        <div class="struct-box">
+          <div class="struct-title">FAO_PlayerMemoryData (USTRUCT, BlueprintType)</div>
+          <div class="struct-field">
+            <span class="sf-name">LastKnownLocation</span>
+            <span class="sf-desc">시야 내에 있을 때 매 틱 업데이트되는 마지막 확인 위치. UpdatePlayerLocation()이 기록합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">LastSeenTime</span>
+            <span class="sf-desc">마지막으로 플레이어를 시야에서 확인한 게임 시간(GetWorld()->GetTimeSeconds()). 기억 유효성 판단에 사용합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">LastLostLocation</span>
+            <span class="sf-desc">플레이어가 시야에서 사라진 순간의 위치. SetLastKnownLocation()이 시야 소실 시점에 기록합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">LostTime</span>
+            <span class="sf-desc">시야에서 사라진 시간. 회피 행동 시 얼마나 최근의 정보인지 판단합니다.</span>
+          </div>
+          <div class="struct-field">
+            <span class="sf-name">bIsInSight</span>
+            <span class="sf-desc">현재 이 플레이어가 AI 시야 내에 있는지 여부. AIPerception 이벤트에서 true/false로 전환됩니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="mem" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">PlayerMemories</span></td>
+            <td><span class="var-type">TMap&lt;TWeakObjectPtr&lt;AAO_PlayerCharacter&gt;, FAO_PlayerMemoryData&gt;</span></td>
+            <td>(UPROPERTY)</td>
+            <td>플레이어 포인터 → 기억 데이터 매핑. TWeakObjectPtr을 키로 사용하여 플레이어가 파괴되어도 Dangling Pointer가 발생하지 않습니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MemoryDuration</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>시각 기억 유효 시간 (기본 60초). IsMemoryValid()에서 LastSeenTime과 비교합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LastHeardLocation</span></td>
+            <td><span class="var-type">FVector</span></td>
+            <td>(UPROPERTY)</td>
+            <td>소리로 감지된 마지막 위치. 발소리·폭발 등의 청각 자극 위치를 기억합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">LastHeardTime</span></td>
+            <td><span class="var-type">float</span></td>
+            <td>(UPROPERTY)</td>
+            <td>마지막 청각 감지 시간. ClearHeardLocation에서 HeardMemoryDuration 만료 확인에 사용합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">HeardMemoryDuration</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditDefaultsOnly</span></td>
+            <td>청각 기억 유효 시간 (기본 10초). 시각 기억(60초)보다 짧습니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="mem" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">UpdatePlayerLocation(Player, Location)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어가 시야 내에 있을 때 매 틱 호출되어 LastKnownLocation과 LastSeenTime을 최신 값으로 갱신합니다. bIsInSight를 true로 설정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>StateTree Evaluator 또는 AIPerception 이벤트에서 플레이어가 시야 안에 있는 동안 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetLastKnownLocation(Player, Location)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>플레이어가 시야에서 사라지는 순간 호출됩니다. 현재 위치를 LastLostLocation에 복사하고 LostTime을 기록합니다. bIsInSight를 false로 설정합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AIPerception의 OnTargetPerceptionUpdated 이벤트에서 시야 소실(Expired) 시 호출합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetLastKnownLocation(Player) / GetLastLostLocation(Player)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>각각 마지막 목격 위치와 시야 소실 위치를 반환합니다. 플레이어 기억이 없으면 FVector::ZeroVector를 반환합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">StateTree 활용 패턴</div>
+                선공형 AI: GetLastKnownLocation → 마지막 목격지 수색<br>
+                Crab AI: GetLastLostLocation → 피해야 할 위치로 활용
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">GetRecentLostLocations(WithinSeconds)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>WithinSeconds 이내에 시야에서 사라진 모든 플레이어의 위치 배열을 반환합니다. 멀티플레이어 환경에서 여러 플레이어를 동시에 피하는 Crab AI에 활용됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">IsMemoryValid(Player, MaxAge)</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>해당 플레이어의 기억이 MaxAge 초 이내에 갱신된 것인지 확인합니다. 오래된 기억으로 헛되이 이동하는 것을 방지합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">계산</div>(현재 시간 - LastSeenTime) &lt; MaxAge 이면 true 반환</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">SetLastHeardLocation() / GetLastHeardLocation() / ClearHeardLocation()</span>
+              <span class="fn-spec bp-call">BlueprintCallable</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>청각으로 감지된 소리의 발생 위치를 저장·조회·초기화합니다. HeardMemoryDuration이 지나면 ClearHeardLocation이 위치를 ZeroVector로 리셋합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">호출 시점</div>AIPerception의 청각 감지 이벤트에서 SetLastHeardLocation 호출. StateTree Task에서 조회하여 소리 방향으로 이동합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="mem" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>소유자</td><td><span class="rel-cls">AAO_AICharacterBase</span></td><td>부착 컴포넌트로 GetMemoryComponent()로 접근</td></tr>
+          <tr><td>추적 대상</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>PlayerMemories TMap의 키로 사용</td></tr>
+          <tr><td>참조됨</td><td><span class="rel-cls">StateTree Tasks·Evaluators</span></td><td>수색·회피·청각 반응 행동 로직에서 위치 데이터 조회</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_AIMemoryComponent -->
+
+    <!-- ==================== AO_Spawner_AIManager ==================== -->
+    <div class="class-card" id="spawn">
+      <div class="class-header">
+        <div class="class-dot"></div>
+        <div class="class-name">AAO_Spawner_AIManager</div>
+        <div class="class-parent">부모: AActor</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'spawn','overview')">개요</button>
+        <button class="tab-btn" onclick="switchTab(this,'spawn','vars')">멤버 변수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spawn','funcs')">함수</button>
+        <button class="tab-btn" onclick="switchTab(this,'spawn','rel')">호출 관계</button>
+      </div>
+
+      <div class="tab-panel active" data-class="spawn" data-tab="overview">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">역할</div>
+            <div class="info-value">레벨 내 AI 스폰 타이밍·위치·수량을 자동 관리</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">배치 방식</div>
+            <div class="info-value">레벨에 액터로 배치, 에디터에서 설정 노출</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">실행 위치</div>
+            <div class="info-value">서버에서만 AI 스폰 (클라이언트에는 복제된 캐릭터만 표시)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">위치 결정</div>
+            <div class="info-value">EQS (Environment Query System)로 플레이어 시야 밖 위치 선택</div>
+          </div>
+        </div>
+        <div class="desc-block">
+          AActor를 상속하며 레벨에 직접 배치합니다.
+          BeginPlay에서 SpawnInterval(±SpawnIntervalRandomDeviation) 간격의 타이머를 설정하여
+          주기적으로 TrySpawnAI()를 호출합니다.
+          스폰 위치는 EQS(SpawnLocationQuery)를 비동기 실행하여 플레이어 시야에서 벗어난 NavMesh 위치를 선택합니다.
+          RestrictedVolumes에 등록된 금지 영역에서는 스폰하지 않으며,
+          IntensiveVolumes에 등록된 집중 스폰 영역에서는 별도 타이머로 더 빠른 스폰을 수행합니다.
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spawn" data-tab="vars">
+        <table class="var-table">
+          <tr><th>변수명</th><th>타입</th><th>지정자</th><th>설명</th></tr>
+          <tr>
+            <td><span class="var-name">MonsterClasses</span></td>
+            <td><span class="var-type">TArray&lt;TSubclassOf&lt;AAO_AICharacterBase&gt;&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>스폰할 몬스터 클래스 목록 (최대 7종). 배열 중 하나를 랜덤 선택하여 스폰합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">MaxMonstersInLevel</span></td>
+            <td><span class="var-type">int32</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>레벨 내 동시 존재 가능한 최대 몬스터 수 (기본 10). GetCurrentSpawnedAICount()가 이 수치를 초과하면 스폰을 건너뜁니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpawnInterval</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>기본 스폰 시도 간격 (기본 5초). 실제 간격은 ±SpawnIntervalRandomDeviation의 랜덤 편차가 적용됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpawnIntervalRandomDeviation</span></td>
+            <td><span class="var-type">float</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span></td>
+            <td>스폰 간격 랜덤 편차 (기본 ±2초). 스폰이 규칙적으로 느껴지지 않도록 불규칙성을 추가합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpawnLocationQuery</span></td>
+            <td><span class="var-type">UEnvQuery*</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>스폰 위치 결정에 사용할 EQS 에셋. 일반적으로 플레이어 시야각 밖, NavMesh 위, 최소 거리 이상의 조건을 설정합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">RestrictedVolumes</span></td>
+            <td><span class="var-type">TArray&lt;AAO_Area_SpawnRestriction*&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>스폰 금지 볼륨 목록. EQS 결과 위치가 이 볼륨 안에 있으면 스폰을 취소합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">IntensiveVolumes</span></td>
+            <td><span class="var-type">TArray&lt;AAO_Area_SpawnIntensive*&gt;</span></td>
+            <td><span class="prop-tag edit">EditAnywhere</span><span class="prop-tag bp">BPReadWrite</span></td>
+            <td>집중 스폰 볼륨 목록. 각 볼륨마다 IntensiveSpawnTimers에 별도 타이머가 할당되어 더 짧은 간격으로 스폰합니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">SpawnedMonsters</span></td>
+            <td><span class="var-type">TArray&lt;AAO_AICharacterBase*&gt;</span></td>
+            <td>(protected)</td>
+            <td>현재 살아있는 스폰 몬스터 목록. OnAIDestroyed 델리게이트로 사망 시 자동 제거됩니다.</td>
+          </tr>
+          <tr>
+            <td><span class="var-name">CachedPlayers</span></td>
+            <td><span class="var-type">TArray&lt;AAO_PlayerCharacter*&gt;</span></td>
+            <td>(protected)</td>
+            <td>현재 레벨의 플레이어 목록 캐시. EQS 쿼리 컨텍스트(플레이어 시야 계산)에 전달됩니다.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" data-class="spawn" data-tab="funcs">
+        <div class="fn-list">
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">BeginPlay() — 타이머 등록</span>
+              <span class="fn-spec override">Override</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>HasAuthority()(서버 여부) 확인 후, SpawnInterval ± RandomDeviation 간격으로 TrySpawnAI를 반복 호출하는 타이머를 등록합니다. IntensiveVolumes가 있으면 각 볼륨마다 별도 타이머도 등록합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">서버 전용 이유</div>AI 스폰은 Authority(서버)에서만 수행해야 합니다. 클라이언트에서 이 함수를 실행하면 서버와 일치하지 않는 AI가 생성됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">TrySpawnAI()</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>스폰 조건을 확인하고 EQS 쿼리를 실행합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① GetCurrentSpawnedAICount() &gt;= MaxMonstersInLevel이면 중단 → ② UpdatePlayerList()로 플레이어 캐시 갱신 → ③ MonsterClasses에서 랜덤 종류 선택 → ④ EQS(SpawnLocationQuery) 비동기 실행 → ⑤ OnEQSQueryFinished 콜백 대기</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnEQSQueryFinished(Result)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>EQS 쿼리 완료 후 호출됩니다. 결과 위치를 검증하고 ExecuteSpawn을 호출합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① 쿼리 성공 여부 확인 → ② 결과 위치가 RestrictedVolumes 내부인지 검사 → ③ 통과 시 ExecuteSpawn(위치, 클래스) 호출</div>
+              <div class="fn-section"><div class="fn-section-title">EQS 연동 방식</div>EQS는 비동기로 실행됩니다. TrySpawnAI에서 RunEQSQuery()를 호출하면 다음 프레임(들)에서 결과가 이 콜백으로 전달됩니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">ExecuteSpawn(SpawnLocation, MonsterClass)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>실제로 AI를 월드에 스폰합니다. 스폰된 액터를 SpawnedMonsters에 추가하고 OnAIDestroyed 델리게이트를 바인딩합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">흐름</div>① SpawnActor&lt;AAO_AICharacterBase&gt;(MonsterClass, SpawnLocation) → ② SpawnedMonsters.Add(NewAI) → ③ NewAI.OnDestroyed에 OnAIDestroyed 바인딩</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">OnAIDestroyed(DestroyedActor)</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>스폰된 AI가 사망·파괴될 때 호출되는 델리게이트 콜백입니다. SpawnedMonsters 배열에서 해당 AI를 제거하여 카운트를 정확하게 유지합니다.</div>
+              <div class="fn-section"><div class="fn-section-title">UFUNCTION()이 필요한 이유</div>언리얼의 동적 델리게이트(OnDestroyed)에 바인딩하려면 UFUNCTION() 매크로가 있어야 합니다.</div>
+            </div>
+          </div>
+
+          <div class="fn-item">
+            <div class="fn-header" onclick="toggleFn(this)">
+              <span class="fn-name">DebugSpawn()</span>
+              <span class="fn-spec editor">CallInEditor</span>
+              <span class="fn-arrow">▶</span>
+            </div>
+            <div class="fn-body">
+              <div class="fn-section"><div class="fn-section-title">하는 일</div>에디터 디테일 패널에서 즉시 스폰을 테스트합니다. 타이머 없이 TrySpawnAI를 바로 실행합니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-panel" data-class="spawn" data-tab="rel">
+        <table class="rel-table">
+          <tr><th>방향</th><th>대상 클래스</th><th>관계 설명</th></tr>
+          <tr><td>스폰</td><td><span class="rel-cls">AAO_AICharacterBase (파생 클래스)</span></td><td>MonsterClasses 배열의 클래스를 선택해 SpawnActor로 생성</td></tr>
+          <tr><td>쿼리</td><td><span class="rel-cls">UEnvQuery (EQS)</span></td><td>SpawnLocationQuery로 플레이어 시야 밖 위치 비동기 계산</td></tr>
+          <tr><td>참조</td><td><span class="rel-cls">AAO_PlayerCharacter</span></td><td>CachedPlayers로 플레이어 위치를 EQS 컨텍스트에 제공</td></tr>
+          <tr><td>제한 영역</td><td><span class="rel-cls">AAO_Area_SpawnRestriction</span></td><td>스폰 금지 볼륨 등록</td></tr>
+          <tr><td>집중 영역</td><td><span class="rel-cls">AAO_Area_SpawnIntensive</span></td><td>별도 타이머로 더 빠른 스폰 수행</td></tr>
+        </table>
+      </div>
+    </div><!-- /AO_Spawner_AIManager -->
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 16px 32px;font-size:12px;color:#9ca3af;line-height:2;">
+  AVaOut — Avatar Out &nbsp;·&nbsp; © 2025 김피탕 컴퍼니 &nbsp;·&nbsp; UE 5.6<br>
+  소스 코드 리뷰 — 학습 목적 전용
+</div>
+
+<script>
+function switchTab(btn, classId, tabId) {
+  const card = btn.closest('.class-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelector(`.tab-panel[data-class="${classId}"][data-tab="${tabId}"]`).classList.add('active');
+}
+
+function toggleFn(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+const sections = ['aicb','mem','spawn'];
+const tocItems = {};
+sections.forEach(id => { tocItems[id] = document.querySelector(`.toc-item[href="#${id}"]`); });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => tocItems[id] && tocItems[id].classList.remove('active'));
+      if (tocItems[e.target.id]) tocItems[e.target.id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+</script>
+</body>
+</html>
