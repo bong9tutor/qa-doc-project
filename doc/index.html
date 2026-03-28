@@ -131,11 +131,45 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
       </div>
       <div class="card-title">RPC / Replication 흐름</div>
       <div class="card-en" style="color:#0891b2">RPC & Replication Flow</div>
-      <div class="card-desc">3가지 시나리오 시퀀스 다이어그램. 근접 공격 · 연료 획득 · AI 공격. 이벤트 단계별 탐색 + 화살표 클릭 → 함수 시그니처 상세.</div>
+      <div class="card-desc">5가지 시나리오 시퀀스 다이어그램. 근접 공격 · 연료 획득 · AI 공격 · 상호작용 · 음성채팅. Reliable/Unreliable 가이드 + 동시 접근 해결.</div>
       <div class="tag-row">
         <span class="tag">근접 공격</span>
         <span class="tag">연료 획득</span>
-        <span class="tag">AI 공격</span>
+        <span class="tag">Reliable/Unreliable</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="05_servertravel_persistence.html" id="c4a" style="--c:#059669">
+      <div class="card-header">
+        <div class="card-dot" style="background:#059669"></div>
+        <div class="card-num">문서 05</div>
+        <div class="card-badge" style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0">Travel</div>
+      </div>
+      <div class="card-title">ServerTravel & 데이터 영속성</div>
+      <div class="card-en" style="color:#059669">ServerTravel & Data Persistence</div>
+      <div class="card-desc">Seamless Travel 라이프사이클. Lobby→Stage→Rest 전체 사이클. 인벤토리·체력·연료 영속성 매트릭스. 실패 모드 분석.</div>
+      <div class="tag-row">
+        <span class="tag">SeamlessTravel</span>
+        <span class="tag">Save/Restore</span>
+        <span class="tag">Data Persistence</span>
+      </div>
+      <div class="card-arrow">자세히 보기 →</div>
+    </a>
+
+    <a class="card" href="06_network_pitfalls.html" id="c4b" style="--c:#dc2626">
+      <div class="card-header">
+        <div class="card-dot" style="background:#dc2626"></div>
+        <div class="card-num">문서 06</div>
+        <div class="card-badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">QA Guide</div>
+      </div>
+      <div class="card-title">네트워크 버그 패턴 & QA 가이드</div>
+      <div class="card-en" style="color:#dc2626">Network Pitfalls & QA Guide</div>
+      <div class="card-desc">RPC 선언 누락·Replication 실패·Authority 위반·Multicast 누락·ServerTravel 함정. QA 체크리스트 10항목.</div>
+      <div class="tag-row">
+        <span class="tag">Common Bugs</span>
+        <span class="tag">Authority 위반</span>
+        <span class="tag">QA Checklist</span>
       </div>
       <div class="card-arrow">자세히 보기 →</div>
     </a>
@@ -148,7 +182,7 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
     <a class="card" href="code_review_sonnet.html" id="c4" style="--c:#ef4444">
       <div class="card-header">
         <div class="card-dot" style="background:#ef4444"></div>
-        <div class="card-num">문서 05</div>
+        <div class="card-num">문서 07</div>
         <div class="card-badge" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca">Sonnet 4.6</div>
       </div>
       <div class="card-title">소스 코드 리뷰 — Sonnet</div>
@@ -166,7 +200,7 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
     <a class="card" href="code_review_opus.html" id="c5" style="--c:#8b5cf6">
       <div class="card-header">
         <div class="card-dot" style="background:#8b5cf6"></div>
-        <div class="card-num">문서 06</div>
+        <div class="card-num">문서 08</div>
         <div class="card-badge" style="background:#ede9fe;color:#8b5cf6;border:1px solid #c4b5fd">Opus 4.6</div>
       </div>
       <div class="card-title">소스 코드 리뷰 — Opus</div>
@@ -180,6 +214,7 @@ body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-seri
       </div>
       <div class="card-arrow">자세히 보기 →</div>
     </a>
+
   </div>
 </div>
 
@@ -197,6 +232,8 @@ const els=[
   document.getElementById('c1'),
   document.getElementById('c2'),
   document.getElementById('c3'),
+  document.getElementById('c4a'),
+  document.getElementById('c4b'),
   document.getElementById('c4'),
   document.getElementById('c5'),
   document.getElementById('ft')

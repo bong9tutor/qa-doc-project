@@ -98,12 +98,14 @@ pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
 
 <div class="page">
   <div class="page-title fade" id="pt">RPC / Replication 흐름</div>
-  <div class="page-sub fade" id="ps">3가지 시나리오 · 각 단계를 클릭해 함수 시그니처와 코드 상세 보기</div>
+  <div class="page-sub fade" id="ps">5가지 시나리오 + Replication 패턴 가이드 · 각 단계를 클릭해 함수 시그니처와 코드 상세 보기</div>
 
   <div class="scenario-tabs fade" id="stabs">
     <button class="sc-tab active" style="background:#d97706" onclick="switchScenario('melee',this)">근접 공격</button>
     <button class="sc-tab" onclick="switchScenario('fuel',this)">연료 획득</button>
     <button class="sc-tab" onclick="switchScenario('ai',this)">AI 공격</button>
+    <button class="sc-tab" onclick="switchScenario('interact',this)">상호작용</button>
+    <button class="sc-tab" onclick="switchScenario('voice',this)">음성 채팅</button>
   </div>
 
   <!-- Scenario 1: Melee Attack -->
@@ -161,6 +163,233 @@ pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
       </div>
     </div>
     <div class="seq-list" id="seq-ai"></div>
+  </div>
+
+  <!-- Scenario 4: Interaction -->
+  <div class="scenario" id="sc-interact">
+    <div class="participants">
+      <div class="participant" style="background:#fffbeb;border-color:#fef3c7">
+        <div class="p-role" style="color:#d97706">Client (상호작용자)</div>
+        <div class="p-class" style="color:#d97706">AO_InteractionComponent</div>
+      </div>
+      <div class="participant" style="background:#eff6ff;border-color:#dbeafe">
+        <div class="p-role" style="color:#2563eb">Server</div>
+        <div class="p-class" style="color:#2563eb">GAS + Validate</div>
+      </div>
+      <div class="participant" style="background:#f5f3ff;border-color:#ede9fe">
+        <div class="p-role" style="color:#7c3aed">All Clients</div>
+        <div class="p-class" style="color:#7c3aed">몽타주 동기화</div>
+      </div>
+    </div>
+    <div class="seq-list" id="seq-interact"></div>
+  </div>
+
+  <!-- Scenario 5: Voice Chat -->
+  <div class="scenario" id="sc-voice">
+    <div class="participants">
+      <div class="participant" style="background:#ecfeff;border-color:#cffafe">
+        <div class="p-role" style="color:#0891b2">Player (접속자)</div>
+        <div class="p-class" style="color:#0891b2">APlayerState</div>
+      </div>
+      <div class="participant" style="background:#eff6ff;border-color:#dbeafe">
+        <div class="p-role" style="color:#2563eb">Server</div>
+        <div class="p-class" style="color:#2563eb">AO_GameState</div>
+      </div>
+      <div class="participant" style="background:#f0fdf4;border-color:#bbf7d0">
+        <div class="p-role" style="color:#16a34a">OnlineSubsystem</div>
+        <div class="p-class" style="color:#16a34a">Voice / Steam</div>
+      </div>
+    </div>
+    <div class="seq-list" id="seq-voice"></div>
+  </div>
+
+  <!-- Section: Reliable vs Unreliable 가이드 -->
+  <div class="fade" id="sec-reliable" style="margin-top:32px;">
+    <h2 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:12px;">Reliable vs Unreliable 가이드</h2>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e5e7eb;font-weight:700;color:#374151;">유형</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e5e7eb;font-weight:700;color:#374151;">언제 사용</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e5e7eb;font-weight:700;color:#374151;">예시</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><span style="background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:10px;font-weight:600;font-size:11px;">Server, Reliable</span></td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">게임플레이 상태 변경 (반드시 서버에 도달해야 함)</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;">ServerMeleeAttack, ServerTriggerInteract</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><span style="background:#f5f3ff;color:#7c3aed;padding:2px 8px;border-radius:10px;font-weight:600;font-size:11px;">Multicast, Reliable</span></td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">모든 클라이언트가 반드시 받아야 하는 핵심 이벤트</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;">MulticastPlayInteractionMontage, MulticastOnDeath</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;"><span style="background:#fefce8;color:#a16207;padding:2px 8px;border-radius:10px;font-weight:600;font-size:11px;">Multicast, Unreliable</span></td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">코즈메틱/시각 효과 (패킷 손실 허용)</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;">MulticastPlayMeleeAnim, MulticastPlayHitSound</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;"><span style="background:#ecfeff;color:#0891b2;padding:2px 8px;border-radius:10px;font-weight:600;font-size:11px;">Client, Reliable</span></td>
+            <td style="padding:8px 12px;">서버가 특정 클라이언트에게만 지시</td>
+            <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;">ClientUpdateHP, Client_PrepareForTravel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box warn" style="margin-top:10px;">
+      Reliable RPC는 재전송 보장이지만 대역폭을 더 소비합니다. 매 프레임 호출하는 애니메이션/이펙트에 Reliable을 쓰면 대역폭 포화로 연결이 끊길 수 있습니다.
+    </div>
+  </div>
+
+  <!-- Section: Replicated 변수 패턴 -->
+  <div class="fade" id="sec-repvar" style="margin-top:28px;">
+    <h2 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:12px;">Replicated 변수 패턴</h2>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">GetLifetimeReplicatedProps() 패턴</div>
+      <pre><span class="cm">// AO_PlayerState.cpp - 복제 변수 등록</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::GetLifetimeReplicatedProps</span>(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) <span class="kw">const</span>
+{
+    Super::<span class="fn">GetLifetimeReplicatedProps</span>(OutLifetimeProps);
+
+    <span class="cm">// DOREPLIFETIME: 모든 클라이언트에 항상 복제</span>
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bLobbyIsReady);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bIsAlive);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, DeathCount);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, PersistentInventory);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, CharacterCustomizingData);
+}</pre>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">DOREPLIFETIME vs DOREPLIFETIME_CONDITION</div>
+      <pre><span class="cm">// DOREPLIFETIME - 무조건 모든 클라이언트에 복제</span>
+<span class="fn">DOREPLIFETIME</span>(AAO_GameState, SharedReviveCount);
+<span class="fn">DOREPLIFETIME</span>(AAO_GameState, bIsStageFailed);
+
+<span class="cm">// DOREPLIFETIME_CONDITION - 조건부 복제 (대역폭 절약)</span>
+<span class="cm">// COND_OwnerOnly: 소유 클라이언트에만 복제</span>
+<span class="fn">DOREPLIFETIME_CONDITION</span>(AAO_PlayerState,
+    PersistentHealth, COND_OwnerOnly);
+
+<span class="cm">// COND_InitialOnly: 최초 1회만 복제</span>
+<span class="fn">DOREPLIFETIME_CONDITION</span>(AAO_PlayerState,
+    bIsLobbyHost, COND_InitialOnly);</pre>
+      <div class="info-box tip">현재 프로젝트에서는 대부분 DOREPLIFETIME (무조건 복제)을 사용합니다. 최적화가 필요한 경우 COND_OwnerOnly, COND_InitialOnly 등을 고려하세요.</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">OnRep 콜백 패턴</div>
+      <pre><span class="cm">// 1. UPROPERTY에 ReplicatedUsing 지정</span>
+<span class="kw">UPROPERTY</span>(ReplicatedUsing=OnRep_LobbyIsReady)
+<span class="kw">bool</span> bLobbyIsReady;
+
+<span class="cm">// 2. OnRep 콜백 구현 (클라이언트에서 값 변경 시 자동 호출)</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::OnRep_LobbyIsReady</span>()
+{
+    OnLobbyReadyChanged.<span class="fn">Broadcast</span>(bLobbyIsReady);
+    <span class="fn">RefreshLobbyReadyBoard</span>();
+}
+
+<span class="cm">// 주의: 서버(Authority)에서는 OnRep이 자동 호출되지 않음!</span>
+<span class="cm">// 서버에서도 같은 로직이 필요하면 수동 호출 필수:</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::SetStageFailed</span>()
+{
+    bIsStageFailed = <span class="kw">true</span>;
+    <span class="fn">OnRep_IsStageFailed</span>();  <span class="cm">// 서버 수동 호출</span>
+}</pre>
+      <div class="info-box warn">서버에서 OnRep이 자동 호출되지 않는 것은 흔한 버그 원인입니다. 이 프로젝트에서도 SetStageFailed, SetGameClear, AddTeamDeathCount 등에서 수동 호출 패턴을 사용합니다.</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">Replicated 배열 (PersistentInventory 예시)</div>
+      <pre><span class="cm">// AO_PlayerState.h - 배열 복제 선언</span>
+<span class="kw">UPROPERTY</span>(Replicated)
+TArray&lt;FInventorySlot&gt; PersistentInventory;
+
+<span class="cm">// AO_PlayerState.cpp - 복제 등록</span>
+<span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, PersistentInventory);
+
+<span class="cm">// 레벨 이동 전 인벤토리 저장</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::SaveInventoryBeforeTravel</span>(
+    UAO_InventoryComponent* Inv)
+{
+    PersistentInventory = Inv-&gt;Slots;
+}
+
+<span class="cm">// CopyProperties로 새 PlayerState에 이관</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::CopyProperties</span>(APlayerState* PlayerState)
+{
+    Super::<span class="fn">CopyProperties</span>(PlayerState);
+    <span class="kw">if</span> (bInventoryShouldPersist)
+        PS-&gt;PersistentInventory = <span class="kw">this</span>-&gt;PersistentInventory;
+}</pre>
+      <div class="info-box tip">TArray는 전체 배열이 복제됩니다. 요소가 많으면 대역폭 비용이 큽니다. FFastArraySerializer 사용으로 델타 복제가 가능합니다.</div>
+    </div>
+  </div>
+
+  <!-- Section: 동시 접근 충돌 해결 -->
+  <div class="fade" id="sec-conflict" style="margin-top:28px;">
+    <h2 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:12px;">동시 접근 충돌 해결</h2>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">문제: 두 플레이어가 동시에 같은 아이템을 줍는다면?</div>
+      <div style="font-size:12px;color:#6b7280;line-height:1.7;margin-bottom:10px;">
+        Player A와 Player B가 동시에 E키를 눌러 같은 연료통에 ServerInteract RPC를 보냅니다.<br>
+        네트워크 지연으로 두 RPC가 거의 동시에 서버에 도착할 수 있습니다.
+      </div>
+      <pre><span class="cm">// 서버 권한(Authority)이 충돌을 해결합니다</span>
+<span class="cm">// 먼저 도착한 RPC가 처리되고, 두 번째는 무시됩니다</span>
+
+<span class="cm">// InteractionComponent - 서버에서 유효성 검사</span>
+<span class="kw">void</span> <span class="fn">UAO_InteractionComponent::ServerTriggerInteract_Implementation</span>(
+    AActor* TargetActor)
+{
+    <span class="cm">// 1. null/유효하지 않은 타겟 차단</span>
+    <span class="kw">if</span> (!TargetActor || !TargetActor-><span class="fn">IsValidLowLevel</span>())
+    {
+        <span class="kw">return</span>;  <span class="cm">// 이미 수집된 아이템은 Destroy됨</span>
+    }
+
+    <span class="cm">// 2. 어빌리티 시스템으로 실행 위임</span>
+    bIsHoldingInteract = <span class="kw">true</span>;
+    ASC-><span class="fn">HandleGameplayEvent</span>(ExecuteTag, &amp;Payload);
+}
+
+<span class="cm">// FuelActor - bCollected 플래그로 중복 방지</span>
+<span class="kw">void</span> <span class="fn">AAO_FuelActor::Interact</span>(ACharacter* Interactor)
+{
+    <span class="kw">if</span> (!bCollected)  <span class="cm">// 서버 단일 스레드 → 경합 없음</span>
+    {
+        bCollected = <span class="kw">true</span>;
+        FuelManager-><span class="fn">AddFuel</span>(FuelValue);
+        <span class="fn">MulticastOnCollected</span>();
+    }
+    <span class="cm">// 두 번째 호출 시 bCollected==true → 무시</span>
+}</pre>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;">
+      <div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:8px;">서버 권한 패턴 요약</div>
+      <div style="font-size:12px;color:#374151;line-height:1.8;">
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
+          <span style="background:#f0fdf4;color:#16a34a;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;flex-shrink:0;">원칙</span>
+          <span>서버에 먼저 도착한 RPC가 승리합니다 (First-Come, First-Served).</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
+          <span style="background:#eff6ff;color:#2563eb;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;flex-shrink:0;">가드</span>
+          <span>서버에서 IsValid / bCollected / HasAuthority 체크 후 처리합니다.</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="background:#fefce8;color:#a16207;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;flex-shrink:0;">안전</span>
+          <span>UE5 게임 스레드는 싱글 스레드이므로 두 RPC가 진짜 "동시"에 실행되지 않습니다.</span>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div><!-- /page -->
@@ -323,10 +552,175 @@ EStateTreeRunStatus <span class="fn">FTask_AIAttack::Tick</span>(
 <span class="kw">UPROPERTY</span>(ReplicatedUsing=OnRep_Health)
 FGameplayAttributeData CurrentHealth;`,
       note:'체력이 0이면 서버에서 Dead 상태 처리 후 ClientNotifyDeath 호출.' },
+  ],
+  interact: [
+    { from:'Client', to:'Client', label:'트레이스로 대상 감지', type:'Local',
+      typeColor:'#d97706', typeBg:'#fffbeb', typeTag:'#fef3c7',
+      code:`<span class="cm">// 1. 클라이언트 로컬: AbilityTask가 트레이스로 Interactable 감지</span>
+<span class="cm">// AO_AbilityTask_WaitForInteractableTarget이 매 틱 트레이스 수행</span>
+<span class="cm">// IInteractable 인터페이스 구현 액터를 감지하면:</span>
+InteractionComponent-><span class="fn">SetCurrentInteractTarget</span>(HitActor);
+<span class="cm">// UI 위젯에 상호작용 프롬프트 표시</span>
+WidgetController-><span class="fn">UpdateInteractPrompt</span>(HitActor);`,
+      note:'트레이스는 클라이언트 로컬에서만 실행됩니다. 서버 대역폭을 소비하지 않습니다.' },
+    { from:'Client', to:'Server', label:'E키 → ServerTriggerInteract', type:'Server RPC',
+      typeColor:'#2563eb', typeBg:'#eff6ff', typeTag:'#dbeafe',
+      code:`<span class="cm">// 2. E키 입력 → Server RPC로 상호작용 요청</span>
+<span class="kw">void</span> <span class="fn">UAO_InteractionComponent::OnInteractPressed</span>()
+{
+    bIsHoldingInteract = <span class="kw">true</span>;
+    <span class="kw">if</span> (CurrentInteractTarget)
+    {
+        <span class="fn">ServerTriggerInteract</span>(CurrentInteractTarget);
+    }
+}
+
+<span class="kw">UFUNCTION</span>(Server, Reliable)
+<span class="kw">void</span> <span class="fn">ServerTriggerInteract</span>(AActor* TargetActor);` },
+    { from:'Server', to:'Server', label:'서버 유효성 검사 + GAS 실행', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 3. 서버에서 유효성 검사 후 GAS 이벤트 트리거</span>
+<span class="kw">void</span> <span class="fn">UAO_InteractionComponent::ServerTriggerInteract_Implementation</span>(
+    AActor* TargetActor)
+{
+    <span class="kw">if</span> (!TargetActor || !TargetActor-><span class="fn">IsValidLowLevel</span>())
+        <span class="kw">return</span>;
+
+    bIsHoldingInteract = <span class="kw">true</span>;
+
+    <span class="cm">// GameplayEvent로 Execute 어빌리티 트리거</span>
+    FGameplayEventData Payload;
+    Payload.EventTag = AO_InteractionTags::
+        Ability_Action_AbilityInteract_Execute;
+    Payload.Instigator = GetOwner();
+    Payload.Target = TargetActor;
+
+    ASC-><span class="fn">HandleGameplayEvent</span>(Payload.EventTag, &Payload);
+}`,
+      note:'서버에서 TargetActor의 유효성을 다시 검증합니다. 클라이언트가 보낸 참조가 이미 Destroy된 경우를 방어합니다.' },
+    { from:'Server', to:'AllClients', label:'MulticastPlayInteractionMontage', type:'Multicast',
+      typeColor:'#7c3aed', typeBg:'#f5f3ff', typeTag:'#ede9fe',
+      code:`<span class="cm">// 4. 모든 클라이언트에 상호작용 몽타주 + 모션워핑 동기화</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, Reliable)
+<span class="kw">void</span> <span class="fn">MulticastPlayInteractionMontage</span>(
+    UAnimMontage* MontageToPlay,
+    FTransform WarpTransform,
+    FName WarpName);
+
+<span class="kw">void</span> <span class="fn">UAO_InteractionComponent::
+    MulticastPlayInteractionMontage_Implementation</span>(...)
+{
+    <span class="cm">// 모션 워핑 타겟 설정</span>
+    <span class="kw">if</span> (!WarpName.IsNone())
+    {
+        MWC-><span class="fn">AddOrUpdateWarpTargetFromLocation</span>(
+            WarpName, WarpTransform.GetLocation());
+    }
+    <span class="cm">// 몽타주 재생</span>
+    AnimInstance-><span class="fn">Montage_Play</span>(MontageToPlay);
+}`,
+      note:'Reliable Multicast: 상호작용 몽타주는 위치 워핑을 포함하므로 누락 시 캐릭터 위치가 어긋납니다.' },
+    { from:'Client', to:'Server', label:'E키 해제 → ServerNotifyInteractReleased', type:'Server RPC',
+      typeColor:'#2563eb', typeBg:'#eff6ff', typeTag:'#dbeafe',
+      code:`<span class="cm">// 5. E키 해제 → 서버에 홀드 종료 알림</span>
+<span class="kw">void</span> <span class="fn">UAO_InteractionComponent::OnInteractReleased</span>()
+{
+    bIsHoldingInteract = <span class="kw">false</span>;
+    OnInteractInputReleased.<span class="fn">Broadcast</span>();
+    <span class="fn">ServerNotifyInteractReleased</span>();
+}
+
+<span class="kw">UFUNCTION</span>(Server, Reliable)
+<span class="kw">void</span> <span class="fn">ServerNotifyInteractReleased</span>();
+
+<span class="cm">// bIsHoldingInteract는 Replicated 변수 →</span>
+<span class="cm">// 서버 변경이 다른 클라이언트에도 자동 복제</span>`,
+      note:'bIsHoldingInteract는 Replicated 변수로, 서버에서 변경 시 모든 클라이언트에 자동 동기화됩니다.' },
+  ],
+  voice: [
+    { from:'Player', to:'Server', label:'플레이어 접속 → AddPlayerState', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 1. 새 플레이어 접속 시 GameState에 등록</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::AddPlayerState</span>(APlayerState* PlayerState)
+{
+    Super::<span class="fn">AddPlayerState</span>(PlayerState);
+
+    <span class="cm">// 즉시 실행하면 내부 데이터 복제가 미완료 → null</span>
+    <span class="cm">// 0.1초 타이머로 지연 처리</span>
+    FTimerDelegate UnmuteDelegate;
+    UnmuteDelegate.<span class="fn">BindUFunction</span>(
+        <span class="kw">this</span>, FName("UnmuteVoiceOnAddPlayerState"),
+        PlayerState);
+    GetWorldTimerManager().<span class="fn">SetTimer</span>(
+        UnmuteVoiceTimerHandle, UnmuteDelegate,
+        0.1f, <span class="kw">false</span>);
+}`,
+      note:'AddPlayerState는 레벨 이동 후 플레이어가 새 월드에 진입할 때마다 호출됩니다.' },
+    { from:'Server', to:'Server', label:'타이머 → UnmuteRemoteTalker', type:'Authority',
+      typeColor:'#16a34a', typeBg:'#f0fdf4', typeTag:'#bbf7d0',
+      code:`<span class="cm">// 2. 타이머 만료 → 해당 플레이어 음소거 해제</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::UnmuteVoiceOnAddPlayerState</span>(
+    APlayerState* PlayerState)
+{
+    <span class="kw">if</span> (!PlayerState) <span class="kw">return</span>;
+
+    UAO_OnlineSessionSubsystem* OSS =
+        GetGameInstance()->GetSubsystem
+            &lt;UAO_OnlineSessionSubsystem&gt;();
+
+    AAO_PlayerState* AO_PS =
+        Cast&lt;AAO_PlayerState&gt;(PlayerState);
+
+    OSS-><span class="fn">UnmuteRemoteTalker</span>(0, AO_PS, <span class="kw">false</span>);
+}`,
+      note:'OnlineSubsystem을 통해 Steam Voice 채널에서 해당 플레이어를 unmute합니다.' },
+    { from:'Player', to:'Player', label:'PlayerState::InitVoiceChat (로컬)', type:'Local',
+      typeColor:'#0891b2', typeBg:'#ecfeff', typeTag:'#cffafe',
+      code:`<span class="cm">// 3. 각 클라이언트 PlayerState BeginPlay에서 보이스 초기화</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::InitVoiceChat</span>()
+{
+    UAO_GameUserSettings* Settings =
+        GetGameInstance()->GetSubsystem&lt;UAO_GameSettingsManager&gt;()
+            -><span class="fn">GetGameUserSettings</span>();
+
+    UAO_OnlineSessionSubsystem* OSS =
+        GetGameInstance()->GetSubsystem
+            &lt;UAO_OnlineSessionSubsystem&gt;();
+
+    <span class="cm">// 상대방 소리는 항상 들려야 함</span>
+    OSS-><span class="fn">UnmuteAllRemoteTalker</span>();
+
+    <span class="cm">// 본인 마이크는 설정에 따라</span>
+    <span class="kw">if</span> (Settings->bIsEnableVoiceChat)
+    {
+        OSS-><span class="fn">StartVoiceChat</span>();
+    }
+}`,
+      note:'UnmuteAllRemoteTalker는 보이스 활성화 여부와 무관하게 호출됩니다. 상대방 음성은 항상 수신해야 하기 때문입니다.' },
+    { from:'Player', to:'Server', label:'음성 데이터 스트리밍', type:'OnlineSubsystem',
+      typeColor:'#059669', typeBg:'#ecfdf5', typeTag:'#a7f3d0',
+      code:`<span class="cm">// 4. 실시간 음성 스트리밍 (엔진 내부 처리)</span>
+<span class="cm">// DefaultEngine.ini 설정:</span>
+<span class="cm">// [Voice]</span>
+<span class="cm">// bEnabled=true</span>
+<span class="cm">// [OnlineSubsystem]</span>
+<span class="cm">// bHasVoiceEnabled=true</span>
+
+<span class="cm">// Steam OnlineSubsystem이 24kHz/24kbps로</span>
+<span class="cm">// 음성 캡처 → 인코딩 → 전송을 자동 처리합니다.</span>
+<span class="cm">// App ID 480 (Spacewar)으로 테스트 가능.</span>
+
+<span class="cm">// 사망 시 보이스 상태 업데이트:</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::OnRep_IsAlive</span>()
+{
+    <span class="cm">// 사망/부활 시 음성 뮤트 상태 갱신</span>
+    OSS-><span class="fn">UpdateVoiceMember</span>(<span class="kw">this</span>);
+}`,
+      note:'사망한 플레이어의 음성을 뮤트할지 여부는 UpdateVoiceMember에서 결정합니다.' },
   ]
 };
 
-const scColors = { melee:'#d97706', fuel:'#ea580c', ai:'#7c3aed' };
+const scColors = { melee:'#d97706', fuel:'#ea580c', ai:'#7c3aed', interact:'#059669', voice:'#0891b2' };
 
 function buildSeq(key) {
   const list = document.getElementById('seq-'+key);
@@ -378,8 +772,8 @@ function switchScenario(key, btn) {
 
 // Init
 buildSeq('melee');
-['pt','ps','stabs'].forEach((id,i)=>
-  setTimeout(()=>document.getElementById(id)?.classList.add('visible'),i*80));
+['pt','ps','stabs','sec-reliable','sec-repvar','sec-conflict'].forEach((id,i)=>
+  setTimeout(()=>document.getElementById(id)?.classList.add('visible'),100+i*80));
 </script>
 </body>
 </html>

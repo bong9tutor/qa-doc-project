@@ -282,6 +282,335 @@ pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
     </div>
 
   </div>
+
+  <!-- ==================== 추가 섹션: Seamless Travel 라이프사이클 ==================== -->
+  <div style="margin-top:36px;">
+    <div style="font-size:17px;font-weight:700;color:#111827;margin-bottom:4px;">Seamless Travel 라이프사이클</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">ServerTravel 호출 시 내부에서 일어나는 일</div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#0891b2;margin-bottom:8px;">bUseSeamlessTravel = true (기본값)</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        <code>AAO_GameMode_InGameBase</code> 생성자에서 <code>bUseSeamlessTravel = true</code>를 설정합니다.
+        이 플래그가 켜져 있으면 ServerTravel 시:
+      </div>
+      <ul style="font-size:12px;color:#374151;line-height:1.8;margin:8px 0 0 18px;">
+        <li><strong>PlayerController 보존</strong> — PC가 파괴되지 않고 새 맵으로 이전됩니다.</li>
+        <li><strong>PlayerState 보존</strong> — <code>CopyProperties()</code>가 호출되어 기존 PS 데이터를 새 PS로 복사합니다.</li>
+        <li><strong>TransitionMap 경유</strong> — 엔진이 내부적으로 <code>LV_Transition</code> 맵을 거쳐 새 맵을 비동기 로드합니다.</li>
+        <li><strong>HandleSeamlessTravelPlayer()</strong> — 새 맵의 GameMode에서 각 이동된 Controller에 대해 호출됩니다.</li>
+      </ul>
+      <div class="info-box warn" style="margin-top:10px;">
+        bUseSeamlessTravel이 <strong>false</strong>이면 모든 PlayerController와 PlayerState가 <strong>파괴</strong>됩니다.
+        클라이언트가 새 맵에 재접속해야 하므로 세션 데이터가 유실됩니다.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:8px;">HandleSeamlessTravelPlayer() 흐름</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;margin-bottom:8px;">
+        각 GameMode가 오버라이드하여 이동 후 초기화를 수행합니다.
+      </div>
+<pre><span class="cm">// InGameBase — 기본 핸들러 (모든 인게임 모드의 부모)</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_InGameBase::HandleSeamlessTravelPlayer</span>(AController*& C)
+{
+    <span class="kw">Super</span>::HandleSeamlessTravelPlayer(C);
+    <span class="cm">// 이 시점에서 PC는 새 월드에 존재하며</span>
+    <span class="cm">// PS->CopyProperties()로 데이터가 이미 복사된 상태</span>
+}
+
+<span class="cm">// Lobby — 입장 순서 재할당</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Lobby::HandleSeamlessTravelPlayer</span>(AController*& C)
+
+<span class="cm">// Stage — 스테이지 초기화 및 인벤토리 복원</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Stage::HandleSeamlessTravelPlayer</span>(AController*& C)</pre>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#ea580c;margin-bottom:8px;">OnRep 콜백 타이밍</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        Seamless Travel 후 클라이언트 측 <code>OnRep_*</code> 콜백은 <strong>새 맵의 BeginPlay 이후</strong>에 발화합니다.
+        이 사이 짧은 시간 동안 Replicated 프로퍼티가 아직 동기화되지 않은 상태일 수 있으므로,
+        <code>AAO_GameState::AddPlayerState()</code>에서 0.1초 타이머 딜레이를 사용하는 패턴이 존재합니다.
+      </div>
+      <div class="info-box note">
+        <strong>QA 포인트:</strong> Travel 직후 OnRep이 아직 호출되지 않은 시점에서 UI를 갱신하면
+        null 참조나 stale 데이터가 표시될 수 있습니다. 이를 재현하려면 고지연 환경에서 테스트하세요.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:8px;">동기화된 Travel (Voice Crash 방지)</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        직접 <code>ServerTravel()</code>을 호출하면 Voice 시스템이 정리되기 전에 맵 전환이 시작되어 크래시가 발생합니다.
+        이를 방지하기 위해 <code>RequestSynchronizedServerTravel()</code> 패턴을 사용합니다:
+      </div>
+<pre><span class="cm">// 1. 서버가 모든 PC에게 Travel 준비 요청</span>
+<span class="kw">for</span> (PC : AllPlayerControllers)
+    PC-><span class="fn">Client_PrepareForTravel</span>(URL);  <span class="cm">// Client RPC</span>
+
+<span class="cm">// 2. 각 클라이언트가 VoiceChat 정리 후 서버에 완료 통보</span>
+PC-><span class="fn">NotifyPlayerCleanupCompleteForTravel</span>(PC);
+
+<span class="cm">// 3. 모든 플레이어 완료 확인 후 실제 Travel 실행</span>
+<span class="kw">if</span> (CleanupCompletePlayers.Num() >= TotalPlayers)
+    World-><span class="fn">ServerTravel</span>(PendingTravelURL);</pre>
+    </div>
+  </div>
+
+  <!-- ==================== 추가 섹션: 데이터 영속성 ==================== -->
+  <div style="margin-top:36px;">
+    <div style="font-size:17px;font-weight:700;color:#111827;margin-bottom:4px;">데이터 영속성</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">ServerTravel을 거쳐도 유지되는 데이터와 그 메커니즘</div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="text-align:left;padding:6px 8px;color:#6b7280;font-weight:600;">데이터</th>
+            <th style="text-align:left;padding:6px 8px;color:#6b7280;font-weight:600;">저장 위치</th>
+            <th style="text-align:left;padding:6px 8px;color:#6b7280;font-weight:600;">영속 메커니즘</th>
+            <th style="text-align:left;padding:6px 8px;color:#6b7280;font-weight:600;">초기화 시점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">PersistentInventory</td>
+            <td style="padding:6px 8px;"><code>AAO_PlayerState</code> (Replicated)</td>
+            <td style="padding:6px 8px;"><code>SaveInventoryBeforeTravel()</code> → <code>CopyProperties()</code></td>
+            <td style="padding:6px 8px;">SafeZone 밖이면 삭제</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">PersistentHealth</td>
+            <td style="padding:6px 8px;"><code>AAO_PlayerState</code> (Replicated)</td>
+            <td style="padding:6px 8px;"><code>SaveHealthBeforeTravel()</code> → <code>CopyProperties()</code></td>
+            <td style="padding:6px 8px;">ResetStateHealth()</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">SharedReviveCount</td>
+            <td style="padding:6px 8px;"><code>UAO_GameInstance</code></td>
+            <td style="padding:6px 8px;">GameInstance는 Travel 간 영속 → GameState로 동기화</td>
+            <td style="padding:6px 8px;">ResetRun()</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">SharedTrainFuel</td>
+            <td style="padding:6px 8px;"><code>UAO_GameInstance</code></td>
+            <td style="padding:6px 8px;">GameInstance에 직접 보관 (서버 기준 값)</td>
+            <td style="padding:6px 8px;">ResetRun() → FuelDataAsset 초기값</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">CurrentStageIndex</td>
+            <td style="padding:6px 8px;"><code>UAO_GameInstance</code></td>
+            <td style="padding:6px 8px;">GameInstance에 직접 보관 (0, 1, 2 ...)</td>
+            <td style="padding:6px 8px;">ResetRun() → 0</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">CharacterCustomizingData</td>
+            <td style="padding:6px 8px;"><code>AAO_PlayerState</code> (Replicated)</td>
+            <td style="padding:6px 8px;"><code>CopyProperties()</code>에서 복사</td>
+            <td style="padding:6px 8px;">세션 종료 시</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:6px 8px;font-weight:600;">DeathCount</td>
+            <td style="padding:6px 8px;"><code>AAO_PlayerState</code> (Replicated)</td>
+            <td style="padding:6px 8px;"><code>CopyProperties()</code> — 로비 맵이면 0으로 초기화</td>
+            <td style="padding:6px 8px;">로비 진입 시</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;font-weight:600;">LobbyHostNetIdStr</td>
+            <td style="padding:6px 8px;"><code>UAO_GameInstance</code></td>
+            <td style="padding:6px 8px;">GameInstance에 직접 보관</td>
+            <td style="padding:6px 8px;">ResetSessionData()</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#16a34a;margin-bottom:8px;">인벤토리 저장 판정 흐름</div>
+<pre><span class="cm">// HandlePlayerTravel() — Travel 직전에 서버가 호출</span>
+1. <span class="fn">SaveInventoryBeforeTravel</span>(Inv)   <span class="cm">// 캐릭터 → PS로 복사</span>
+2. <span class="fn">SaveHealthBeforeTravel</span>(Health)   <span class="cm">// 체력도 PS에 저장</span>
+3. 맵이 <span class="fn">"Rest"</span> 포함? → 무조건 유지
+   아니면 → <span class="fn">CheckPlayerInsideSafeZone</span>(PS)  <span class="cm">// BoxComponent 범위 체크</span>
+4. <span class="kw">bInventoryShouldPersist</span> 플래그 설정
+5. <span class="fn">CopyProperties</span>()에서 플래그에 따라 복사 또는 삭제</pre>
+      <div class="info-box note">
+        <strong>QA 포인트:</strong> 스테이지에서 SafeZone 밖에 있는 상태로 맵 전환이 발생하면 인벤토리가 의도적으로 삭제됩니다.
+        Rest Room에서는 위치와 관계없이 항상 유지됩니다.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:8px;">스테이지 진행 패턴</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        승리 시 <code>TryAdvanceStageIndex()</code>가 호출되어 <code>CurrentStageIndex</code>를 1 증가시킵니다.
+        <code>AO_MapRoutes::GetStageMapName(CurrentStageIndex)</code>로 다음 맵 이름을 결정합니다.
+      </div>
+<pre><span class="cm">// GameInstance — 스테이지 진행</span>
+<span class="kw">bool</span> <span class="fn">TryAdvanceStageIndex</span>()
+{
+    <span class="kw">if</span> (CurrentStageIndex + 1 < StageCount) {
+        ++CurrentStageIndex;   <span class="cm">// 0→1→2</span>
+        <span class="kw">return true</span>;
+    }
+    <span class="kw">return false</span>;  <span class="cm">// 마지막 스테이지 → 더 이상 없음</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- ==================== 추가 섹션: 세션 라운드 사이클 ==================== -->
+  <div style="margin-top:36px;">
+    <div style="font-size:17px;font-weight:700;color:#111827;margin-bottom:4px;">세션 라운드 사이클</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">한 세션의 전체 맵 이동 루프</div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:12px;">전체 흐름 다이어그램</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:#374151;overflow-x:auto;white-space:pre;">
+<span style="background:#fffbeb;padding:3px 8px;border-radius:4px;border:1px solid #fef3c7;color:#d97706;">LV_MainMenu</span>
+  <span style="color:#9ca3af;">│ CreateSession / JoinSession</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#f5f3ff;padding:3px 8px;border-radius:4px;border:1px solid #ede9fe;color:#7c3aed;">LV_Lobby</span>  <span style="color:#9ca3af;">← SetSessionInGame(true) on TravelToStage</span>
+  <span style="color:#9ca3af;">│ ServerTravel (bUseSeamlessTravel)</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#f0fdf4;padding:3px 8px;border-radius:4px;border:1px solid #bbf7d0;color:#16a34a;">LV_Meadow_Main</span>  <span style="color:#9ca3af;">(Stage 1 — index 0)</span>
+  <span style="color:#9ca3af;">│ 승리 → TryAdvanceStageIndex()</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#fff7ed;padding:3px 8px;border-radius:4px;border:1px solid #fed7aa;color:#ea580c;">LV_RestRoom</span>  <span style="color:#9ca3af;">← 인벤토리/체력 유지, 정산</span>
+  <span style="color:#9ca3af;">│ HandleRestExitRequest → TryAdvanceStageIndex()</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#f0fdf4;padding:3px 8px;border-radius:4px;border:1px solid #bbf7d0;color:#16a34a;">LV_Lava_Main</span>  <span style="color:#9ca3af;">(Stage 2 — index 1)</span>
+  <span style="color:#9ca3af;">│ 승리 → TryAdvanceStageIndex()</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#fff7ed;padding:3px 8px;border-radius:4px;border:1px solid #fed7aa;color:#ea580c;">LV_RestRoom</span>
+  <span style="color:#9ca3af;">│ HandleRestExitRequest → TryAdvanceStageIndex()</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#f0fdf4;padding:3px 8px;border-radius:4px;border:1px solid #bbf7d0;color:#16a34a;">LV_SnowField_Main</span>  <span style="color:#9ca3af;">(Stage 3 — index 2, IsLastStage)</span>
+  <span style="color:#9ca3af;">│ 승리 → RestExit에서 TryAdvance 실패</span>
+  <span style="color:#9ca3af;">▼</span>
+<span style="background:#f5f3ff;padding:3px 8px;border-radius:4px;border:1px solid #ede9fe;color:#7c3aed;">LV_Lobby</span>  <span style="color:#9ca3af;">← ResetRun() + SetSessionInGame(false)</span>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:8px;">KEY_IN_GAME — 중간 입장 차단</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        로비에서 스테이지로 이동 시 <code>SetSessionInGame(true)</code>가 호출되어 Steam 세션 설정을 갱신합니다:
+      </div>
+<pre><span class="cm">// 세션을 "인게임" 상태로 설정</span>
+<span class="kw">void</span> <span class="fn">SetSessionInGame</span>(<span class="kw">bool</span> bInGame)
+{
+    Settings->Set(<span class="fn">KEY_IN_GAME</span>, bInGame, ViaOnlineServiceAndPing);
+    Settings->bAllowJoinInProgress  = !bInGame;
+    Settings->bAllowJoinViaPresence = !bInGame;
+    Session-><span class="fn">UpdateSession</span>(NAME_GameSession, *Settings);
+}</pre>
+      <div class="info-box tip">
+        <code>KEY_IN_GAME = true</code>일 때 세션 검색 결과에 "진행 중"으로 표시되며,
+        <code>bAllowJoinInProgress</code>와 <code>bAllowJoinViaPresence</code>가 모두 false로 설정되어
+        새로운 플레이어의 참가가 차단됩니다.
+      </div>
+      <div class="info-box warn" style="margin-top:6px;">
+        게임 실패로 로비 복귀 시 <code>RollbackSessionInGameFlag()</code>에서 <code>SetSessionInGame(false)</code>를 호출합니다.
+        이 호출이 누락되면 로비에서도 참가가 차단되는 버그가 발생할 수 있습니다.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:13px;font-weight:700;color:#ea580c;margin-bottom:8px;">RestRoom에서 다음 스테이지 선택</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        <code>HandleRestExitRequest()</code>가 호출되면:
+      </div>
+      <ol style="font-size:12px;color:#374151;line-height:1.8;margin:8px 0 0 18px;">
+        <li><code>TryAdvanceStageIndex()</code>로 다음 스테이지 인덱스 증가 시도</li>
+        <li>성공 시 → <code>GetCurrentStageMap()</code>으로 맵 이름 획득 → <code>RequestSynchronizedServerTravel()</code></li>
+        <li>실패 시 (마지막 스테이지 이후) → <code>ResetRun()</code> + 로비로 복귀</li>
+      </ol>
+      <div class="info-box note" style="margin-top:8px;">
+        맵 라우팅은 <code>AO_MapRoutes</code> 헬퍼가 담당합니다.
+        <code>GetStageMapName(index)</code>로 인덱스에 대응하는 맵 경로를 반환합니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 추가 섹션: 음성 채팅 초기화 ==================== -->
+  <div style="margin-top:36px;">
+    <div style="font-size:17px;font-weight:700;color:#111827;margin-bottom:4px;">음성 채팅 초기화</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;">Steam Voice 시스템의 시작/종료 및 플레이어 입장 처리</div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:8px;">StartVoiceChat / StopVoiceChat 라이프사이클</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        <code>UAO_OnlineSessionSubsystem</code>에서 관리합니다.
+      </div>
+<pre><span class="cm">// 시작: Local Talker 등록 + 네트워크 전송 시작</span>
+<span class="kw">void</span> <span class="fn">StartVoiceChat</span>()
+{
+    VoiceInterface-><span class="fn">RegisterLocalTalker</span>(0);
+    VoiceInterface-><span class="fn">StartNetworkedVoice</span>(0);
+}
+
+<span class="cm">// 종료: 전송 중단 + 패킷 정리 + Remote 제거 + Unregister</span>
+<span class="kw">void</span> <span class="fn">StopVoiceChat</span>()
+{
+    VoiceInterface-><span class="fn">StopNetworkedVoice</span>(0);
+    VoiceInterface-><span class="fn">ClearVoicePackets</span>();
+    VoiceInterface-><span class="fn">RemoveAllRemoteTalkers</span>();
+    <span class="kw">for</span> (i = 0..MAX_LOCAL_PLAYERS)
+        VoiceInterface-><span class="fn">UnregisterLocalTalker</span>(i);
+}</pre>
+      <div class="info-box tip">
+        레벨 이동 시 <code>AAO_PlayerState::BeginPlay()</code> → <code>InitVoiceChat()</code>에서 사용자 설정에 따라
+        <code>UnmuteAllRemoteTalker()</code> 및 <code>StartVoiceChat()</code>을 재호출합니다.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#d97706;margin-bottom:8px;">플레이어 입장 시 0.1초 딜레이 패턴</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        <code>AAO_GameState::AddPlayerState()</code>에서 새 플레이어가 추가될 때,
+        즉시 <code>UnmuteRemoteTalker()</code>를 호출하면 내부 데이터(UniqueNetId 등)가 아직 준비되지 않아
+        null 참조가 발생합니다. 이를 방지하기 위해 0.1초 타이머 딜레이를 사용합니다:
+      </div>
+<pre><span class="cm">// GameState — 플레이어 입장 시 Unmute 처리</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::AddPlayerState</span>(APlayerState* PlayerState)
+{
+    <span class="kw">Super</span>::AddPlayerState(PlayerState);
+
+    <span class="cm">// 내부 데이터 복제 대기 (즉시 실행하면 null)</span>
+    FTimerDelegate UnmuteDelegate;
+    UnmuteDelegate.BindUFunction(<span class="kw">this</span>,
+        FName(<span class="fn">"UnmuteVoiceOnAddPlayerState"</span>), PlayerState);
+    GetWorldTimerManager().SetTimer(
+        UnmuteVoiceTimerHandle,
+        UnmuteDelegate,
+        <span class="fn">0.1f</span>,    <span class="cm">// 0.1초 딜레이</span>
+        <span class="kw">false</span>   <span class="cm">// 반복 없음</span>
+    );
+}</pre>
+      <div class="info-box warn">
+        <strong>QA 포인트:</strong> 이 딜레이 값(0.1초)은 경험적 수치입니다. 고지연 네트워크에서는 부족할 수 있으며,
+        현재 TODO 주석에 "Event(Delegate) 방식으로 전환 필요"라고 표시되어 있습니다.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:8px;">사망/부활 시 음성 제어</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;">
+        <code>UpdateVoiceMember()</code>를 통해 플레이어의 생존 상태에 따라 Mute/Unmute를 결정합니다:
+      </div>
+      <ul style="font-size:12px;color:#374151;line-height:1.8;margin:8px 0 0 18px;">
+        <li><strong>내가 살아있고 + 상대가 살아있음</strong> → Unmute (양방향 소통)</li>
+        <li><strong>내가 살아있고 + 상대가 죽음</strong> → Mute (죽은 플레이어 소리 차단)</li>
+        <li><strong>내가 죽어있음</strong> → 모든 상대 Unmute (죽은 상태에서는 전부 청취 가능)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;color:#9ca3af;text-align:center;">
+    학습 목적 전용 &mdash; AVaOut QA Training Project
+  </div>
+
 </div>
 
 <script>

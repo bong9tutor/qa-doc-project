@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVaOut — ServerTravel & 데이터 영속성</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8fafc;color:#374151;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;}
+
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 16px;position:sticky;top:0;z-index:20;}
+.nav-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.nav-logo{font-size:14px;font-weight:700;color:#2563eb;}
+.nav-doc{font-size:12px;color:#6b7280;}
+.nav-links{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;padding-bottom:2px;}
+.nav-links::-webkit-scrollbar{height:0;}
+.nav-link{font-size:11px;padding:4px 10px;border-radius:20px;background:#f1f5f9;color:#6b7280;text-decoration:none;transition:.2s;}
+.nav-link:hover,.nav-link.active{background:#dbeafe;color:#2563eb;}
+
+.page{max-width:740px;margin:0 auto;padding:20px 16px 48px;}
+.page-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#6b7280;margin-bottom:24px;}
+
+/* ===== Sections ===== */
+.section{margin-bottom:28px;}
+.section-title{font-size:16px;font-weight:700;color:#111827;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #2563eb;}
+.section-en{font-size:12px;font-weight:600;color:#2563eb;margin-bottom:10px;display:block;}
+.section-desc{font-size:13px;color:#4b5563;line-height:1.7;margin-bottom:12px;}
+
+/* ===== Diagram ===== */
+.diagram-wrap{overflow-x:auto;padding:16px 0;}
+.diagram{display:flex;align-items:center;gap:0;min-width:max-content;}
+.diagram .node{padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;line-height:1.4;min-width:100px;position:relative;}
+.diagram .arrow{display:flex;align-items:center;padding:0 4px;color:#9ca3af;font-size:18px;flex-shrink:0;}
+.diagram .arrow-label{font-size:10px;color:#6b7280;display:block;text-align:center;white-space:nowrap;}
+
+.node-lobby{background:#f5f3ff;border:2px solid #7c3aed;color:#7c3aed;}
+.node-stage{background:#f0fdf4;border:2px solid #16a34a;color:#16a34a;}
+.node-rest{background:#fff7ed;border:2px solid #ea580c;color:#ea580c;}
+.node-victory{background:#eff6ff;border:2px solid #2563eb;color:#2563eb;}
+
+.loop-bracket{border:2px dashed #9ca3af;border-radius:12px;padding:12px 10px;margin-top:14px;position:relative;}
+.loop-label{position:absolute;top:-10px;left:16px;background:#f8fafc;padding:0 8px;font-size:11px;color:#6b7280;font-weight:600;}
+
+/* ===== Stepper (reuse from 01) ===== */
+.stepper{position:relative;padding-left:20px;}
+.stepper::before{content:'';position:absolute;left:13px;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,#2563eb 0%,#e5e7eb 100%);}
+
+.step{position:relative;margin-bottom:14px;opacity:0;transform:translateY(8px);transition:.35s ease;}
+.step.visible{opacity:1;transform:translateY(0);}
+
+.step-marker{position:absolute;left:-20px;top:14px;width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;z-index:1;}
+
+.step-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-left:20px;overflow:hidden;transition:.2s ease;}
+.step-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.step-card.active{border-color:var(--c,#2563eb);box-shadow:0 4px 16px rgba(0,0,0,.07);}
+
+.step-head{padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none;}
+.step-head-left{flex:1;}
+.step-title{font-size:14px;font-weight:700;color:#111827;}
+.step-en{font-size:11px;font-weight:600;margin-top:2px;}
+.step-desc{font-size:12px;color:#6b7280;margin-top:4px;line-height:1.5;}
+.step-toggle{font-size:11px;color:#9ca3af;transition:.2s;margin-top:2px;flex-shrink:0;}
+.step-card.active .step-toggle{transform:rotate(90deg);color:var(--c,#2563eb);}
+
+.step-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.step-body.open{max-height:1200px;}
+.step-body-inner{padding:0 16px 14px;border-top:1px solid #f3f4f6;}
+
+/* ===== Tags ===== */
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 8px;}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;}
+
+/* ===== Info boxes ===== */
+.info-box{border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.6;}
+.info-box.tip{background:#eff6ff;border-left:3px solid #2563eb;color:#1d4ed8;}
+.info-box.warn{background:#fffbeb;border-left:3px solid #d97706;color:#92400e;}
+.info-box.note{background:#f5f3ff;border-left:3px solid #7c3aed;color:#5b21b6;}
+.info-box.danger{background:#fef2f2;border-left:3px solid #dc2626;color:#991b1b;}
+
+/* ===== Code ===== */
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f1f5f9;
+  border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-top:8px;
+  overflow-x:auto;line-height:1.6;color:#374151;}
+.kw{color:#7c3aed;font-weight:600;}
+.fn{color:#2563eb;}
+.cm{color:#9ca3af;}
+.str{color:#16a34a;}
+
+/* ===== Table ===== */
+.data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
+.data-table th{background:#1e293b;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;}
+.data-table td{padding:8px 10px;border-bottom:1px solid #e5e7eb;vertical-align:top;}
+.data-table tr:nth-child(even){background:#f8fafc;}
+.data-table tr:hover{background:#eff6ff;}
+.data-table code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#f1f5f9;padding:1px 5px;border-radius:3px;color:#7c3aed;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-top">
+    <div class="nav-logo">AVaOut</div>
+    <div class="nav-doc">ServerTravel & 데이터 영속성</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="01_session_flow.html">01 세션 흐름</a>
+    <a class="nav-link" href="02_network_arch.html">02 네트워크</a>
+    <a class="nav-link" href="03_state_machine.html">03 상태 머신</a>
+    <a class="nav-link" href="04_rpc_replication.html">04 RPC</a>
+    <a class="nav-link active" href="05_servertravel_persistence.html">05 ServerTravel</a>
+    <a class="nav-link" href="index.html">&larr; 목록</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-title">ServerTravel & 데이터 영속성</div>
+  <div class="page-sub">Seamless Travel 라이프사이클, 데이터 보존 전략, Save/Restore 패턴 &middot; 학습 목적 전용</div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: ServerTravel 전체 사이클 다이어그램 -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-title">1. ServerTravel 전체 사이클 다이어그램</div>
+    <span class="section-en">Full ServerTravel Cycle Diagram</span>
+    <div class="section-desc">
+      AVaOut의 맵 전환은 <strong>LV_Lobby</strong>에서 시작하여 3개의 스테이지 맵을 순회합니다.
+      각 스테이지 클리어 후 <strong>LV_RestRoom</strong>을 거쳐 다음 스테이지로 이동하며,
+      마지막 스테이지(LV_SnowField_Main) 클리어 시 최종 승리 처리 후 로비로 귀환합니다.
+      맵 이름은 <code>AO_MapRoutes.h</code>에 정의되어 있습니다.
+    </div>
+
+    <div class="diagram-wrap">
+      <div class="diagram">
+        <div class="node node-lobby">LV_Lobby<br><span style="font-size:10px;opacity:.7">GameMode_Lobby</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">ResetRun()<br>ServerTravel</div></div></div>
+        <div class="node node-stage">LV_Meadow_Main<br><span style="font-size:10px;opacity:.7">StageIndex = 0</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">Victory<br>SaveBeforeTravel</div></div></div>
+        <div class="node node-rest">LV_RestRoom<br><span style="font-size:10px;opacity:.7">GameMode_Rest</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">TryAdvance<br>StageIndex++</div></div></div>
+        <div class="node node-stage">LV_Lava_Main<br><span style="font-size:10px;opacity:.7">StageIndex = 1</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">Victory<br>SaveBeforeTravel</div></div></div>
+        <div class="node node-rest">LV_RestRoom<br><span style="font-size:10px;opacity:.7">GameMode_Rest</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">TryAdvance<br>StageIndex++</div></div></div>
+        <div class="node node-stage">LV_SnowField_Main<br><span style="font-size:10px;opacity:.7">StageIndex = 2</span></div>
+        <div class="arrow"><div><span style="font-size:18px">&rarr;</span><div class="arrow-label">Final Victory<br>SetGameClear()</div></div></div>
+        <div class="node node-victory">Game Clear<br><span style="font-size:10px;opacity:.7">UI &rarr; Lobby</span></div>
+      </div>
+    </div>
+
+    <div class="loop-bracket">
+      <div class="loop-label">Stage Loop (x3)</div>
+      <div class="section-desc" style="margin:0;font-size:12px;">
+        <strong>AO_MapRoutes::STAGE_MAPS[]</strong> 배열 순서:<br>
+        [0] <code>/Game/AVaOut/Maps/MeadowLevel/LV_Meadow_Main</code><br>
+        [1] <code>/Game/AVaOut/Maps/LavaLevel/LV_Lava_Main</code><br>
+        [2] <code>/Game/AVaOut/Maps/SnowFieldLevel/LV_SnowField_Main</code><br><br>
+        <strong>LOBBY_MAP:</strong> <code>/Game/AVaOut/Maps/LV_Lobby</code><br>
+        <strong>REST_MAP:</strong> <code>/Game/AVaOut/Maps/LV_RestRoom</code>
+      </div>
+<pre><span class="cm">// AO_GameInstance: 스테이지 인덱스 증가</span>
+<span class="kw">bool</span> <span class="fn">UAO_GameInstance::TryAdvanceStageIndex</span>()
+{
+    <span class="kw">const</span> int32 StageCount = AO_MapRoutes::<span class="fn">GetStageCount</span>();  <span class="cm">// 3</span>
+    <span class="kw">if</span> (CurrentStageIndex + 1 &lt; StageCount)
+    {
+        ++CurrentStageIndex;
+        <span class="kw">return true</span>;
+    }
+    <span class="kw">return false</span>;
+}
+
+<span class="cm">// AO_GameMode_Rest: 다음 스테이지 또는 로비로 이동</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Rest::HandleRestExitRequest</span>(AController* Requester)
+{
+    <span class="kw">if</span> (!AO_GI-><span class="fn">TryAdvanceStageIndex</span>())
+    {
+        <span class="cm">// 더 이상 스테이지 없음 -> 로비 복귀</span>
+        AO_GI-><span class="fn">ResetRun</span>();
+        <span class="fn">RequestSynchronizedServerTravel</span>(LobbyPath);
+        <span class="kw">return</span>;
+    }
+    <span class="cm">// 다음 스테이지로 이동</span>
+    <span class="fn">RequestSynchronizedServerTravel</span>(NextStagePath);
+}</pre>
+    </div>
+
+    <div class="info-box tip" style="margin-top:12px;">
+      실패(전멸) 시: <code>AAO_GameMode_Stage::ResetGameAndGoToLobby()</code> &rarr; <code>ResetRun()</code> &rarr; LV_Lobby로 ServerTravel. 스테이지 인덱스/연료 모두 초기화.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Seamless Travel 라이프사이클 -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-title">2. Seamless Travel 라이프사이클</div>
+    <span class="section-en">Seamless Travel Lifecycle</span>
+
+    <div class="stepper">
+
+      <div class="step" id="s0">
+        <div class="step-marker" style="background:#7c3aed">1</div>
+        <div class="step-card" style="--c:#7c3aed" id="card0">
+          <div class="step-head" onclick="toggle(0)">
+            <div class="step-head-left">
+              <div class="step-title">bUseSeamlessTravel 설정</div>
+              <div class="step-en" style="color:#7c3aed">Seamless Travel Flag in GameMode Constructor</div>
+              <div class="step-desc">모든 InGame GameMode의 부모 클래스에서 bUseSeamlessTravel = true로 설정합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body0">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed">AO_GameMode_InGameBase</span>
+                <span class="tag" style="background:#f5f3ff;border:1px solid #ede9fe;color:#7c3aed">AO_GameMode_Lobby</span>
+              </div>
+<pre><span class="cm">// AO_GameMode_InGameBase.cpp (모든 인게임 GM의 부모)</span>
+<span class="fn">AAO_GameMode_InGameBase</span>::AAO_GameMode_InGameBase()
+{
+    <span class="kw">bUseSeamlessTravel</span> = <span class="kw">true</span>;
+}
+
+<span class="cm">// AO_GameMode_Lobby.cpp (로비 GM에서도 개별 설정)</span>
+<span class="fn">AAO_GameMode_Lobby</span>::AAO_GameMode_Lobby()
+{
+    <span class="kw">bUseSeamlessTravel</span> = <span class="kw">true</span>;
+}</pre>
+              <div class="info-box warn">bUseSeamlessTravel = true 가 없으면 <strong>Non-Seamless Travel</strong>이 수행되어 모든 PlayerController와 PlayerState가 파괴됩니다. 데이터 영속성이 완전히 깨집니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s1">
+        <div class="step-marker" style="background:#2563eb">2</div>
+        <div class="step-card" style="--c:#2563eb" id="card1">
+          <div class="step-head" onclick="toggle(1)">
+            <div class="step-head-left">
+              <div class="step-title">Travel 준비: Voice Cleanup + 데이터 저장</div>
+              <div class="step-en" style="color:#2563eb">RequestSynchronizedServerTravel &rarr; Save Data</div>
+              <div class="step-desc">ServerTravel 전에 모든 플레이어의 보이스 정리와 인벤토리/체력 저장을 수행합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body1">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#eff6ff;border:1px solid #dbeafe;color:#2563eb">RequestSynchronizedServerTravel</span>
+                <span class="tag" style="background:#eff6ff;border:1px solid #dbeafe;color:#2563eb">HandlePlayerTravel</span>
+              </div>
+              <div class="info-box tip">Voice crash 방지를 위해 직접 <code>World->ServerTravel()</code>을 호출하지 않고, <code>RequestSynchronizedServerTravel()</code>을 사용합니다. 모든 클라이언트가 cleanup 완료를 보고하면 Travel을 시작합니다.</div>
+<pre><span class="cm">// AO_GameMode_InGameBase.cpp</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_InGameBase::RequestSynchronizedServerTravel</span>(<span class="kw">const</span> FString&amp; URL)
+{
+    bIsTravelSyncInProgress = <span class="kw">true</span>;
+    PendingTravelURL = URL;
+
+    <span class="kw">for</span> (FConstPlayerControllerIterator It = World-><span class="fn">GetPlayerControllerIterator</span>(); It; ++It)
+    {
+        <span class="cm">// 1) 인벤토리 + 체력 저장</span>
+        PS->bIsTraveling = <span class="kw">true</span>;
+        <span class="fn">HandlePlayerTravel</span>(PS);
+
+        <span class="cm">// 2) 클라이언트에 정리 요청</span>
+        PC-><span class="fn">Client_PrepareForTravel</span>(URL);
+    }
+}
+
+<span class="cm">// 모든 클라이언트 정리 완료 시</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_InGameBase::NotifyPlayerCleanupCompleteForTravel</span>(...)
+{
+    <span class="kw">if</span> (CleanupCompletePlayers.Num() >= TotalPlayers)
+        <span class="fn">StartServerTravel</span>();  <span class="cm">// World->ServerTravel(PendingTravelURL)</span>
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s2">
+        <div class="step-marker" style="background:#0891b2">3</div>
+        <div class="step-card" style="--c:#0891b2" id="card2">
+          <div class="step-head" onclick="toggle(2)">
+            <div class="step-head-left">
+              <div class="step-title">PC/PlayerState 보존 (CopyProperties)</div>
+              <div class="step-en" style="color:#0891b2">PlayerState::CopyProperties during Seamless Travel</div>
+              <div class="step-desc">Seamless Travel 중 엔진이 새 PlayerState를 만들고 CopyProperties()를 호출하여 데이터를 이전합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body2">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#ecfeff;border:1px solid #cffafe;color:#0891b2">AO_PlayerState::CopyProperties</span>
+                <span class="tag" style="background:#f9fafb;border:1px solid #e5e7eb;color:#6b7280">SeamlessTravel</span>
+              </div>
+              <div class="info-box note">
+                Seamless Travel 시 엔진 동작 순서:<br>
+                1) 구 World의 PC가 TransitionMap으로 이동<br>
+                2) 새 World 로드, 새 GameMode 생성<br>
+                3) 새 PlayerState 생성 &rarr; 구 PlayerState.<strong>CopyProperties</strong>(새 PS) 호출<br>
+                4) 구 Pawn/PlayerState 파괴, 새 Pawn 스폰<br>
+                5) <strong>HandleSeamlessTravelPlayer()</strong> 호출
+              </div>
+<pre><span class="cm">// AO_PlayerState.cpp: Seamless Travel 시 데이터 복사</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::CopyProperties</span>(APlayerState* PlayerState)
+{
+    <span class="kw">Super</span>::CopyProperties(PlayerState);
+    AAO_PlayerState* PS = Cast&lt;AAO_PlayerState&gt;(PlayerState);
+
+    <span class="cm">// 커스터마이징 데이터 (항상 복사)</span>
+    PS->CharacterCustomizingData = <span class="kw">this</span>->CharacterCustomizingData;
+
+    <span class="cm">// 인벤토리 (SafeZone 판정에 따라 복사 또는 삭제)</span>
+    <span class="kw">if</span> (bInventoryShouldPersist)
+        PS->PersistentInventory = <span class="kw">this</span>->PersistentInventory;
+    <span class="kw">else</span>
+        PS->PersistentInventory.Empty();
+
+    <span class="cm">// DeathCount (로비 출발 시 초기화, 그 외 유지)</span>
+    <span class="kw">if</span> (CurrentMapName.Contains(LobbyName))
+        DeathCount = 0;
+    <span class="kw">else</span>
+        PS->DeathCount = <span class="kw">this</span>->DeathCount;
+
+    <span class="cm">// 체력 (KH: PersistentHealth)</span>
+    PS->bHasPersistentHealth = <span class="kw">this</span>->bHasPersistentHealth;
+    PS->PersistentHealth = <span class="kw">this</span>->PersistentHealth;
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s3">
+        <div class="step-marker" style="background:#16a34a">4</div>
+        <div class="step-card" style="--c:#16a34a" id="card3">
+          <div class="step-head" onclick="toggle(3)">
+            <div class="step-head-left">
+              <div class="step-title">HandleSeamlessTravelPlayer 처리</div>
+              <div class="step-en" style="color:#16a34a">GameMode Override for Post-Travel Setup</div>
+              <div class="step-desc">새 맵의 GameMode에서 이동 완료된 플레이어를 처리합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body3">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a">GameMode_Lobby</span>
+                <span class="tag" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a">GameMode_Stage</span>
+              </div>
+<pre><span class="cm">// Lobby: 로비 복귀 시 JoinOrder + Host 재설정</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Lobby::HandleSeamlessTravelPlayer</span>(AController*&amp; C)
+{
+    <span class="kw">Super</span>::HandleSeamlessTravelPlayer(C);
+
+    <span class="fn">AssignJoinOrderIfNeeded</span>(AOPS);
+    <span class="kw">const bool</span> bIsHost = AO_GI-><span class="fn">IsLobbyHostPlayerState</span>(AOPS);
+    AOPS-><span class="fn">SetIsLobbyHost</span>(bIsHost);
+    <span class="fn">NotifyLobbyBoardChanged</span>();
+}
+
+<span class="cm">// Stage: 기본 처리만 (Super 호출)</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Stage::HandleSeamlessTravelPlayer</span>(AController*&amp; C)
+{
+    <span class="kw">Super</span>::HandleSeamlessTravelPlayer(C);
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s4">
+        <div class="step-marker" style="background:#ea580c">5</div>
+        <div class="step-card" style="--c:#ea580c" id="card4">
+          <div class="step-head" onclick="toggle(4)">
+            <div class="step-head-left">
+              <div class="step-title">새 맵 BeginPlay: 데이터 복원</div>
+              <div class="step-en" style="color:#ea580c">GameMode/GameState BeginPlay &mdash; Restore Data</div>
+              <div class="step-desc">GameInstance에 저장된 데이터를 새 GameState로 복원합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body4">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#fff7ed;border:1px solid #fed7aa;color:#ea580c">GameMode_Stage::BeginPlay</span>
+                <span class="tag" style="background:#fff7ed;border:1px solid #fed7aa;color:#ea580c">GameMode_Rest::BeginPlay</span>
+                <span class="tag" style="background:#fff7ed;border:1px solid #fed7aa;color:#ea580c">GameState::BeginPlay</span>
+              </div>
+<pre><span class="cm">// GameMode_Stage: GI -> GS 로 부활 카운트 동기화</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Stage::BeginPlay</span>()
+{
+    <span class="kw">Super</span>::BeginPlay();
+    <span class="kw">if</span> (HasAuthority())
+    {
+        <span class="kw">const int32</span> ReviveCount = AO_GI-><span class="fn">GetSharedReviveCount</span>();
+        AO_GS-><span class="fn">SetSharedReviveCount</span>(ReviveCount);
+    }
+}
+
+<span class="cm">// GameState: GI -> GS 로 통계 데이터 동기화</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::BeginPlay</span>()
+{
+    <span class="kw">Super</span>::BeginPlay();
+    <span class="kw">if</span> (HasAuthority())
+    {
+        TeamDeathCount = GI->TeamDeathCount;
+        GameStartTime  = GI->GameStartTime;
+        GameEndTime    = GI->GameEndTime;
+    }
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /stepper -->
+  </div><!-- /section -->
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: 데이터 영속성 매트릭스 -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-title">3. 데이터 영속성 매트릭스</div>
+    <span class="section-en">Data Persistence Matrix</span>
+    <div class="section-desc">ServerTravel을 거치며 각 데이터가 어디에 저장되고, 어떤 방식으로 영속되며, 언제 복원되는지 정리합니다.</div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>데이터</th>
+          <th>저장 위치</th>
+          <th>영속 방식</th>
+          <th>복원 시점</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Inventory</strong><br><span style="font-size:11px;color:#6b7280">인벤토리 슬롯</span></td>
+          <td><code>PlayerState</code><br><code>PersistentInventory</code></td>
+          <td>Replicated + <code>SaveInventoryBeforeTravel()</code><br>&rarr; <code>CopyProperties()</code> 에서 <code>bInventoryShouldPersist</code> 조건부 복사</td>
+          <td>캐릭터 <code>BeginPlay</code><br>(InventoryComponent에서 PS의 PersistentInventory 읽기)</td>
+        </tr>
+        <tr>
+          <td><strong>Health</strong><br><span style="font-size:11px;color:#6b7280">캐릭터 체력</span></td>
+          <td><code>PlayerState</code><br><code>PersistentHealth</code></td>
+          <td>Replicated + <code>SaveHealthBeforeTravel()</code><br>&rarr; <code>CopyProperties()</code> 에서 복사</td>
+          <td>캐릭터 <code>BeginPlay</code><br>(<code>bHasPersistentHealth</code> == true 일 때 읽기)</td>
+        </tr>
+        <tr>
+          <td><strong>SharedReviveCount</strong><br><span style="font-size:11px;color:#6b7280">공유 부활 횟수</span></td>
+          <td><code>GameState</code> &harr; <code>GameInstance</code></td>
+          <td>GS &rarr; GI 양방향 동기화<br><code>AddSharedReviveCount()</code> / <code>TryConsumeSharedReviveCount()</code> 에서 GI 갱신</td>
+          <td><code>GameMode_Stage::BeginPlay</code><br><code>GameMode_Rest::BeginPlay</code><br>(GI &rarr; GS 복원)</td>
+        </tr>
+        <tr>
+          <td><strong>TrainFuel</strong><br><span style="font-size:11px;color:#6b7280">기차 연료</span></td>
+          <td><code>GameInstance</code><br><code>SharedTrainFuel</code></td>
+          <td>GI persistent member<br>Stage exit 시 Train ASC에서 읽어 저장</td>
+          <td><code>GameMode_Rest::BeginPlay</code><br>(GI 값 로그 확인, 기차에 반영)</td>
+        </tr>
+        <tr>
+          <td><strong>StageIndex</strong><br><span style="font-size:11px;color:#6b7280">현재 스테이지 번호</span></td>
+          <td><code>GameInstance</code><br><code>CurrentStageIndex</code></td>
+          <td>GI persistent member<br><code>TryAdvanceStageIndex()</code>로 증가</td>
+          <td>자동 유지<br>(맵 전환 시 GI가 살아있으므로 별도 복원 불필요)</td>
+        </tr>
+        <tr>
+          <td><strong>CustomizingData</strong><br><span style="font-size:11px;color:#6b7280">캐릭터 외형 옵션</span></td>
+          <td><code>PlayerState</code><br><code>CharacterCustomizingData</code></td>
+          <td>Replicated +<br><code>CopyProperties()</code> 에서 항상 복사</td>
+          <td>Seamless Travel 시 자동 보존<br>(새 PS가 생성될 때 즉시 적용)</td>
+        </tr>
+        <tr>
+          <td><strong>DeathCount</strong><br><span style="font-size:11px;color:#6b7280">개인 사망 횟수</span></td>
+          <td><code>PlayerState</code><br><code>DeathCount</code></td>
+          <td>Replicated +<br><code>CopyProperties()</code> 에서 조건부 복사<br>(로비 출발 시 0 초기화)</td>
+          <td>Seamless Travel 시 자동 보존</td>
+        </tr>
+        <tr>
+          <td><strong>TeamDeathCount / Time</strong><br><span style="font-size:11px;color:#6b7280">팀 통계</span></td>
+          <td><code>GameState</code> &harr; <code>GameInstance</code></td>
+          <td>GS 변경 시 GI에도 기록<br>(<code>AddTeamDeathCount</code>, <code>SetGameStartTime</code>, <code>SetGameEndTime</code>)</td>
+          <td><code>GameState::BeginPlay</code><br>(GI &rarr; GS 복원)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Save/Restore 코드 패턴 -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-title">4. Save/Restore 코드 패턴</div>
+    <span class="section-en">Save/Restore Code Patterns</span>
+
+    <div class="stepper">
+
+      <div class="step" id="s5">
+        <div class="step-marker" style="background:#d97706">A</div>
+        <div class="step-card" style="--c:#d97706" id="card5">
+          <div class="step-head" onclick="toggle(5)">
+            <div class="step-head-left">
+              <div class="step-title">인벤토리 Save/Restore 흐름</div>
+              <div class="step-en" style="color:#d97706">SaveInventoryBeforeTravel &rarr; CopyProperties &rarr; BeginPlay Restore</div>
+              <div class="step-desc">스테이지/휴게소에서 맵 전환 시 인벤토리를 PlayerState에 저장하고, 새 맵에서 복원합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body5">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#fffbeb;border:1px solid #fef3c7;color:#d97706">HandlePlayerTravel</span>
+                <span class="tag" style="background:#fffbeb;border:1px solid #fef3c7;color:#d97706">SaveInventoryBeforeTravel</span>
+                <span class="tag" style="background:#f9fafb;border:1px solid #e5e7eb;color:#6b7280">CheckPlayerInsideSafeZone</span>
+              </div>
+<pre><span class="cm">// STEP 1: Travel 전 저장 (AO_GameMode_InGameBase)</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_InGameBase::HandlePlayerTravel</span>(AAO_PlayerState* PS)
+{
+    <span class="cm">// 인벤토리를 PS에 복사</span>
+    UAO_InventoryComponent* Inv = Pawn-><span class="fn">FindComponentByClass</span>&lt;UAO_InventoryComponent&gt;();
+    PS-><span class="fn">SaveInventoryBeforeTravel</span>(Inv);
+
+    <span class="cm">// SafeZone 판정: 휴게소는 무조건 통과, 스테이지는 좌표 체크</span>
+    <span class="kw">if</span> (MapName.Contains(TEXT(<span class="str">"Rest"</span>)))
+        bFinalPersist = <span class="kw">true</span>;
+    <span class="kw">else</span>
+        bFinalPersist = <span class="fn">CheckPlayerInsideSafeZone</span>(PS);
+
+    PS->bInventoryShouldPersist = bFinalPersist;
+}
+
+<span class="cm">// STEP 2: CopyProperties 에서 조건부 복사</span>
+<span class="kw">if</span> (bInventoryShouldPersist)
+    PS->PersistentInventory = <span class="kw">this</span>->PersistentInventory;
+<span class="kw">else</span>
+    PS->PersistentInventory.Empty();
+
+<span class="cm">// STEP 3: PlayerState::SaveInventoryBeforeTravel</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::SaveInventoryBeforeTravel</span>(UAO_InventoryComponent* Inv)
+{
+    PersistentInventory = Inv->Slots;
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s6">
+        <div class="step-marker" style="background:#0891b2">B</div>
+        <div class="step-card" style="--c:#0891b2" id="card6">
+          <div class="step-head" onclick="toggle(6)">
+            <div class="step-head-left">
+              <div class="step-title">체력 Save/Restore 흐름</div>
+              <div class="step-en" style="color:#0891b2">SaveHealthBeforeTravel &rarr; CopyProperties &rarr; BeginPlay Read</div>
+              <div class="step-desc">현재 체력을 PlayerState에 저장하고, 새 맵에서 bHasPersistentHealth 플래그로 복원 여부를 판단합니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body6">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#ecfeff;border:1px solid #cffafe;color:#0891b2">SaveHealthBeforeTravel</span>
+                <span class="tag" style="background:#ecfeff;border:1px solid #cffafe;color:#0891b2">PersistentHealth</span>
+              </div>
+<pre><span class="cm">// STEP 1: Travel 전 체력 저장</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::SaveHealthBeforeTravel</span>(<span class="kw">float</span> InHealth)
+{
+    bHasPersistentHealth = <span class="kw">true</span>;
+    PersistentHealth = InHealth;
+}
+
+<span class="cm">// HandlePlayerTravel에서 호출</span>
+AAO_PlayerCharacter* PlayerCharacter = Cast&lt;AAO_PlayerCharacter&gt;(Pawn);
+<span class="kw">const float</span> CurrentHealth = PlayerCharacter-><span class="fn">GetCurrentHealth</span>();
+PS-><span class="fn">SaveHealthBeforeTravel</span>(CurrentHealth);
+
+<span class="cm">// STEP 2: CopyProperties에서 복사</span>
+PS->bHasPersistentHealth = <span class="kw">this</span>->bHasPersistentHealth;
+PS->PersistentHealth = <span class="kw">this</span>->PersistentHealth;
+
+<span class="cm">// STEP 3: 새 맵 캐릭터 BeginPlay에서 복원</span>
+<span class="cm">// bHasPersistentHealth == true 이면 PersistentHealth 적용</span>
+<span class="cm">// 복원 후 ResetStateHealth()로 플래그 초기화</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s7">
+        <div class="step-marker" style="background:#16a34a">C</div>
+        <div class="step-card" style="--c:#16a34a" id="card7">
+          <div class="step-head" onclick="toggle(7)">
+            <div class="step-head-left">
+              <div class="step-title">GameInstance &harr; GameState 데이터 흐름</div>
+              <div class="step-en" style="color:#16a34a">GI &harr; GS Bidirectional Sync</div>
+              <div class="step-desc">GameInstance는 맵 전환을 살아남는 영구 객체. GameState는 매 맵마다 새로 생성됩니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body7">
+            <div class="step-body-inner">
+              <div class="tag-row">
+                <span class="tag" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a">GameInstance</span>
+                <span class="tag" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a">GameState</span>
+              </div>
+              <div class="info-box note">
+                <strong>GI (영구)</strong> &rarr; 맵 전환 시 파괴되지 않음<br>
+                <strong>GS (맵별)</strong> &rarr; 매 맵 로드 시 새로 생성, 클라이언트에 Replicate<br><br>
+                데이터 흐름: <strong>GS 변경 &rarr; GI에 백업</strong> (인게임 중) / <strong>GI &rarr; GS 복원</strong> (BeginPlay 시)
+              </div>
+<pre><span class="cm">// 인게임 중: GS -> GI 백업 (부활 카운트 예시)</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::AddSharedReviveCount</span>(int32 Delta)
+{
+    <span class="fn">SetSharedReviveCount</span>(NewValue);
+    <span class="cm">// GI 값도 같이 맞춰줌 (GI는 "저장"만 담당)</span>
+    GI->SharedReviveCount = SharedReviveCount;
+}
+
+<span class="cm">// 새 맵 진입: GI -> GS 복원</span>
+<span class="cm">// GameMode_Stage::BeginPlay</span>
+AO_GS-><span class="fn">SetSharedReviveCount</span>(AO_GI-><span class="fn">GetSharedReviveCount</span>());
+
+<span class="cm">// 연료: Stage exit 시 Train ASC -> GI 저장</span>
+AO_GI->SharedTrainFuel = ASC-><span class="fn">GetNumericAttribute</span>(
+    UAO_Fuel_AttributeSet::<span class="fn">GetFuelAttribute</span>());
+AO_GI->SharedTrainFuel = FMath::<span class="fn">Max</span>(0.0f, Fuel - RequiredFuel);</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /stepper -->
+  </div><!-- /section -->
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: 실패 모드 -->
+  <!-- ============================================================ -->
+  <div class="section">
+    <div class="section-title">5. 실패 모드</div>
+    <span class="section-en">Failure Modes &amp; Common Pitfalls</span>
+
+    <div class="stepper">
+
+      <div class="step" id="s8">
+        <div class="step-marker" style="background:#dc2626">!</div>
+        <div class="step-card" style="--c:#dc2626" id="card8">
+          <div class="step-head" onclick="toggle(8)">
+            <div class="step-head-left">
+              <div class="step-title">bUseSeamlessTravel 누락 &rarr; PC 소멸</div>
+              <div class="step-en" style="color:#dc2626">P0 Critical &mdash; Non-Seamless Travel Destroys All Controllers</div>
+              <div class="step-desc">Seamless 플래그 없이 ServerTravel하면 모든 PC/PS가 파괴되어 데이터가 완전히 소실됩니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body8">
+            <div class="step-body-inner">
+              <div class="info-box danger">
+                <strong>증상:</strong> 맵 전환 후 모든 클라이언트가 재접속한 것처럼 동작. 인벤토리, 체력, 커스터마이징 등 모든 PlayerState 데이터 소실.<br>
+                <strong>원인:</strong> GameMode 생성자에서 <code>bUseSeamlessTravel = true</code> 미설정.<br>
+                <strong>검증:</strong> <code>AO_GameMode_InGameBase</code> 생성자와 <code>AO_GameMode_Lobby</code> 생성자 모두 설정 여부 확인 필요.
+              </div>
+<pre><span class="cm">// 정상 코드 (AO_GameMode_InGameBase.cpp)</span>
+AAO_GameMode_InGameBase::AAO_GameMode_InGameBase()
+{
+    <span class="kw">bUseSeamlessTravel</span> = <span class="kw">true</span>;  <span class="cm">// 이것이 빠지면 P0 버그</span>
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s9">
+        <div class="step-marker" style="background:#dc2626">!</div>
+        <div class="step-card" style="--c:#dc2626" id="card9">
+          <div class="step-head" onclick="toggle(9)">
+            <div class="step-head-left">
+              <div class="step-title">Save 누락 &rarr; 아이템/체력 손실</div>
+              <div class="step-en" style="color:#dc2626">P1 High &mdash; Missing SaveBeforeTravel Call</div>
+              <div class="step-desc">HandlePlayerTravel()이 호출되지 않거나, 특정 경로에서 누락되면 아이템이나 체력이 초기화됩니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body9">
+            <div class="step-body-inner">
+              <div class="info-box danger">
+                <strong>증상:</strong> 맵 전환 후 인벤토리가 비어있거나 체력이 최대치로 초기화됨.<br>
+                <strong>원인:</strong> <code>RequestSynchronizedServerTravel()</code> 내부에서 <code>HandlePlayerTravel()</code>을 호출하지만,
+                <code>HandleStageExitRequest()</code>에서도 별도로 <code>SaveInventoryBeforeTravel()</code>을 호출함 (이중 호출 구조).<br>
+                <strong>위험:</strong> 새로운 Travel 경로를 추가할 때 Save 호출을 잊기 쉬움.
+              </div>
+<pre><span class="cm">// HandleStageExitRequest에서의 Save (첫 번째 호출)</span>
+<span class="kw">for</span> (APlayerState* P : AO_GS->PlayerArray)
+{
+    AO_PS-><span class="fn">SaveInventoryBeforeTravel</span>(InvComp);  <span class="cm">// Stage에서 직접 호출</span>
+    <span class="fn">HandlePlayerTravel</span>(AO_PS);              <span class="cm">// 여기서도 내부적으로 Save 호출</span>
+}
+
+<span class="cm">// RequestSynchronizedServerTravel에서의 Save (두 번째 호출)</span>
+PS->bIsTraveling = <span class="kw">true</span>;
+<span class="fn">HandlePlayerTravel</span>(PS);  <span class="cm">// 다시 Save!</span></pre>
+              <div class="info-box warn" style="margin-top:8px;">Stage exit 경로에서는 Save가 이중으로 호출되지만, Rest exit 경로에서는 <code>HandlePlayerTravel()</code>만 호출됩니다. 인벤토리 Save 없이 <code>bIsTraveling</code>만 설정하는 경로가 있는지 QA 확인이 필요합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s10">
+        <div class="step-marker" style="background:#dc2626">!</div>
+        <div class="step-card" style="--c:#dc2626" id="card10">
+          <div class="step-head" onclick="toggle(10)">
+            <div class="step-head-left">
+              <div class="step-title">GameInstance 초기화 실패 &rarr; 정의되지 않은 상태</div>
+              <div class="step-en" style="color:#dc2626">P1 High &mdash; Stale GameInstance Data</div>
+              <div class="step-desc">ResetRun()이 호출되지 않으면 이전 판의 데이터가 다음 판에 유입됩니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body10">
+            <div class="step-body-inner">
+              <div class="info-box danger">
+                <strong>증상:</strong> 새 게임 시작 시 이전 판의 StageIndex, 연료, 부활 횟수가 남아있음.<br>
+                <strong>원인:</strong> <code>TravelToStage()</code>에서 <code>ResetRun()</code>을 호출하지만, 비정상 경로(crash 복구, disconnect 후 재접속)에서는 <code>ResetRun()</code>이 누락될 수 있음.<br>
+                <strong>관련 코드:</strong>
+              </div>
+<pre><span class="cm">// 정상 경로: 로비 -> 스테이지 시작</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Lobby::TravelToStage</span>()
+{
+    AO_GI-><span class="fn">ResetRun</span>();  <span class="cm">// 스테이지/연료/부활 초기화</span>
+    ...
+}
+
+<span class="cm">// ResetRun 내용</span>
+<span class="kw">void</span> <span class="fn">UAO_GameInstance::ResetRun</span>()
+{
+    CurrentStageIndex = 0;
+    SharedTrainFuel = <span class="fn">GetInitialFuelValue</span>();
+    SharedReviveCount = InitialSharedReviveCount;
+    TeamDeathCount = 0;
+    GameStartTime = 0;
+    GameEndTime = 0;
+}
+
+<span class="cm">// 실패 복귀 경로</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_Stage::ResetGameAndGoToLobby</span>(...)
+{
+    AO_GI-><span class="fn">ResetRun</span>();  <span class="cm">// 여기서도 초기화</span>
+    <span class="fn">RollbackSessionInGameFlag</span>();
+    <span class="fn">RequestSynchronizedServerTravel</span>(LobbyPath);
+}</pre>
+              <div class="info-box warn" style="margin-top:8px;">
+                <strong>QA 체크포인트:</strong><br>
+                - 마지막 스테이지 클리어 후 <code>SetGameClear()</code> 경로에서는 <code>ResetRun()</code>이 주석 처리되어 있음 (UI 버튼에서 로비 이동 시 호출 필요)<br>
+                - <code>bIsGameCleared</code>와 <code>bIsStageFailed</code>는 GameState 소속이므로 맵 전환 시 자동 초기화됨 (별도 리셋 불필요)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s11">
+        <div class="step-marker" style="background:#d97706">!</div>
+        <div class="step-card" style="--c:#d97706" id="card11">
+          <div class="step-head" onclick="toggle(11)">
+            <div class="step-head-left">
+              <div class="step-title">OnRep 콜백 타이밍 이슈</div>
+              <div class="step-en" style="color:#d97706">P2 Medium &mdash; OnRep Callbacks After Travel</div>
+              <div class="step-desc">Travel 완료 후 클라이언트에서 OnRep 콜백이 예상과 다른 시점에 발생할 수 있습니다.</div>
+            </div>
+            <div class="step-toggle">&#9654;</div>
+          </div>
+          <div class="step-body" id="body11">
+            <div class="step-body-inner">
+              <div class="info-box warn">
+                <strong>증상:</strong> Travel 직후 UI가 갱신되지 않거나, 이전 맵의 데이터가 잠시 표시됨.<br>
+                <strong>원인:</strong> Seamless Travel 후 새 World에서 Replication이 완전히 수립되기 전까지 OnRep 콜백이 지연됨.<br>
+                <strong>대응:</strong> 서버에서는 <code>HasAuthority()</code> 체크 후 OnRep을 수동 호출하는 패턴을 사용함 (예: <code>OnRep_SharedReviveCount()</code>, <code>OnRep_IsGameCleared()</code>).
+              </div>
+<pre><span class="cm">// 서버에서의 수동 OnRep 호출 패턴</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::SetSharedReviveCount</span>(int32 InValue)
+{
+    SharedReviveCount = NewValue;
+    <span class="kw">if</span> (<span class="fn">HasAuthority</span>())
+    {
+        <span class="fn">OnRep_SharedReviveCount</span>();  <span class="cm">// 서버는 OnRep 자동 호출 안됨</span>
+    }
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /stepper -->
+  </div><!-- /section -->
+
+</div><!-- /page -->
+
+<script>
+let openIdx = -1;
+const cards = document.querySelectorAll('.step-card');
+const bodies = document.querySelectorAll('.step-body');
+function toggle(i) {
+  const card = cards[i], body = bodies[i];
+  if (openIdx === i) {
+    body.classList.remove('open');
+    card.classList.remove('active');
+    openIdx = -1;
+  } else {
+    if (openIdx >= 0) { bodies[openIdx].classList.remove('open'); cards[openIdx].classList.remove('active'); }
+    body.classList.add('open');
+    card.classList.add('active');
+    openIdx = i;
+  }
+}
+document.querySelectorAll('.step').forEach((el,i) =>
+  setTimeout(() => el.classList.add('visible'), 100 + i*80));
+</script>
+</body>
+</html>

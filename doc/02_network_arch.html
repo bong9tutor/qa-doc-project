@@ -334,11 +334,389 @@ int32 CollectedFuelCount;
     </div>
 
   </div><!-- /rpc-list -->
+
+  <!-- ============================================================ -->
+  <!-- 섹션 1: 서버 권한 모델 (Authority Model)                       -->
+  <!-- ============================================================ -->
+  <div class="section-label" style="margin-top:28px;">서버 권한 모델 (Authority Model)</div>
+
+  <div class="arch-diagram fade" id="authModel">
+    <div class="arch-title">HasAuthority() 패턴</div>
+    <div style="font-size:12px;color:#374151;line-height:1.7;">
+      UE5 Listen Server에서 <strong>게임플레이 상태 변경은 반드시 서버(Authority)에서만</strong> 수행해야 합니다.
+      <code>HasAuthority()</code>는 현재 액터가 서버 인스턴스인지 확인하는 가드 함수로, 상태 변경 함수 진입부에서 반드시 체크합니다.
+    </div>
+<pre><span class="cm">// AO_GameState.cpp — 서버 전용 가드 패턴</span>
+<span class="kw">void</span> <span class="fn">AAO_GameState::SetSharedReviveCount</span>(int32 InValue)
+{
+    <span class="kw">if</span> (HasAuthority() == <span class="kw">false</span>)
+    {
+        <span class="kw">return</span>;  <span class="cm">// 클라이언트에서는 즉시 반환</span>
+    }
+    SharedReviveCount = NewValue;
+    <span class="cm">// ... 서버에서만 값 변경 후 Replication 으로 동기화</span>
+}
+
+<span class="cm">// AO_PlayerState.cpp — 사망 처리도 서버 전용</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerState::SetIsAlive</span>(bool bInIsAlive)
+{
+    <span class="kw">if</span> (HasAuthority())
+    {
+        bIsAlive = bInIsAlive;
+        OnRep_IsAlive();  <span class="cm">// 서버는 OnRep 자동호출 안됨 → 수동</span>
+    }
+}</pre>
+
+    <div style="margin-top:14px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">Network Role</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">설명</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">HasAuthority()</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;color:#2563eb;">ROLE_Authority</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">서버에 존재하는 정본(Authoritative) 인스턴스</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;color:#16a34a;font-weight:600;">true</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;color:#d97706;">ROLE_AutonomousProxy</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">소유 클라이언트의 로컬 복제본 (입력 예측 가능)</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;color:#dc2626;font-weight:600;">false</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;color:#7c3aed;">ROLE_SimulatedProxy</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">다른 클라이언트가 보는 원격 복제본 (보간 처리)</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;color:#dc2626;font-weight:600;">false</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">클래스</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">존재 위치</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">AO_GameMode_*</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><span style="color:#2563eb;font-weight:600;">서버 전용</span></td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">클라이언트에 존재하지 않음. 게임 규칙/레벨 전환 담당</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">AO_GameState</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><span style="color:#16a34a;font-weight:600;">서버 + 모든 클라이언트</span></td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">공유 상태 (부활칩, 스테이지 성공/실패). 서버가 값 변경, 클라에 복제</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">AO_PlayerState</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><span style="color:#16a34a;font-weight:600;">서버 + 모든 클라이언트</span></td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">플레이어별 상태 (레디, 생존, 데스카운트). 모든 플레이어에게 복제</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">AO_PlayerController_*</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><span style="color:#d97706;font-weight:600;">서버 + 소유 클라이언트</span></td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Client RPC 수신 대상. 다른 클라이언트에는 존재하지 않음</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">AO_PlayerCharacter</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><span style="color:#16a34a;font-weight:600;">서버 + 모든 클라이언트</span></td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">소유 클라: AutonomousProxy, 타 클라: SimulatedProxy</td></tr>
+          <tr><td style="padding:6px 10px;font-weight:600;">AO_AISubsystem</td>
+              <td style="padding:6px 10px;"><span style="color:#2563eb;font-weight:600;">서버 전용</span></td>
+              <td style="padding:6px 10px;">AI 로직(StateTree, EQS)은 서버에서만 실행</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box tip" style="margin-top:12px;">
+      <strong>서버 권한 원칙:</strong> 게임플레이 상태(체력, 부활칩, 스테이지 클리어 등)는 반드시 서버에서 변경하고, Replication이나 Multicast RPC로 클라이언트에 전파합니다. 클라이언트가 직접 상태를 변경하면 치팅이 가능해지고, 클라이언트 간 불일치가 발생합니다.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 섹션 2: Replication 조건 (DOREPLIFETIME_CONDITION)             -->
+  <!-- ============================================================ -->
+  <div class="section-label" style="margin-top:28px;">Replication 조건 (DOREPLIFETIME_CONDITION)</div>
+
+  <div class="arch-diagram fade" id="repCond">
+    <div class="arch-title">GetLifetimeReplicatedProps() 패턴</div>
+    <div style="font-size:12px;color:#374151;line-height:1.7;">
+      Replicated 프로퍼티는 <code>GetLifetimeReplicatedProps()</code>에서 등록해야 엔진이 네트워크로 동기화합니다.
+      매크로를 통해 <strong>누구에게, 언제</strong> 복제할지 조건을 지정할 수 있습니다.
+    </div>
+
+    <div style="margin-top:14px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">매크로 / 조건</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">동작</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;">사용 시점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;color:#2563eb;">COND_None</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">모든 클라이언트에 항상 복제</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">공유 게임 상태 (체력, 스테이지 결과)</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;color:#2563eb;">COND_OwnerOnly</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">소유자 클라이언트에만 복제</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">인벤토리, 개인 설정 등 본인만 필요한 데이터</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;color:#2563eb;">COND_SkipOwner</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">소유자를 제외한 나머지에 복제</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">소유자는 로컬 예측으로 처리, 타 클라만 동기화 필요 시</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-family:'JetBrains Mono',monospace;font-size:11px;color:#2563eb;">COND_InitialOnly</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">최초 1회만 복제 (이후 변경 무시)</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">초기 설정값, 변하지 않는 속성 (팀 ID 등)</td></tr>
+          <tr><td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#2563eb;">REPNOTIFY_Always</td>
+              <td style="padding:6px 10px;">값이 같아도 OnRep 호출 보장</td>
+              <td style="padding:6px 10px;">GAS AttributeSet (체력이 0→0일 때도 UI 갱신 필요)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">AO_GameState — DOREPLIFETIME (COND_None 기본)</div>
+<pre><span class="kw">void</span> <span class="fn">AAO_GameState::GetLifetimeReplicatedProps</span>(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) <span class="kw">const</span>
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, SharedReviveCount);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, bIsStageFailed);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, RunResetTrigger);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, CurrentFindHintNum);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, bHint1);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, bHint2);
+    <span class="fn">DOREPLIFETIME</span>(AAO_GameState, bHint3);
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">AO_PlayerState — DOREPLIFETIME (COND_None 기본)</div>
+<pre><span class="kw">void</span> <span class="fn">AAO_PlayerState::GetLifetimeReplicatedProps</span>(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) <span class="kw">const</span>
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bLobbyIsReady);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, LobbyJoinOrder);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bIsLobbyHost);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bIsAlive);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, CharacterCustomizingData);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, PersistentInventory);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, DeathCount);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, bHasPersistentHealth);
+    <span class="fn">DOREPLIFETIME</span>(AAO_PlayerState, PersistentHealth);
+}</pre>
+
+    <div class="info-box tip" style="margin-top:12px;">
+      <strong>주의:</strong> <code>DOREPLIFETIME</code>에 조건 없이 등록하면 기본값 <code>COND_None</code>이 적용되어 모든 클라이언트에 복제됩니다. 대역폭 최적화가 필요하면 <code>COND_OwnerOnly</code> 등 조건을 명시하세요. 또한 <code>UPROPERTY(Replicated)</code> 또는 <code>UPROPERTY(ReplicatedUsing=OnRep_*)</code> 선언과 반드시 쌍으로 사용해야 합니다.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 섹션 3: Reliable vs Unreliable RPC                            -->
+  <!-- ============================================================ -->
+  <div class="section-label" style="margin-top:28px;">Reliable vs Unreliable RPC</div>
+
+  <div class="arch-diagram fade" id="reliableRpc">
+    <div class="arch-title">신뢰성 선택 기준</div>
+    <div style="font-size:12px;color:#374151;line-height:1.7;">
+      RPC의 <strong>Reliable/Unreliable</strong> 선택은 게임 정확성과 대역폭 사이의 트레이드오프입니다.
+      잘못된 선택은 패킷 유실 시 게임 상태 불일치 또는 대역폭 포화로 이어집니다.
+    </div>
+
+    <div style="margin-top:14px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;width:20%;">구분</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;width:40%;">Reliable</th>
+            <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#374151;width:40%;">Unreliable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">전송 보장</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">패킷 유실 시 <strong>재전송</strong>. 순서 보장</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">유실되면 <strong>무시</strong>. 순서 보장 안 됨</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">대역폭</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">ACK 오버헤드 + 재전송 큐 소비</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">최소 오버헤드, 한 번 전송 후 잊음</td></tr>
+          <tr><td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;">사용 대상</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">상태 변경, 게임 흐름 (승리, 상호작용, 데미지)</td>
+              <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">시각/청각 효과 (애니메이션, VFX, 사운드)</td></tr>
+          <tr><td style="padding:6px 10px;font-weight:600;">포화 위험</td>
+              <td style="padding:6px 10px;">Reliable 큐 가득 차면 <strong>연결 끊김</strong></td>
+              <td style="padding:6px 10px;">프레임 하나 빠질 뿐 문제 없음</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">Unreliable 예시 — MulticastPlayMeleeAnim (코스메틱)</div>
+<pre><span class="cm">// 애니메이션은 유실되어도 게임 상태에 영향 없음 → Unreliable</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, <span class="fn">Unreliable</span>)
+<span class="kw">void</span> <span class="fn">MulticastPlayMeleeAnim</span>();
+
+<span class="cm">// 구현: 모든 클라이언트에서 몽타주 재생</span>
+<span class="kw">void</span> <span class="fn">AAO_PlayerCharacter::MulticastPlayMeleeAnim_Implementation</span>()
+{
+    <span class="kw">if</span> (MeleeAnimMontage)
+        GetMesh()-&gt;GetAnimInstance()-&gt;<span class="fn">Montage_Play</span>(MeleeAnimMontage);
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">Reliable 예시 — MulticastOnVictory (게임 흐름)</div>
+<pre><span class="cm">// 승리 결과는 모든 클라에게 반드시 전달되어야 함 → Reliable</span>
+<span class="kw">UFUNCTION</span>(NetMulticast, <span class="fn">Reliable</span>)
+<span class="kw">void</span> <span class="fn">MulticastOnVictory</span>();
+
+<span class="cm">// 구현: 모든 클라이언트에서 승리 UI 표시</span>
+<span class="kw">void</span> <span class="fn">AAO_GameMode_InGame::MulticastOnVictory_Implementation</span>()
+{
+    <span class="fn">ShowVictoryUI</span>();
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">Reliable 예시 — ServerRPC_SetInputState (서버 상태 변경)</div>
+<pre><span class="cm">// 입력 상태를 서버에 전달 — 이동 판정에 영향 → Reliable</span>
+<span class="kw">UFUNCTION</span>(Server, <span class="fn">Reliable</span>)
+<span class="kw">void</span> <span class="fn">ServerRPC_SetInputState</span>(bool bWantsToSprint, bool bWantsToWalk);</pre>
+
+    <div class="info-box tip" style="margin-top:12px;">
+      <strong>판단 기준:</strong> "이 RPC가 유실되면 게임 결과가 달라지는가?" — Yes면 Reliable, No면 Unreliable. Reliable RPC를 매 틱 호출하면 큐 포화로 연결이 끊길 수 있으므로, 반복적 코스메틱 호출에는 절대 사용하지 마세요.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 섹션 4: GAS Replication 파이프라인                             -->
+  <!-- ============================================================ -->
+  <div class="section-label" style="margin-top:28px;">GAS Replication 파이프라인</div>
+
+  <div class="arch-diagram fade" id="gasPipeline">
+    <div class="arch-title">Gameplay Attribute System 네트워크 흐름</div>
+    <div style="font-size:12px;color:#374151;line-height:1.7;">
+      GAS의 <code>FGameplayAttributeData</code>는 일반 <code>UPROPERTY(Replicated)</code>와 다른 전용 매크로를 사용합니다.
+      어트리뷰트 변경이 서버에서 발생하면 자동으로 클라이언트에 복제되고, <code>OnRep</code> 콜백을 통해 UI가 갱신됩니다.
+    </div>
+
+    <!-- Flow diagram -->
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0;font-size:11px;">
+      <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:6px 10px;color:#2563eb;font-weight:600;">Server: GameplayEffect 적용</div>
+      <div style="color:#9ca3af;">→</div>
+      <div style="background:#f5f3ff;border:1px solid #ede9fe;border-radius:6px;padding:6px 10px;color:#7c3aed;font-weight:600;">PreAttributeChange()</div>
+      <div style="color:#9ca3af;">→</div>
+      <div style="background:#f5f3ff;border:1px solid #ede9fe;border-radius:6px;padding:6px 10px;color:#7c3aed;font-weight:600;">PostGameplayEffectExecute()</div>
+      <div style="color:#9ca3af;">→</div>
+      <div style="background:#ecfeff;border:1px solid #cffafe;border-radius:6px;padding:6px 10px;color:#0891b2;font-weight:600;">Replication</div>
+      <div style="color:#9ca3af;">→</div>
+      <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:6px;padding:6px 10px;color:#d97706;font-weight:600;">Client: OnRep_*()</div>
+      <div style="color:#9ca3af;">→</div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:6px 10px;color:#16a34a;font-weight:600;">UI 갱신</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">1단계: DOREPLIFETIME_CONDITION_NOTIFY 등록</div>
+<pre><span class="cm">// AO_PlayerCharacter_AttributeSet.cpp</span>
+<span class="kw">void</span> <span class="fn">UAO_PlayerCharacter_AttributeSet::GetLifetimeReplicatedProps</span>(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) <span class="kw">const</span>
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    <span class="cm">// COND_None: 모든 클라이언트에 복제</span>
+    <span class="cm">// REPNOTIFY_Always: 값이 같아도 OnRep 호출 보장</span>
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, Health,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, MaxHealth,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, Stamina,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, MaxStamina,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, WalkSpeed,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, RunSpeed,
+        COND_None, REPNOTIFY_Always);
+    <span class="fn">DOREPLIFETIME_CONDITION_NOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, SprintSpeed,
+        COND_None, REPNOTIFY_Always);
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">2단계: UPROPERTY 선언 + OnRep 함수</div>
+<pre><span class="cm">// AO_PlayerCharacter_AttributeSet.h</span>
+<span class="kw">UPROPERTY</span>(BlueprintReadOnly,
+    ReplicatedUsing = OnRep_Health, Category = "Health")
+FGameplayAttributeData Health;
+<span class="fn">ATTRIBUTE_ACCESSORS_BASIC</span>(
+    UAO_PlayerCharacter_AttributeSet, Health)
+
+<span class="kw">UFUNCTION</span>()
+<span class="kw">void</span> <span class="fn">OnRep_Health</span>(
+    <span class="kw">const</span> FGameplayAttributeData&amp; OldValue);</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">3단계: GAMEPLAYATTRIBUTE_REPNOTIFY 매크로</div>
+<pre><span class="cm">// AO_PlayerCharacter_AttributeSet.cpp</span>
+<span class="kw">void</span> <span class="fn">UAO_PlayerCharacter_AttributeSet::OnRep_Health</span>(
+    <span class="kw">const</span> FGameplayAttributeData&amp; OldValue)
+{
+    <span class="cm">// GAS 내부에 변경 사실을 알려 예측/보정 처리</span>
+    <span class="fn">GAMEPLAYATTRIBUTE_REPNOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, Health, OldValue);
+}
+
+<span class="kw">void</span> <span class="fn">UAO_PlayerCharacter_AttributeSet::OnRep_Stamina</span>(
+    <span class="kw">const</span> FGameplayAttributeData&amp; OldValue)
+{
+    <span class="fn">GAMEPLAYATTRIBUTE_REPNOTIFY</span>(
+        UAO_PlayerCharacter_AttributeSet, Stamina, OldValue);
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">4단계: 서버 측 값 변경 + 사망 판정</div>
+<pre><span class="cm">// PostGameplayEffectExecute — 서버에서만 실행</span>
+<span class="kw">void</span> <span class="fn">UAO_PlayerCharacter_AttributeSet::PostGameplayEffectExecute</span>(
+    <span class="kw">const</span> FGameplayEffectModCallbackData&amp; Data)
+{
+    <span class="kw">if</span> (Data.EvaluatedData.Attribute == GetHealthAttribute())
+    {
+        <span class="kw">const float</span> NewHealth = GetHealth();
+        <span class="kw">if</span> (NewHealth &lt;= 0.f)
+        {
+            <span class="kw">if</span> (Owner-&gt;HasAuthority()) <span class="cm">// 서버 전용</span>
+            {
+                OnPlayerDeath.<span class="fn">Broadcast</span>();
+            }
+        }
+        <span class="fn">SetHealth</span>(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+    }
+}</pre>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-top:16px;margin-bottom:6px;">Ability 활성화 흐름 요약</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin:10px 0;font-size:11px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:6px;padding:5px 10px;color:#d97706;font-weight:600;min-width:100px;text-align:center;">Client</div>
+        <div style="color:#374151;flex:1;">입력 감지 → <code>TryActivateAbilityByTag()</code> 호출</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:5px 10px;color:#2563eb;font-weight:600;min-width:100px;text-align:center;">Server RPC</div>
+        <div style="color:#374151;flex:1;">서버에서 Ability 활성화 → GameplayEffect 적용 → Attribute 변경</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="background:#ecfeff;border:1px solid #cffafe;border-radius:6px;padding:5px 10px;color:#0891b2;font-weight:600;min-width:100px;text-align:center;">Replication</div>
+        <div style="color:#374151;flex:1;">변경된 Attribute가 모든 클라이언트로 복제 → <code>OnRep_*()</code> 호출</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="background:#f5f3ff;border:1px solid #ede9fe;border-radius:6px;padding:5px 10px;color:#7c3aed;font-weight:600;min-width:100px;text-align:center;">Multicast</div>
+        <div style="color:#374151;flex:1;">(선택) 코스메틱 효과(애니메이션, VFX)는 Unreliable Multicast로 별도 전파</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:5px 10px;color:#16a34a;font-weight:600;min-width:100px;text-align:center;">UI Update</div>
+        <div style="color:#374151;flex:1;">OnRep 콜백 → <code>GAMEPLAYATTRIBUTE_REPNOTIFY</code> → ASC 내부 델리게이트 → HUD 위젯 갱신</div>
+      </div>
+    </div>
+
+    <div class="info-box tip" style="margin-top:12px;">
+      <strong>GAS 복제 핵심:</strong> <code>DOREPLIFETIME_CONDITION_NOTIFY</code>에서 <code>REPNOTIFY_Always</code>를 사용하는 이유는, GAS 내부 예측 시스템이 서버 값과 클라이언트 예측값을 비교/보정하기 위해 값이 동일해도 OnRep 호출이 필요하기 때문입니다. 일반 <code>DOREPLIFETIME</code>은 값이 변하지 않으면 OnRep을 호출하지 않습니다.
+    </div>
+  </div>
+
 </div><!-- /page -->
 
 <script>
 // Stagger
-['pt','ps','ad','fb'].forEach((id,i)=>
+['pt','ps','ad','fb','authModel','repCond','reliableRpc','gasPipeline'].forEach((id,i)=>
   setTimeout(()=>document.getElementById(id)?.classList.add('visible'),i*80));
 document.querySelectorAll('.rpc-item').forEach((el,i)=>
   setTimeout(()=>el.classList.add('visible'),300+i*60));
